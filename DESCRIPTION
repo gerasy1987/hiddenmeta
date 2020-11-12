@@ -1,0 +1,28 @@
+Package: hiddenmeta
+Type: Package
+Title: Meta-analysis of hidden population studies
+Version: 0.1.0
+Date: 2020-11-12
+Author: 
+    c(person("Georgiy", "Syunyaev", email = "gs2716@columbia.edu",
+             role = c("aut", "cre")),
+      person("Macartan", "Humphreys", email = "macartan@gmail.com",
+             role = c("aut", "cre")))
+Maintainer: Georgiy Syunyaev <gs2716@columbia.edu>
+Description: This package provides helper functions for RDS, TLS and proportional sampling 
+    from hidden populations. The functions allow for easy declaration of one or more studies
+    with various design features. In addition, package provides functions for meta-analysis of
+    performance comparison of various estimation methods based on RDS and proportional sampling.
+Depends: R (>= 4.0.0)
+Imports:
+    dplyr,
+    magrittr,
+    tidyr,
+    DeclareDesign,
+    RcppAlgos,
+    pbapply,
+    parallel
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
