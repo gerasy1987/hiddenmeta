@@ -1,4 +1,4 @@
-#' Simulate single population with given network structure
+#' Simulate signle population with given network structure
 #'
 #' @param N number of units in population
 #' @param K number of groups
@@ -14,8 +14,6 @@
 #' @export
 #'
 #' @examples
-#' pop_network()
-#'
 #' \dontrun{
 #' pop_network(
 #'   # total population size for one study
@@ -47,7 +45,7 @@
 #' @importFrom stringr str_split
 #' @importFrom stats rbinom
 pop_network <-
-  function(N=100, K=2, prev_K=c(known = .3, hidden = .1), rho_K=0.05,
+  function(N = 1000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
            p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
            p_edge_between = list(known = 0.05, hidden = 0.01),
            p_visibility = list(hidden = 1, known = 1),
@@ -58,7 +56,6 @@ pop_network <-
       expand.grid() %>%
       apply(X = ., MARGIN = 1, FUN = paste0, collapse = "")
 
-    # this can only handle 2 groups at the moment !!!
     g <-
       igraph::sample_pref(nodes = N, types = 2^K,
                           type.dist = gen_group_sizes(N = N, prev_K = prev_K, rho_K = rho_K),
@@ -75,12 +72,12 @@ pop_network <-
       igraph::vertex_attr(g)$type %>%
       stringr::str_split(., pattern = "", simplify = TRUE) %>%
       apply(X = ., MARGIN = 2, as.integer) %>%
-      { `colnames<-`(., c(paste0("known_", 1:(ncol(.)-1)), "hidden"))} %>%
+      {`colnames<-`(., c(paste0("known_", 1:(ncol(.)-1)), "hidden"))} %>%
       dplyr::as_tibble(.) %>%
       dplyr::mutate_at(dplyr::vars(dplyr::starts_with("known_")),
                        list(known_visible = ~ rbinom(n(), 1, p_visibility$known) * .)) %>%
       dplyr::mutate(
-        hidden_visible = rbinom(dplyr::n(), 1, p_visibility$hidden) * hidden,
+        hidden_visible = rbinom(n(), 1, p_visibility$hidden) * hidden,
         type = igraph::vertex_attr(g)$type,
         p_visibility_hidden = p_visibility$hidden,
         p_visibility_known = p_visibility$known) %>%
@@ -88,11 +85,10 @@ pop_network <-
       dplyr::mutate(
         type_visible = paste0(dplyr::c_across(dplyr::ends_with("visible")), collapse = "")) %>%
       dplyr::ungroup() %>%
-      fastDummies::dummy_cols(.data = .,
-                              select_columns = "type_visible",
+      fastDummies::dummy_cols(., select_columns = "type_visible",
                               remove_selected_columns = TRUE) %>%
       dplyr::mutate_at(
-        dplyr::vars(dplyr::contains("visible")),
+        vars(contains("visible")),
         ~ colSums(as.matrix((igraph::as_adj(g) * .) == 1))) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(total_visible = sum(dplyr::c_across(dplyr::contains("visible_")))) %>%
@@ -106,24 +102,25 @@ pop_network <-
                       links = igraph::as_adj_list(.))
       } %>%
       dplyr::group_by(hidden) %>%
-      dplyr::mutate(service = sample(c(rep(0, ceiling(n() * (1 - p_service))),
-                                       rep(1, floor(n() * p_service))))) %>%
+      dplyr::mutate(service_use = sample(c(rep(0, ceiling(n() * (1 - p_service))),
+                                           rep(1, floor(n() * p_service))))) %>%
       dplyr::ungroup()
 
+    # this can only handle 2 groups at the moment !!!
     return(data)
 
   }
 
-#' Simulate population with given network structure for multiple studies with varying designs
+#' Simulate populations with given network structure for multiple studies with (possibly) varying designs
 #'
-#' @param pop_args named list of named lists of arguments to pop_network()
+#' @param pop_args named list of named lists of arguments to \code{pop_network()} (the set of arguments can be excessive)
 #'
 #' @return
 #' @export
 #'
 #' @importFrom magrittr `%>%`
 #' @importFrom pbapply pblapply
-get_pop_network <- function(pop_args) {
+get_populations <- function(pop_args) {
 
   pbapply::pblapply(
     X = names(pop_args),
@@ -136,6 +133,6 @@ get_pop_network <- function(pop_args) {
 
     }) %>%
     dplyr::bind_rows(.) %>%
-    dplyr::select(study, dplyr::everything())
+    dplyr::select(study, everything())
 
 }
