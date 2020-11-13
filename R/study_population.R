@@ -1,4 +1,4 @@
-#' Simulate signle population with given network structure
+#' Simulate single population with given network structure
 #'
 #' @param N number of units in population
 #' @param K number of groups
