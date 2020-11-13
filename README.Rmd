@@ -74,36 +74,18 @@ study_1 <-
 ## STUDY 2
 study_2 <- 
   list(
-    # total population size for one study
     N = 2000,
-    # number of groups
-    # (K-th group is hidden population we are interested in)
     K = 2,
-    # probability of membership in each of the groups (prev_K[K] is the true prevalence)
     prev_K = c(known = .2, hidden = .1),
-    # correlation matrix of group memberships
     rho_K = .05,
-    
-    # block edge probabilities depending on group memberships
-    # 1 - list of in- and out-group probability of links for each group
-    # 2 - probability of link between in- and out-group members
     p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.5)),
     p_edge_between = list(known = 0.05, hidden = 0.01),
-    
-    # probability of visibility (show-up) for each group
     p_visibility = list(hidden = 1, known = 1),
-    
-    # probability of service utilization in hidden population
-    # for service multiplier
     p_service = 0.2,
-    
-    # rds parameters
     n_seed_hidden = 20,
     n_seed_other = 0,
     n_coupons = 3,
     target_size_rds = 120,
-    
-    # Prop sampling parameters
     target_size_prop = 800
   )
 
