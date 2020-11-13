@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_population.R
 \name{pop_network}
 \alias{pop_network}
-\title{Simulate signle population with given network structure}
+\title{Simulate single population with given network structure}
 \usage{
 pop_network(
   N = 1000,
@@ -39,7 +39,7 @@ pop_network(
 
 }
 \description{
-Simulate signle population with given network structure
+Simulate single population with given network structure
 }
 \examples{
 \dontrun{
