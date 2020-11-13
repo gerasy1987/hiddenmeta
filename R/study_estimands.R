@@ -7,12 +7,13 @@
 #'
 #' @import dplyr
 #' @importFrom magrittr `%>%`
+#' @importFrom purrr map_int
 #' @importFrom pbapply pblapply pboptions
 hpop_estimands <- function(data) {
 
   data %>%
-    dplyr::mutate(degree = map_int(links, ~ length(.x)),
-                  degree_hidden = map_int(links, ~ sum(data$hidden[data$name %in% .x]))) %>%
+    dplyr::mutate(degree = purrr::map_int(links, ~ length(.x)),
+                  degree_hidden = purrr::map_int(links, ~ sum(data$hidden[data$name %in% .x]))) %>%
     {
       dplyr::bind_cols(
         dplyr::summarise_at(., dplyr::vars(dplyr::starts_with("known"), hidden, -dplyr::contains("visible")),
