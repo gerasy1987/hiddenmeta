@@ -15,7 +15,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' population_network(
+#' pop_network(
 #'   # total population size for one study
 #'   N = 1000,
 #'   # number of groups
@@ -44,7 +44,7 @@
 #' @importFrom plyr mapvalues
 #' @importFrom stringr str_split
 #' @importFrom stats rbinom
-population_network <-
+pop_network <-
   function(N, K, prev_K, rho_K, p_edge_within, p_edge_between,
            p_visibility, p_service, directed = FALSE) {
 
@@ -111,22 +111,22 @@ population_network <-
 
 #' Simulate population with given network structure for multiple studies with varying designs
 #'
-#' @param pop_args named list of named lists of arguments to population_network()
+#' @param pop_args named list of named lists of arguments to pop_network()
 #'
 #' @return
 #' @export
 #'
 #' @importFrom magrittr `%>%`
 #' @importFrom pbapply pblapply
-get_populations <- function(pop_args) {
+get_pop_network <- function(pop_args) {
 
   pbapply::pblapply(
     X = names(pop_args),
     cl = 2,
     FUN = function(x) {
 
-      do.call(what = population_network,
-              args = pop_args[[x]][names(pop_args[[x]]) %in% formalArgs(population_network)]) %>%
+      do.call(what = pop_network,
+              args = pop_args[[x]][names(pop_args[[x]]) %in% formalArgs(pop_network)]) %>%
         dplyr::mutate(study = x)
 
     }) %>%

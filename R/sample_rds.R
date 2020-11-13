@@ -1,0 +1,160 @@
+#' Title
+#'
+#' @param data
+#' @param assignment_variable
+#' @param n_seed_hidden
+#' @param n_seed_other
+#' @param n_coupons
+#' @param target_size_rds
+#'
+#' @return
+#' @export
+#'
+#' @examples
+sample_rds <-
+  function(
+    data,
+    assignment_variable = "RDS",
+    n_seed_hidden,
+    n_seed_other, #
+    n_coupons,
+    target_size_rds) {
+
+    if (length(data$name[data$hidden == 1]) <= n_seed_hidden) {
+      seeds <- c(data$name[data$hidden == 1],
+                 sample(data$name[data$hidden == 0], size = n_seed_other,replace = FALSE))
+    } else {
+      seeds <-
+        c(sample(
+          data$name[data$hidden == 1], # sample out of all people in hidden population
+          size = n_seed_hidden, # select only prescribed number of subjects
+          replace = FALSE),
+          sample(data$name[data$hidden == 0], size = n_seed_other,replace = FALSE))
+    }
+
+    # at t=1 only seeds are sampled
+    sampled <- tibble(name = seeds, from = NA_integer_, t = 0, wave = 1,
+                      hidden = data$hidden[data$name %in% seeds])
+    # n_coupons of their links (not just in hidden pop) are eligible
+    eligible <-
+      seeds %>%
+      # sample from each seed links
+      lapply(.,
+             function(x){
+
+               # presume that only hidden population links can be sampled
+               available_links <-
+                 data %>%
+                 dplyr::filter(
+                   name %in% unlist(data$links[data$name == x]),
+                   hidden == 1
+                 ) %>%
+                 .$name
+
+
+               if (length(available_links) > 0) {
+                 if (length(available_links) == 1) {
+                   tibble(from = x,
+                          to = as.integer(available_links))
+                 } else {
+                   tibble(from = x,
+                          to = sample(x = as.integer(available_links),
+                                      size = min(length(available_links), n_coupons),
+                                      replace = FALSE))
+                 }
+               }
+             }) %>%
+      dplyr::bind_rows() %>%
+      # join in eligible showup rates
+      dplyr::left_join(., data[, c("name", "p_visibility_known",
+                                   "p_visibility_hidden", "hidden")], by = c(to = "name")) %>%
+      # drop those who won't show up and those who were already sampled
+      # also record wave - number of links from seed
+      dplyr::mutate(
+        showup = rbinom(n = n(), size = 1, prob = ifelse(hidden == 1,
+                                                         p_visibility_hidden,
+                                                         p_visibility_known)),
+        wave = 2) %>%
+      dplyr::filter(showup == 1,
+                    !(to %in% sampled$name),
+                    !duplicated(to)) %>%
+      # do we exclude non-members of hidden population?
+      # dplyr::filter(hidden == 1) %>%
+      dplyr::select(from, to, wave, hidden)
+
+    # Next, run the loop with the same procedure
+    t <- 1
+
+    repeat {
+
+      # sample 1 individual according to wave!
+      new <- slice_sample(eligible, n = 1, replace = FALSE, weight_by = 1/wave)
+
+      # move sampled from eligible to sampled
+      sampled %<>%
+        dplyr::bind_rows(., c(name = new$to,
+                              from = new$from,
+                              t = t,
+                              wave = new$wave,
+                              hidden = new$hidden))
+
+      eligible %<>% dplyr::filter(to != new$to)
+
+      # presume that only hidden population links can be sampled
+      new_available_links <-
+        data %>%
+        dplyr::filter(
+          name %in% unlist(data$links[data$name == new$to]),
+          hidden == 1
+        ) %>%
+        .$name
+
+      # add new eligible links using the same procedure as above
+      if (length(new_available_links) > 0) {
+
+        eligible <-
+          new_available_links %>%
+          purrr::when(
+            length(new_available_links) == 1 ~ tibble(from = new$to, to = .),
+            tibble(from = new$to,
+                   to = sample(x = as.integer(.), size = min(length(.),n_coupons),
+                               replace = FALSE))) %>%
+          # join in eligible showup rates
+          dplyr::left_join(., data[, c("name", "p_visibility_known",
+                                       "p_visibility_hidden", "hidden")],
+                           by = c(to = "name")) %>%
+          # drop those who won't show up and those who were already samples
+          dplyr::mutate(showup = rbinom(n = n(), size = 1,
+                                        prob = ifelse(hidden == 1,
+                                                      p_visibility_hidden,
+                                                      p_visibility_known)),
+                        wave = new$wave + 1) %>%
+          dplyr::filter(showup == 1,
+                        !(to %in% sampled$name),
+                        !duplicated(to)) %>%
+          # do we exclude non-members of hidden population?
+          # dplyr::filter(hidden == 1) %>%
+          dplyr::select(from, to, wave, hidden) %>%
+          dplyr::bind_rows(eligible, .)
+      }
+
+      if (nrow(sampled) == target_size_rds) break
+      if (nrow(eligible) == 0) {
+        # warning(paste0("There are no eligible individuals in hidden population at step ", t))
+
+        break
+      }
+
+      t <- t + 1
+    }
+
+    data[,assignment_variable] <- as.integer(data$name %in% sampled$name)
+    names(sampled) %<>% {c(.[1], paste0(assignment_variable, "_", .[-1]))}
+
+    data %<>%
+      dplyr::left_join(., sampled, by = "name")
+
+
+    return(data)
+
+  }
