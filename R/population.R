@@ -1,4 +1,4 @@
-#' Simulate signle population with given network structure
+#' Simulate single population with given network structure
 #'
 #' @param N number of units in population
 #' @param K number of groups
@@ -14,6 +14,8 @@
 #' @export
 #'
 #' @examples
+#' pop_network()
+#'
 #' \dontrun{
 #' pop_network(
 #'   # total population size for one study
@@ -45,8 +47,11 @@
 #' @importFrom stringr str_split
 #' @importFrom stats rbinom
 pop_network <-
-  function(N, K, prev_K, rho_K, p_edge_within, p_edge_between,
-           p_visibility, p_service, directed = FALSE) {
+  function(N=100, K=2, prev_K=c(known = .3, hidden = .1), rho_K=0.05,
+           p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
+           p_edge_between = list(known = 0.05, hidden = 0.01),
+           p_visibility = list(hidden = 1, known = 1),
+           p_service = 0.3, directed = FALSE) {
 
     type_names <-
       lapply(1:K, function(x) 0:1) %>%

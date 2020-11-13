@@ -2,17 +2,17 @@
 % Please edit documentation in R/population.R
 \name{pop_network}
 \alias{pop_network}
-\title{Simulate signle population with given network structure}
+\title{Simulate single population with given network structure}
 \usage{
 pop_network(
-  N,
-  K,
-  prev_K,
-  rho_K,
-  p_edge_within,
-  p_edge_between,
-  p_visibility,
-  p_service,
+  N = 100,
+  K = 2,
+  prev_K = c(known = 0.3, hidden = 0.1),
+  rho_K = 0.05,
+  p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
+  p_edge_between = list(known = 0.05, hidden = 0.01),
+  p_visibility = list(hidden = 1, known = 1),
+  p_service = 0.3,
   directed = FALSE
 )
 }
@@ -39,7 +39,7 @@ pop_network(
 
 }
 \description{
-Simulate signle population with given network structure
+Simulate single population with given network structure
 }
 \examples{
 \dontrun{
