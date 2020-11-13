@@ -122,7 +122,7 @@ pop_network <-
 #' @importFrom magrittr `%>%`
 #' @importFrom pbapply pblapply pboptions
 #' @importFrom parallel detectCores
-get_populations <- function(pop_args) {
+get_pop_network <- function(pop_args) {
 
   pbapply::pboptions(type = "none")
 

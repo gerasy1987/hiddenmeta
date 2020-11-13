@@ -34,7 +34,7 @@ Sampling handler for drawing RDS sample with given characteristics from individu
 }
 \examples{
 \dontrun{
-sample_rds(data = pop_network())
+sample_rds(data = get_pop_network())
 }
 
 }

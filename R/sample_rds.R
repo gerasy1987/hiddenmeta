@@ -14,7 +14,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' sample_rds(data = pop_network())
+#' sample_rds(data = get_pop_network())
 #' }
 #'
 #' @import dplyr

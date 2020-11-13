@@ -1,7 +1,6 @@
 
 # hiddenmeta ![R](https://github.com/gerasy1987/hiddenmeta/workflows/R/badge.svg)
 
-
 ## Overview
 
 ------------------------------------------------------------------------
