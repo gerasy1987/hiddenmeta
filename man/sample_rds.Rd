@@ -34,12 +34,7 @@ Sampling handler for drawing RDS sample with given characteristics from individu
 }
 \examples{
 \dontrun{
-sample_rds(
-  data = pop_network(),
-  n_seed_hidden = 10,
-  n_seed_other = 0,
-  n_coupons = 3,
-  target_size_rds = 50)
+sample_rds(data = pop_network())
 }
 
 }

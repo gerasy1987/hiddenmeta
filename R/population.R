@@ -118,13 +118,17 @@ pop_network <-
 #' @return
 #' @export
 #'
+#' @import dplyr
 #' @importFrom magrittr `%>%`
-#' @importFrom pbapply pblapply
+#' @importFrom pbapply pblapply pboptions
+#' @importFrom parallel detectCores
 get_populations <- function(pop_args) {
+
+  pbapply::pboptions(type = "none")
 
   pbapply::pblapply(
     X = names(pop_args),
-    cl = 2,
+    cl = parallel::detectCores()/2,
     FUN = function(x) {
 
       do.call(what = pop_network,
