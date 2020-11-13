@@ -15,6 +15,3 @@ get_populations(pop_args)
 \description{
 Simulate population with given network structure for multiple studies with varying designs
 }
-\examples{
-
-}

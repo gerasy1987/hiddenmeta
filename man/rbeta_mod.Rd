@@ -20,6 +20,8 @@ rbeta_mod(n, mu, sd)
 Reparametrization of base R rbeta to take location and scale rather than 2 shape parameters
 }
 \examples{
+\dontrun{
 rbeta_mod(4, .5, .1)
+}
 
 }

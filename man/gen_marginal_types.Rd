@@ -16,6 +16,8 @@ gen_marginal_types(k)
 Generate vector of type labels
 }
 \examples{
+\dontrun{
 gen_marginal_types(3)
+}
 
 }

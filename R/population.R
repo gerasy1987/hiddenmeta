@@ -14,6 +14,7 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' population_network(
 #'   # total population size for one study
 #'   N = 1000,
@@ -34,14 +35,15 @@
 #'   # probability of service utilization in hidden population
 #'   # for service multiplier
 #'   p_service = 0.3)
-#'
+#' }
 #'
 #' @import dplyr
 #' @importFrom igraph sample_pref vertex_attr as_adj as_adj_list
-#' @importFrom plyr mapvalues
-#' @importFrom stringr str_split
 #' @importFrom magrittr `%>%`
 #' @importFrom fastDummies dummy_cols
+#' @importFrom plyr mapvalues
+#' @importFrom stringr str_split
+#' @importFrom stats rbinom
 population_network <-
   function(N, K, prev_K, rho_K, p_edge_within, p_edge_between,
            p_visibility, p_service, directed = FALSE) {
@@ -114,9 +116,6 @@ population_network <-
 #' @return
 #' @export
 #'
-#' @examples
-#'
-#' @import tidyverse
 #' @importFrom magrittr `%>%`
 #' @importFrom pbapply pblapply
 get_populations <- function(pop_args) {
@@ -132,6 +131,6 @@ get_populations <- function(pop_args) {
 
     }) %>%
     dplyr::bind_rows(.) %>%
-    dplyr::select(study, everything())
+    dplyr::select(study, dplyr::everything())
 
 }

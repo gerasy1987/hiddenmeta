@@ -20,8 +20,10 @@ gen_group_sizes(N, prev_K, rho_K)
 Generate sizes of groups in population
 }
 \examples{
+\dontrun{
 gen_group_sizes(N = 1000,
                 prev_K = c(known = .3, hidden = .1),
                 rho_K = .05)
+}
 
 }

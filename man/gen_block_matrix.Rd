@@ -18,7 +18,9 @@ gen_block_matrix(p_edge_within, p_edge_between)
 Returns full block matrix of link probabilities given the group memberships based on probabilities of links within each of the groups and between in- and out-group members
 }
 \examples{
+\dontrun{
 gen_block_matrix(p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
                  p_edge_between = list(known = 0.05, hidden = 0.01))
+}
 
 }

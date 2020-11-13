@@ -42,6 +42,7 @@ population_network(
 Simulate signle population with given network structure
 }
 \examples{
+\dontrun{
 population_network(
   # total population size for one study
   N = 1000,
@@ -62,6 +63,6 @@ population_network(
   # probability of service utilization in hidden population
   # for service multiplier
   p_service = 0.3)
-
+}
 
 }
