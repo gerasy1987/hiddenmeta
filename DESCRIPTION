@@ -15,9 +15,10 @@ Description: This package provides helper functions for RDS, TLS and proportiona
     performance comparison of various estimation methods based on RDS and proportional sampling.
 Depends: R (>= 4.0.0)
 Imports:
-    dplyr,
+    tidyverse,
     magrittr,
-    tidyr,
+    igraph,
+    fastDummies,
     DeclareDesign,
     RcppAlgos,
     pbapply,
