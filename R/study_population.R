@@ -44,7 +44,7 @@
 #' @importFrom plyr mapvalues
 #' @importFrom stringr str_split
 #' @importFrom stats rbinom
-pop_network <-
+get_study_population <-
   function(N = 1000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
            p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
            p_edge_between = list(known = 0.05, hidden = 0.01),
@@ -60,19 +60,19 @@ pop_network <-
       igraph::sample_pref(nodes = N, types = 2^K,
                           type.dist = gen_group_sizes(N = N, prev_K = prev_K, rho_K = rho_K),
                           fixed.sizes = TRUE, directed = FALSE, loops = FALSE,
-                          pref.matrix= gen_block_matrix(p_edge_within = p_edge_within,
-                                                        p_edge_between = p_edge_between))
+                          pref.matrix = gen_block_matrix(p_edge_within = p_edge_within,
+                                                         p_edge_between = p_edge_between))
 
     igraph::vertex_attr(g)$type <-
       igraph::vertex_attr(g)$type %>%
-      { plyr::mapvalues(x = ., from = unique(.), to = type_names) }
+      {plyr::mapvalues(x = ., from = unique(.), to = type_names)}
 
 
     igraph::vertex_attr(g) <-
       igraph::vertex_attr(g)$type %>%
       stringr::str_split(., pattern = "", simplify = TRUE) %>%
       apply(X = ., MARGIN = 2, as.integer) %>%
-      {`colnames<-`(., c(paste0("known_", 1:(ncol(.)-1)), "hidden"))} %>%
+      {`colnames<-`(., c(paste0("known_", 1:(ncol(.) - 1)), "hidden"))} %>%
       dplyr::as_tibble(.) %>%
       dplyr::mutate_at(dplyr::vars(dplyr::starts_with("known_")),
                        list(known_visible = ~ rbinom(n(), 1, p_visibility$known) * .)) %>%
