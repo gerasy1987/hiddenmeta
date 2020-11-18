@@ -58,10 +58,13 @@ get_study_population <-
 
     g <-
       igraph::sample_pref(nodes = N, types = 2^K,
-                          type.dist = gen_group_sizes(N = N, prev_K = prev_K, rho_K = rho_K),
+                          type.dist = gen_group_sizes(N = N,
+                                                      prev_K = prev_K, rho_K = rho_K,
+                                                      .ord = type_names),
                           fixed.sizes = TRUE, directed = FALSE, loops = FALSE,
                           pref.matrix = gen_block_matrix(p_edge_within = p_edge_within,
-                                                         p_edge_between = p_edge_between))
+                                                         p_edge_between = p_edge_between,
+                                                         .ord = type_names))
 
     igraph::vertex_attr(g)$type <-
       igraph::vertex_attr(g)$type %>%

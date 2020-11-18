@@ -4,7 +4,8 @@
 #'
 #' @param N sample size
 #' @param prev_K numeric vector of prevalence for each group with last group being hidden population
-#' @param rho_K numeric vector that gives lower and upper triangles of correlation matrix between group memberships
+#' @param rho_K numeric vector that gives lower and upper triangles of correlation matrix between group memberships. If single number all group membership correlations are assumed to be equal
+#' @param .ord character vector of ordered names of all possible combinations of group memberships. Default is \code{NULL} to generate the order automatically
 #'
 #' @return
 #' @export
@@ -20,19 +21,23 @@
 #' @importFrom magrittr `%>%`
 #' @importFrom purrr quietly
 #' @importFrom MultiRNG draw.correlated.binary
-gen_group_sizes <- function(N, prev_K, rho_K) {
+gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
+
+  if (!(length(rho_K) %in% c(1, sum((length(prev_K) - 1):1))))
+    stop("Length of correlations vector should be either 1 or sum((K - 1):1)")
 
   rho <- diag(rep(1, length(prev_K)))
 
   rho[lower.tri(rho)] <- rho_K
   rho[upper.tri(rho)] <- t(rho)[upper.tri(rho)]
 
-  ord <-
-    seq_along(prev_K) %>%
-    lapply(., function(x) 0:1) %>%
-    expand.grid() %>%
-    apply(1, paste0, collapse = "") %>%
-    dplyr::tibble(group = .)
+  if (is.null(.ord)) {
+    .ord <-
+      seq_along(prev_K) %>%
+      lapply(., function(x) 0:1) %>%
+      expand.grid() %>%
+      apply(1, paste0, collapse = "")
+  }
 
   MultiRNG::draw.correlated.binary(no.row = N,
                                    d = length(prev_K),
@@ -46,8 +51,8 @@ gen_group_sizes <- function(N, prev_K, rho_K) {
     dplyr::rowwise() %>%
     dplyr::mutate(group = paste0(dplyr::c_across(dplyr::starts_with("V")), collapse = "")) %>%
     dplyr::select(group, n) %>%
-    dplyr::left_join(ord, ., by = "group") %>%
-    {`names<-`(.$n, .$group)}
+    {`names<-`(.$n, .$group)} %>%
+    .[.ord]
 
   # # can only handle 2 groups at the moment !!!
   # {rho_K * sqrt(prod(prev_K * (1 - prev_K))) + prod(prev_K)} %>%
@@ -67,6 +72,7 @@ gen_group_sizes <- function(N, prev_K, rho_K) {
 #'
 #' @param p_edge_within named list of numeric vectors giving probability of link between in-group members and out-group members for each of groups
 #' @param p_edge_between named list of numeric values giving probability of link between in- and out-group member for each of groups
+#' @param .ord character vector of ordered names of all possible combinations of group memberships. Default is \code{NULL} to generate the order automatically
 #'
 #' @return
 #' @export
@@ -79,10 +85,13 @@ gen_group_sizes <- function(N, prev_K, rho_K) {
 #'
 #' @importFrom magrittr `%>%`
 #' @importFrom RcppAlgos permuteGeneral
-gen_block_matrix <- function(p_edge_within, p_edge_between) {
+gen_block_matrix <- function(p_edge_within, p_edge_between, .ord = NULL) {
 
   if (length(p_edge_within) != length(p_edge_between))
     stop("p_edge_within needs to be a list of length K")
+
+  if (!all(sapply(p_edge_within, function(x) length(x) == 2)))
+    stop("Each element of p_edge_within should be of length 2 (in and out group probability)")
 
   within_mat <-
     lapply(rev(p_edge_within), function(x) 1 - diag(1 - x)) %>%
@@ -94,10 +103,14 @@ gen_block_matrix <- function(p_edge_within, p_edge_between) {
 
   out_mat <- within_mat * between_mat
 
-  colnames(out_mat) <- rownames(out_mat) <-
-    lapply(1:length(p_edge_within), function(x) 0:1) %>%
-    do.call(expand.grid, .) %>%
-    apply(1, paste0, collapse = "")
+  if (is.null(.ord)) {
+    colnames(out_mat) <- rownames(out_mat) <-
+      lapply(1:length(p_edge_within), function(x) 0:1) %>%
+      do.call(expand.grid, .) %>%
+      apply(1, paste0, collapse = "")
+  } else {
+    colnames(out_mat) <- rownames(out_mat) <- .ord
+  }
 
   return(out_mat)
 }

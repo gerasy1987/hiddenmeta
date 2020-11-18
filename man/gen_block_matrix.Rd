@@ -4,12 +4,14 @@
 \alias{gen_block_matrix}
 \title{Generate block matrix of link probabilities}
 \usage{
-gen_block_matrix(p_edge_within, p_edge_between)
+gen_block_matrix(p_edge_within, p_edge_between, .ord = NULL)
 }
 \arguments{
 \item{p_edge_within}{named list of numeric vectors giving probability of link between in-group members and out-group members for each of groups}
 
 \item{p_edge_between}{named list of numeric values giving probability of link between in- and out-group member for each of groups}
+
+\item{.ord}{character vector of ordered names of all possible combinations of group memberships. Default is \code{NULL} to generate the order automatically}
 }
 \value{
 

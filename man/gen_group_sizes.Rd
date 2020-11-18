@@ -4,14 +4,16 @@
 \alias{gen_group_sizes}
 \title{Generate sizes of groups in population}
 \usage{
-gen_group_sizes(N, prev_K, rho_K)
+gen_group_sizes(N, prev_K, rho_K, .ord = NULL)
 }
 \arguments{
 \item{N}{sample size}
 
 \item{prev_K}{numeric vector of prevalence for each group with last group being hidden population}
 
-\item{rho_K}{numeric vector that gives lower and upper triangles of correlation matrix between group memberships}
+\item{rho_K}{numeric vector that gives lower and upper triangles of correlation matrix between group memberships. If single number all group membership correlations are assumed to be equal}
+
+\item{.ord}{character vector of ordered names of all possible combinations of group memberships. Default is \code{NULL} to generate the order automatically}
 }
 \value{
 

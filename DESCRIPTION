@@ -4,9 +4,9 @@ Title: Meta-analysis of hidden population studies
 Version: 0.1.0
 Date: 2020-11-12
 Author: 
-    c(person("Georgiy", "Syunyaev", email = "gs2716@columbia.edu",
+    c(person(given = "Georgiy", family = "Syunyaev", email = "gs2716@columbia.edu",
              role = c("aut", "cre")),
-      person("Macartan", "Humphreys", email = "macartan@gmail.com",
+      person(given = "Macartan", family = "Humphreys", email = "macartan@gmail.com",
              role = c("aut", "cre")))
 Maintainer: Georgiy Syunyaev <gs2716@columbia.edu>
 Description: Helper functions for individual and multi study RDS, TLS and proportional sampling from hidden populations and size estimation. 
@@ -26,7 +26,8 @@ Imports:
     MultiRNG,
     RcppAlgos,
     pbapply,
-    parallel
+    parallel,
+    testthat
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
