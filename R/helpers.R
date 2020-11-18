@@ -4,7 +4,7 @@
 #'
 #' @param N sample size
 #' @param prev_K numeric vector of prevalence for each group with last group being hidden population
-#' @param rho_K numeric vector of correlations in group memberships
+#' @param rho_K numeric vector that gives lower and upper triangles of correlation matrix between group memberships
 #'
 #' @return
 #' @export
@@ -16,17 +16,48 @@
 #'                 rho_K = .05)
 #' }
 #'
-gen_group_sizes <- function (N, prev_K, rho_K) {
+#' @import dplyr
+#' @importFrom magrittr `%>%`
+#' @importFrom purrr quietly
+#' @importFrom MultiRNG draw.correlated.binary
+gen_group_sizes <- function(N, prev_K, rho_K) {
 
-  # can only handle 2 groups at the moment !!!
-  {rho_K * sqrt(prod(prev_K * (1 - prev_K))) + prod(prev_K)} %>%
-    round(.,floor(log10(N))) %>%
-    {N * c(1 - sum(prev_K) + ., prev_K - ., .)} %>%
-    `names<-`(
-      apply(
-        expand.grid(
-          lapply(
-            seq_along(prev_K), function(x) 0:1)), 1, paste0, collapse = ""))
+  rho <- diag(rep(1, length(prev_K)))
+
+  rho[lower.tri(rho)] <- rho_K
+  rho[upper.tri(rho)] <- t(rho)[upper.tri(rho)]
+
+  ord <-
+    seq_along(prev_K) %>%
+    lapply(., function(x) 0:1) %>%
+    expand.grid() %>%
+    apply(1, paste0, collapse = "") %>%
+    dplyr::tibble(group = .)
+
+  MultiRNG::draw.correlated.binary(no.row = N,
+                                   d = length(prev_K),
+                                   prop.vec = prev_K,
+                                   corr.mat = rho) %>%
+    dplyr::as_tibble(.name_repair = function(names) paste0("V", 1:length(names))) %>%
+    dplyr::group_by_all() %>%
+    purrr::quietly(dplyr::summarise)(n = n()) %>%
+    .$result %>%
+    dplyr::ungroup() %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(group = paste0(dplyr::c_across(dplyr::starts_with("V")), collapse = "")) %>%
+    dplyr::select(group, n) %>%
+    dplyr::left_join(ord, ., by = "group") %>%
+    {`names<-`(.$n, .$group)}
+
+  # # can only handle 2 groups at the moment !!!
+  # {rho_K * sqrt(prod(prev_K * (1 - prev_K))) + prod(prev_K)} %>%
+  #   round(.,floor(log10(N))) %>%
+  #   {N * c(1 - sum(prev_K) + ., prev_K - ., .)} %>%
+  #   `names<-`(
+  #     apply(
+  #       expand.grid(
+  #         lapply(
+  #           seq_along(prev_K), function(x) 0:1)), 1, paste0, collapse = ""))
 }
 
 
@@ -108,18 +139,6 @@ merge_vertices <- function(graph_list) {
 
 }
 
-#' Generate vector of type labels
-#'
-#' @param k number of groups
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' gen_marginal_types(3)
-#' }
-#'
 gen_marginal_types <- function(k) {
   sapply(0:k,
          function(x) paste0(paste0(rep("*", times = x), collapse = ""),

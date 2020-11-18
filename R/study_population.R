@@ -75,7 +75,8 @@ get_study_population <-
       {`colnames<-`(., c(paste0("known_", 1:(ncol(.) - 1)), "hidden"))} %>%
       dplyr::as_tibble(.) %>%
       dplyr::mutate_at(dplyr::vars(dplyr::starts_with("known_")),
-                       list(known_visible = ~ rbinom(n(), 1, p_visibility$known) * .)) %>%
+                       list(known_visible = ~ rbinom(n(), 1, p_visibility$known) * .))
+
       dplyr::mutate(
         hidden_visible = rbinom(n(), 1, p_visibility$hidden) * hidden,
         type = igraph::vertex_attr(g)$type,

@@ -11,7 +11,7 @@ gen_group_sizes(N, prev_K, rho_K)
 
 \item{prev_K}{numeric vector of prevalence for each group with last group being hidden population}
 
-\item{rho_K}{numeric vector of correlations in group memberships}
+\item{rho_K}{numeric vector that gives lower and upper triangles of correlation matrix between group memberships}
 }
 \value{
 
