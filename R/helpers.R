@@ -34,7 +34,7 @@ gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
   if (is.null(.ord)) {
     .ord <-
       seq_along(prev_K) %>%
-      lapply(., function(x) 0:1) %>%
+      lapply(X = ., function(x) 0:1) %>%
       expand.grid() %>%
       apply(1, paste0, collapse = "")
   }
@@ -45,12 +45,12 @@ gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
                                    corr.mat = rho) %>%
     dplyr::as_tibble(.name_repair = function(names) paste0("V", 1:length(names))) %>%
     dplyr::group_by_all() %>%
-    purrr::quietly(dplyr::summarise)(n = n()) %>%
+    purrr::quietly(dplyr::summarise)(n = dplyr::n()) %>%
     .$result %>%
     dplyr::ungroup() %>%
     dplyr::rowwise() %>%
     dplyr::mutate(group = paste0(dplyr::c_across(dplyr::starts_with("V")), collapse = "")) %>%
-    dplyr::select(group, n) %>%
+    dplyr::select(.data$group, .data$n) %>%
     {`names<-`(.$n, .$group)} %>%
     .[.ord]
 
@@ -156,5 +156,20 @@ gen_marginal_types <- function(k) {
   sapply(0:k,
          function(x) paste0(paste0(rep("*", times = x), collapse = ""),
                             "1",
-                            paste0(rep("*", times = k-x), collapse = "")))
+                            paste0(rep("*", times = k - x), collapse = "")))
+}
+
+mutate_visibility <- function(data, p_visibility) {
+  for (var in names(data)[names(data) != "type"]) {
+    data[,paste0("p_visibility_", var)] <- rbeta_mod(nrow(data), mu = p_visibility[[var]], sd = 0.09)
+    data[,paste0(var, "_visible")] <- rbinom(nrow(data), 1, unlist(data[,paste0("p_visibility_", var)])) * data[,var]
+  }
+  return(data)
+}
+
+mutate_add_groups <- function(data, add_groups) {
+  for (var in names(add_groups)) {
+    data[,var] <- rbinom(nrow(data), 1, add_groups[[var]])
+  }
+  return(data)
 }

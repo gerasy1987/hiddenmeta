@@ -7,6 +7,7 @@
 #'
 #' @import dplyr
 #' @importFrom magrittr `%>%`
+#' @importFrom methods formalArgs
 #' @importFrom pbapply pblapply pboptions
 #' @importFrom parallel detectCores
 get_meta_population <- function(pop_args) {
@@ -19,7 +20,7 @@ get_meta_population <- function(pop_args) {
     FUN = function(x) {
 
       do.call(what = get_study_population,
-              args = pop_args[[x]][names(pop_args[[x]]) %in% formalArgs(get_study_population)]) %>%
+              args = pop_args[[x]][names(pop_args[[x]]) %in% methods::formalArgs(get_study_population)]) %>%
         dplyr::mutate(study = x)
 
     }) %>%

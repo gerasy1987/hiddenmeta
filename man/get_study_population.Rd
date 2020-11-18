@@ -11,8 +11,8 @@ get_study_population(
   rho_K = 0.05,
   p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
   p_edge_between = list(known = 0.05, hidden = 0.01),
-  p_visibility = list(hidden = 1, known = 1),
-  p_service = 0.3,
+  p_visibility = list(hidden = 0.7, known = 0.99),
+  add_groups = list(p_service = 0.3, loc_A = 0.01, loc_B = 0.01),
   directed = FALSE
 )
 }
@@ -21,17 +21,17 @@ get_study_population(
 
 \item{K}{number of groups}
 
-\item{prev_K}{numeric vector of prevalence for each group with last group being hidden population}
+\item{prev_K}{named numeric vector of prevalence for each group with last group being hidden population}
 
 \item{rho_K}{numeric vector of correlations in group memberships}
 
-\item{p_edge_within}{named list of numeric vectors giving probability of link between in-group members and out-group members for each of groups}
+\item{p_edge_within}{named list of numeric vectors giving probability of link between in-group members and out-group members for each of groups. The order of objects in list have to follow the order of \code{prev_K}}
 
-\item{p_edge_between}{named list of numeric values giving probability of link between in- and out-group member for each of groups}
+\item{p_edge_between}{named list of numeric values giving probability of link between in- and out-group member for each of groups. The order of objects in list have to follow the order of \code{prev_K}}
 
-\item{p_visibility}{list of probabilities of visibility (show-up)}
+\item{p_visibility}{named list of visibility tendencies by group. This is used as mean of Beta distribution (with SD = 0.09) to generate probability of being recognized as member of group, being sampled as seed, etc. The order of objects in list have to follow the order of \code{prev_K}}
 
-\item{p_service}{probability of service utilization in hidden population}
+\item{add_groups}{named list of probabilities of additional group memberships. Examples include probability of service utilization (for service multiplier), going to particular location (for TLS), etc.}
 
 \item{directed}{logical, whether links are directed or undirected}
 }

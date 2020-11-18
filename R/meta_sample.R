@@ -13,6 +13,7 @@
 #'
 #' @import dplyr
 #' @importFrom magrittr `%>%`
+#' @importFrom methods formalArgs
 #' @importFrom pbapply pblapply pboptions
 get_hpop_sample <- function(data,
                             sampling_variable = "rds",
@@ -41,7 +42,7 @@ get_hpop_sample <- function(data,
                 args = c(list(data = pop,
                               sampling_variable = sampling_variable,
                               drop_nonsampled = drop_nonsampled),
-                         samp[names(samp) %in% formalArgs(sampling_strategy)]))
+                         samp[names(samp) %in% methods::formalArgs(sampling_strategy)]))
 
       },
       SIMPLIFY = FALSE) %>%

@@ -2,12 +2,12 @@
 #'
 #' @param N number of units in population
 #' @param K number of groups
-#' @param prev_K numeric vector of prevalence for each group with last group being hidden population
+#' @param prev_K named numeric vector of prevalence for each group with last group being hidden population
 #' @param rho_K numeric vector of correlations in group memberships
-#' @param p_edge_within named list of numeric vectors giving probability of link between in-group members and out-group members for each of groups
-#' @param p_edge_between named list of numeric values giving probability of link between in- and out-group member for each of groups
-#' @param p_visibility list of probabilities of visibility (show-up)
-#' @param p_service probability of service utilization in hidden population
+#' @param p_edge_within named list of numeric vectors giving probability of link between in-group members and out-group members for each of groups. The order of objects in list have to follow the order of \code{prev_K}
+#' @param p_edge_between named list of numeric values giving probability of link between in- and out-group member for each of groups. The order of objects in list have to follow the order of \code{prev_K}
+#' @param p_visibility named list of visibility tendencies by group. This is used as mean of Beta distribution (with SD = 0.09) to generate probability of being recognized as member of group, being sampled as seed, etc. The order of objects in list have to follow the order of \code{prev_K}
+#' @param add_groups named list of probabilities of additional group memberships. Examples include probability of service utilization (for service multiplier), going to particular location (for TLS), etc.
 #' @param directed logical, whether links are directed or undirected
 #'
 #' @return
@@ -48,13 +48,15 @@ get_study_population <-
   function(N = 1000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
            p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
            p_edge_between = list(known = 0.05, hidden = 0.01),
-           p_visibility = list(hidden = 1, known = 1),
-           p_service = 0.3, directed = FALSE) {
+           p_visibility = list(hidden = .7, known = .99),
+           add_groups = list(p_service = 0.3, loc_A = .01, loc_B = .01), directed = FALSE) {
 
     type_names <-
       lapply(1:K, function(x) 0:1) %>%
       expand.grid() %>%
       apply(X = ., MARGIN = 1, FUN = paste0, collapse = "")
+
+    group_names <- names(prev_K)
 
     g <-
       igraph::sample_pref(nodes = N, types = 2^K,
@@ -66,24 +68,19 @@ get_study_population <-
                                                          p_edge_between = p_edge_between,
                                                          .ord = type_names))
 
+
     igraph::vertex_attr(g)$type <-
       igraph::vertex_attr(g)$type %>%
       {plyr::mapvalues(x = ., from = unique(.), to = type_names)}
-
 
     igraph::vertex_attr(g) <-
       igraph::vertex_attr(g)$type %>%
       stringr::str_split(., pattern = "", simplify = TRUE) %>%
       apply(X = ., MARGIN = 2, as.integer) %>%
-      {`colnames<-`(., c(paste0("known_", 1:(ncol(.) - 1)), "hidden"))} %>%
+      {`colnames<-`(., group_names)} %>%
       dplyr::as_tibble(.) %>%
-      dplyr::mutate_at(dplyr::vars(dplyr::starts_with("known_")),
-                       list(known_visible = ~ rbinom(n(), 1, p_visibility$known) * .)) %>%
-      dplyr::mutate(
-        hidden_visible = rbinom(n(), 1, p_visibility$hidden) * hidden,
-        type = igraph::vertex_attr(g)$type,
-        p_visibility_hidden = p_visibility$hidden,
-        p_visibility_known = p_visibility$known) %>%
+      dplyr::mutate(type = igraph::vertex_attr(g)$type) %>%
+      mutate_visibility(., p_visibility = p_visibility) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(
         type_visible = paste0(dplyr::c_across(dplyr::ends_with("visible")), collapse = "")) %>%
@@ -104,10 +101,7 @@ get_study_population <-
                       dplyr::as_tibble(igraph::vertex_attr(g)),
                       links = igraph::as_adj_list(.))
       } %>%
-      dplyr::group_by(hidden) %>%
-      dplyr::mutate(service_use = sample(c(rep(0, ceiling(n() * (1 - p_service))),
-                                           rep(1, floor(n() * p_service))))) %>%
-      dplyr::ungroup()
+      mutate_add_groups(., add_groups = add_groups)
 
     # this can only handle 2 groups at the moment !!!
     return(data)
