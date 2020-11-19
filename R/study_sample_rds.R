@@ -8,7 +8,7 @@
 #' @param n_seed number of seeds randomly drawn from members of hidden population (group K)
 #' @param n_coupons number of unique coupons given to each study participant
 #' @param target_type one of 'sample' or 'waves'
-#' @param target_n numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed
+#' @param target_n_rds numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed
 #'
 #' @return
 #' @export
@@ -26,7 +26,7 @@
 sample_rds <-
   function(data, sampling_variable = "rds", drop_nonsampled = FALSE,
            n_seed = 10, n_coupons = 3, target_type = c("sample", "waves"),
-           target_n = 40) {
+           target_n_rds = 40) {
 
     target_type <- match.arg(target_type)
 
@@ -111,7 +111,7 @@ sample_rds <-
 
       # presume that only hidden population links can be sampled
 
-      if ((target_type == "waves") & (new$wave == target_n)) {
+      if ((target_type == "waves") & (new$wave == target_n_rds)) {
         new_available_links <- c()
       } else {
         new_available_links <-
@@ -149,7 +149,7 @@ sample_rds <-
           dplyr::bind_rows(eligible, .)
       }
 
-      if (target_type == "sample" & (nrow(sampled) == target_n)) break
+      if (target_type == "sample" & (nrow(sampled) == target_n_rds)) break
       if (nrow(eligible) == 0) break
 
       t <- t + 1

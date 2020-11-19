@@ -11,7 +11,7 @@ sample_rds(
   n_seed = 10,
   n_coupons = 3,
   target_type = c("sample", "waves"),
-  target_n = 40
+  target_n_rds = 40
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ sample_rds(
 
 \item{target_type}{one of 'sample' or 'waves'}
 
-\item{target_n}{numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed}
+\item{target_n_rds}{numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed}
 }
 \value{
 

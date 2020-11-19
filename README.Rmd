@@ -21,15 +21,13 @@ if (!require(pacman)) install.packages("pacman")
 pacman::p_load(
   tidyverse, knitr, magrittr, # data management/plotting/printing
   DeclareDesign, # Design declaration
-  RcppAlgos, # speed up combinatorics
-  networkreporting, NSUM, # NSUM methods 
-  sspse, RDS, chords, # RDS+ methods
-  igraph, 
-  # ggnetwork, 
   # rstan, # Stan
-  # statnet, network, sna, # network packages 
-  # rgl, htmltools # network visualization
+  RcppAlgos, # speed up combinatorics
+  networkreporting, NSUM, # NSUM methods
+  sspse, RDS, chords # RDS+ methods
 )
+
+
 
 # number of studies
 N_studies <- 2
@@ -54,20 +52,24 @@ study_1 <-
     p_edge_between = list(known = 0.05, hidden = 0.01),
     
     # probability of visibility (show-up) for each group
-    p_visibility = list(hidden = 1, known = 1),
+    p_visibility = list(known = .99, hidden = .7),
     
     # probability of service utilization in hidden population
     # for service multiplier
-    p_service = 0.3,
+    add_groups = list(p_service = 0.3, 
+                      loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2),
     
-    # rds parameters
-    n_seed_hidden = 5,
-    n_seed_other = 0,
+    # RDS parameters
+    n_seed = 5,
     n_coupons = 3,
-    target_size_rds = 50,
+    target_type = "sample",
+    target_n_rds = 50,
     
-    # Prop sampling parameters
-    target_size_prop = 400
+    # prop sampling parameters
+    target_n_prop = 400,
+    
+    # TLS sampling parameters
+    target_n_tls = 1
   )
 
 
@@ -75,32 +77,96 @@ study_1 <-
 study_2 <- 
   list(
     N = 2000,
-    K = 2,
-    prev_K = c(known = .2, hidden = .1),
-    rho_K = .05,
-    p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.5)),
-    p_edge_between = list(known = 0.05, hidden = 0.01),
-    p_visibility = list(hidden = 1, known = 1),
-    p_service = 0.2,
-    n_seed_hidden = 20,
-    n_seed_other = 0,
+    K = 3,
+    prev_K = c(known_1 = .2, known_2 = .2, hidden = .1),
+    rho_K = c(.05, .01, .01),
+    p_edge_within = list(known_1 = c(0.05, 0.05),
+                         known_2 = c(0.05, 0.05),
+                         hidden = c(0.05, 0.5)),
+    p_edge_between = list(known_1 = 0.05, 
+                          known_2 = 0.05, 
+                          hidden = 0.01),
+    p_visibility = list(known_1 = .99,
+                        known_2 = .99,
+                        hidden = .5),
+    add_groups = list(service_use = 0.2, 
+                      loc_1 = 0.6, loc_2 = 0.5, loc_3 = 0.4),
+    
+    # RDS parameters
+    n_seed = 20,
     n_coupons = 3,
-    target_size_rds = 120,
-    target_size_prop = 800
+    target_type = "sample",
+    target_n_rds = 120,
+    
+    # prop sampling parameters
+    target_n_prop = 800,
+    
+    # TLS sampling parameters
+    target_n_tls = 2
   )
 
-# pop_args <- 
-#   list(study_1 = study_1, study_2 = study_2)
+
+# SINGLE STUDY --------------------------------------------------------------------------------
+
+
+# population_study <-
+#   do.call(what = declare_population, 
+#           args = c(handler = get_study_population, study_1[1:8]))
+# 
+# population_study()
+
+population_study <- 
+  do.call(what = declare_population, 
+          args = c(handler = get_study_population, study_2[1:8]))
+
+population_study()
+
+# sample_rds(data = population_study(), sampling_variable = "rds", n_seed = 20, 
+#            n_coupons = 3, target_type = "sample", target_n = 100)
+
+rds_study <- 
+  do.call(declare_sampling,
+          c(handler = sample_rds, 
+            sampling_variable = "rds",
+            drop_nonsampled = FALSE, study_2[9:12]))
+
+rds_study(population_study())
+
+prop_study <- 
+  do.call(declare_sampling,
+          c(handler = sample_prop, 
+            sampling_variable = "prop",
+            drop_nonsampled = FALSE, study_2[13]))
+
+rds_study(prop_study(population_study()))
+
+tls_study <- 
+  do.call(declare_sampling,
+          c(handler = sample_tls, 
+            sampling_variable = "tls",
+            drop_nonsampled = FALSE, study_2[14]))
+
+tls_study(rds_study(prop_study(population_study())))
+
+draw_data(population_study + rds_study + prop_study + tls_study)
+
+
+# META STUDY ----------------------------------------------------------------------------------
+
+
 
 pop_args <- 
-  list(study_1 = study_1)
+  list(study_1 = study_1,
+       study_2 = study_2)
 
 
-population <- 
+population_meta <- 
   declare_population(
-    handler = get_pop_network, 
+    handler = get_meta_population, 
     pop_args = pop_args
   )
+
+population_meta()
 
 hpop_rds <- 
   declare_sampling(
@@ -109,6 +175,8 @@ hpop_rds <-
     drop_nonsampled = FALSE,
     sampling_args = pop_args,
     sampling_strategy = "sample_rds") 
+
+hpop_rds(population_meta())
 
 pop_prop <- 
   declare_sampling(
@@ -130,6 +198,7 @@ study_estimands <-
 # get_hpop_estimands(draw_data(population + hpop_rds + pop_prop))
 
 draw_estimands(population + hpop_rds + pop_prop + study_estimands)
+
 
 
 ```
