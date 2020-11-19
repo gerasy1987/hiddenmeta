@@ -44,32 +44,33 @@ get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
 #' @export
 #'
 #' @import dplyr
-#' @importFrom sampling HTestimator varHT UPmidzunopi2
+#' @importFrom estimatr lm_robust
 get_study_est_ht <- function(data, prop_prefix = "prop") {
-
-  quiet_HT <- quietly(sampling::HTestimator)
-  quiet_varHT <- quietly(sampling::varHT)
-
-  # x <- data %>%
-  #   dplyr::filter_at(dplyr::vars(dplyr::all_of(prop_prefix)), ~ . == 1) %>%
-  #   estimatr::lm_robust(hidden ~ 1, weights = 1/prop_prob, data = .) %>%
-  #   {.}
 
   fit_ht <-
     data %>%
     dplyr::filter_at(dplyr::vars(dplyr::all_of(prop_prefix)), ~ . == 1) %>%
-    {
-      c(est = quiet_HT(y = .$hidden_visible, pik = unlist(.[,paste0(prop_prefix, "_share")]))$result,
-        se = sqrt(quiet_varHT(
-          y = .$hidden_visible,
-          pikl = sampling::UPmidzunopi2(unlist(.[,paste0(prop_prefix, "_prob")])), method = 1)$result))
+    estimatr::lm_robust(hidden ~ 1, weights = 1/prop_share, data = .) %>%
+    {c(est = unname(.$coefficients), se = unname(.$std.error))}
 
-    }
+  # quiet_HT <- quietly(sampling::HTestimator)
+  # quiet_varHT <- quietly(sampling::varHT)
+  #
+  # fit_ht <-
+  #   data %>%
+  #   dplyr::filter_at(dplyr::vars(dplyr::all_of(prop_prefix)), ~ . == 1) %>%
+  #   {
+  #     c(est = quiet_HT(y = .$hidden_visible, pik = unlist(.[,paste0(prop_prefix, "_share")]))$result,
+  #       se = sqrt(quiet_varHT(
+  #         y = .$hidden_visible,
+  #         pikl = sampling::UPmidzunopi2(unlist(.[,paste0(prop_prefix, "_prob")])), method = 1)$result))
+  #
+  #   }
 
-
-  data.frame(estimator_label = c("hidden_size_ht"),
-             estimate = fit_ht["est"],
-             se =  fit_ht["se"],
-             estimand_label = c("hidden_size")
-  )
+ return(
+   data.frame(estimator_label = "hidden_prev_ht",
+              estimate = fit_ht["est"],
+              se =  fit_ht["se"],
+              estimand_label = "hidden_size")
+ )
 }

@@ -11,7 +11,6 @@
 #' @export
 #'
 #' @import dplyr
-#' @import sampling
 sample_prop <-
   function(data, sampling_variable = "prop", drop_nonsampled = FALSE, target_n_prop = 400
   ) {
@@ -25,13 +24,10 @@ sample_prop <-
           dplyr::summarize(prop_share = dplyr::n()/nrow(data)) %>%
           dplyr::left_join(data, .) %>%
           dplyr::mutate(
-            prop_prob = sampling::inclusionprobabilities(a = prop_share,
-                                                         n = target_n_prop),
-            "{ sampling_variable }" := sampling::UPmidzuno(prop_prob)) %>%
-          dplyr::select(-links) %>%
-          dplyr::rename("{ sampling_variable }_share" := prop_share,
-                        "{ sampling_variable }_prob" := prop_prob) %>%
-          dplyr::left_join(data, .)
+            "{ sampling_variable }" :=
+              ifelse(name %in% sample(x = name, size = target_n_prop, prob = prop_share), 1, 0)
+          ) %>%
+          dplyr::rename("{ sampling_variable }_share" := prop_share)
       )
 
 

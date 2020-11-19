@@ -30,7 +30,7 @@ Imports:
     testthat,
     methods,
     sspse,
-    sampling
+    estimatr
 Suggests: 
     covr
 License: MIT + file LICENSE
