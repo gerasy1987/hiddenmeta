@@ -15,7 +15,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' pop_network(
+#' get_study_population(
 #'   # total population size for one study
 #'   N = 1000,
 #'   # number of groups
