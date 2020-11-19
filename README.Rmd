@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
 
 if (!require(pacman)) install.packages("pacman")
 
+pacman::p_load_current_gh("gerasy1987/hiddenmeta")
+
 pacman::p_load(
   tidyverse, knitr, magrittr, # data management/plotting/printing
   DeclareDesign, # Design declaration
@@ -26,8 +28,6 @@ pacman::p_load(
   networkreporting, NSUM, # NSUM methods
   sspse, RDS, chords # RDS+ methods
 )
-
-
 
 # number of studies
 N_studies <- 2
@@ -109,20 +109,17 @@ study_2 <-
 # SINGLE STUDY --------------------------------------------------------------------------------
 
 
-# population_study <-
-#   do.call(what = declare_population, 
-#           args = c(handler = get_study_population, study_1[1:8]))
-# 
+population_study <-
+  do.call(what = declare_population,
+          args = c(handler = get_study_population, study_1[1:8]))
+
 # population_study()
 
-population_study <- 
-  do.call(what = declare_population, 
-          args = c(handler = get_study_population, study_2[1:8]))
-
-population_study()
-
-# sample_rds(data = population_study(), sampling_variable = "rds", n_seed = 20, 
-#            n_coupons = 3, target_type = "sample", target_n = 100)
+# population_study <- 
+#   do.call(what = declare_population, 
+#           args = c(handler = get_study_population, study_2[1:8]))
+# 
+# # population_study()
 
 rds_study <- 
   do.call(declare_sampling,
@@ -130,7 +127,7 @@ rds_study <-
             sampling_variable = "rds",
             drop_nonsampled = FALSE, study_2[9:12]))
 
-rds_study(population_study())
+# rds_study(population_study())
 
 prop_study <- 
   do.call(declare_sampling,
@@ -138,7 +135,7 @@ prop_study <-
             sampling_variable = "prop",
             drop_nonsampled = FALSE, study_2[13]))
 
-rds_study(prop_study(population_study()))
+# rds_study(prop_study(population_study()))
 
 tls_study <- 
   do.call(declare_sampling,
@@ -146,59 +143,17 @@ tls_study <-
             sampling_variable = "tls",
             drop_nonsampled = FALSE, study_2[14]))
 
-tls_study(rds_study(prop_study(population_study())))
+# tls_study(rds_study(prop_study(population_study())))
 
 draw_data(population_study + rds_study + prop_study + tls_study)
 
 
-# META STUDY ----------------------------------------------------------------------------------
-
-
-
-pop_args <- 
-  list(study_1 = study_1,
-       study_2 = study_2)
-
-
-population_meta <- 
-  declare_population(
-    handler = get_meta_population, 
-    pop_args = pop_args
-  )
-
-population_meta()
-
-hpop_rds <- 
-  declare_sampling(
-    handler = get_hpop_sample, 
-    sampling_variable = "rds",
-    drop_nonsampled = FALSE,
-    sampling_args = pop_args,
-    sampling_strategy = "sample_rds") 
-
-hpop_rds(population_meta())
-
-pop_prop <- 
-  declare_sampling(
-    handler = get_hpop_sample, 
-    sampling_variable = "prop",
-    drop_nonsampled = FALSE,
-    sampling_args = pop_args,
-    sampling_strategy = "sample_prop") 
+estimands <- 
+  declare_estimand(handler = get_study_estimands)
 
 set.seed(19872312)
-# hpop_rds(population())
-# pop_prop(population())
-
-draw_data(population + hpop_rds + pop_prop)
-
-study_estimands <- 
-  declare_estimand(handler = get_hpop_estimands)
-
-# get_hpop_estimands(draw_data(population + hpop_rds + pop_prop))
-
-draw_estimands(population + hpop_rds + pop_prop + study_estimands)
-
+draw_estimands(population_study + rds_study + prop_study + tls_study + estimands)
+draw_estimands(population_study + estimands)
 
 
 ```
