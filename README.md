@@ -126,8 +126,7 @@ tls_study <-
             sampling_variable = "tls",
             drop_nonsampled = FALSE, study_1[14]))
 
-sample_rds(population_study(), sampling_variable = "rds1", 
-           drop_nonsampled = TRUE, n_seed = 20, target_type = "sample", target_n_rds = 100)
+# tls_study(rds_study(prop_study(population_study())))
 
 # g <- 
 #   population_study() %$% {
@@ -165,10 +164,8 @@ study_estimands <-
   declare_estimand(handler = get_study_estimands)
 
 set.seed(19872312)
-draw_estimands(population_study + rds_study + prop_study + tls_study + estimands)
-draw_estimands(population_study + estimands)
-
-set.seed(19872312)
+draw_estimands(population_study + rds_study + prop_study + tls_study + study_estimands)
+draw_estimands(population_study + study_estimands)
 
 estimator_sspse <- declare_estimator(handler = get_study_est_sspse)
 
