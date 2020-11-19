@@ -28,7 +28,8 @@ Imports:
     pbapply,
     parallel,
     testthat,
-    methods
+    methods,
+    sspse
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

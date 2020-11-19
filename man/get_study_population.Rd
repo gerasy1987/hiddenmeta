@@ -12,7 +12,7 @@ get_study_population(
   p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
   p_edge_between = list(known = 0.05, hidden = 0.01),
   p_visibility = list(hidden = 0.7, known = 0.99),
-  add_groups = list(service_use = 0.3, loc_A = 0.01, loc_B = 0.01),
+  add_groups = list(service_use = 0.3, loc_1 = 0.3, loc_2 = 0.3, loc_3 = 0.2),
   directed = FALSE
 )
 }
