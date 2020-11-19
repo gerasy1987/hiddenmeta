@@ -11,7 +11,6 @@ pacman::p_load_current_gh("gerasy1987/hiddenmeta")
 pacman::p_load(
   tidyverse, knitr, magrittr, # data management/plotting/printing
   DeclareDesign, # Design declaration
-  # rstan, # Stan
   RcppAlgos, # speed up combinatorics
   networkreporting, NSUM, # NSUM methods
   sspse, RDS, chords # RDS+ methods
@@ -97,17 +96,17 @@ study_2 <-
 # SINGLE STUDY --------------------------------------------------------------------------------
 
 
-population_study <-
-  do.call(what = declare_population,
-          args = c(handler = get_study_population, study_1[1:8]))
-
-# population_study()
-
-# population_study <- 
-#   do.call(what = declare_population, 
-#           args = c(handler = get_study_population, study_2[1:8]))
+# population_study <-
+#   do.call(what = declare_population,
+#           args = c(handler = get_study_population, study_1[1:8]))
 # 
 # # population_study()
+
+population_study <-
+  do.call(what = declare_population,
+          args = c(handler = get_study_population, study_2[1:8]))
+
+# population_study()
 
 rds_study <- 
   do.call(declare_sampling,
@@ -133,6 +132,7 @@ tls_study <-
 
 # tls_study(rds_study(prop_study(population_study())))
 
+set.seed(19872312)
 draw_data(population_study + rds_study + prop_study + tls_study)
 
 
@@ -142,4 +142,6 @@ estimands <-
 set.seed(19872312)
 draw_estimands(population_study + rds_study + prop_study + tls_study + estimands)
 draw_estimands(population_study + estimands)
+
+# META STUDY ----------------------------------------------------------------------------------
 ```

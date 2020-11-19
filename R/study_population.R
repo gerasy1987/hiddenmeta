@@ -49,7 +49,7 @@ get_study_population <-
            p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
            p_edge_between = list(known = 0.05, hidden = 0.01),
            p_visibility = list(hidden = .7, known = .99),
-           add_groups = list(p_service = 0.3, loc_A = .01, loc_B = .01), directed = FALSE) {
+           add_groups = list(service_use = 0.3, loc_A = .01, loc_B = .01), directed = FALSE) {
 
     type_names <-
       lapply(1:K, function(x) 0:1) %>%
@@ -103,7 +103,6 @@ get_study_population <-
       } %>%
       mutate_add_groups(., add_groups = add_groups)
 
-    # this can only handle 2 groups at the moment !!!
     return(data)
 
   }
