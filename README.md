@@ -12,6 +12,7 @@ pacman::p_load(
   tidyverse, knitr, magrittr, # data management/plotting/printing
   DeclareDesign, # Design declaration
   RcppAlgos, # speed up combinatorics
+  sampling, # HT estimator
   networkreporting, NSUM, # NSUM methods
   sspse, RDS, chords # RDS+ methods
 )
@@ -118,7 +119,7 @@ prop_study <-
             sampling_variable = "prop",
             drop_nonsampled = FALSE, study_1[13]))
 
-prop_study(population_study())
+# prop_study(population_study())
 
 tls_study <- 
   do.call(declare_sampling,
@@ -126,8 +127,8 @@ tls_study <-
             sampling_variable = "tls",
             drop_nonsampled = FALSE, study_1[14]))
 
-sample_rds(population_study(), sampling_variable = "rds1", 
-           drop_nonsampled = TRUE, n_seed = 20, target_type = "sample", target_n_rds = 100)
+# sample_rds(population_study(), sampling_variable = "rds1", 
+#            drop_nonsampled = TRUE, n_seed = 20, target_type = "sample", target_n_rds = 100)
 
 # g <- 
 #   population_study() %$% {
@@ -170,11 +171,15 @@ draw_estimands(population_study + study_estimands)
 
 set.seed(19872312)
 
-estimator_sspse <- declare_estimator(handler = get_study_est_sspse)
-estimator_ht <- declare_estimator(handler = get_study_est_ht)
+estimator_sspse <- declare_estimator(handler = get_study_est_sspse, label = "sspse")
+estimator_ht <- declare_estimator(handler = get_study_est_ht, label = "ht")
 
-draw_estimates(population_study + rds_study + study_estimands + estimator_sspse)
-draw_estimates(population_study + prop_study + study_estimands + estimator_ht)
+diagnose_design(
+  population_study + 
+    rds_study + prop_study + 
+    study_estimands + 
+    estimator_sspse + estimator_ht, 
+  sims = 10)
 
 # META STUDY ----------------------------------------------------------------------------------
 ```
