@@ -50,6 +50,11 @@ get_study_est_ht <- function(data, prop_prefix = "prop") {
   quiet_HT <- quietly(sampling::HTestimator)
   quiet_varHT <- quietly(sampling::varHT)
 
+  # x <- data %>%
+  #   dplyr::filter_at(dplyr::vars(dplyr::all_of(prop_prefix)), ~ . == 1) %>%
+  #   estimatr::lm_robust(hidden ~ 1, weights = 1/prop_prob, data = .) %>%
+  #   {.}
+
   fit_ht <-
     data %>%
     dplyr::filter_at(dplyr::vars(dplyr::all_of(prop_prefix)), ~ . == 1) %>%

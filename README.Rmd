@@ -10,7 +10,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# hiddenmeta ![R](https://github.com/gerasy1987/hiddenmeta/workflows/R/badge.svg) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE)
+# hiddenmeta ![R](https://github.com/gerasy1987/hiddenmeta/workflows/R/badge.svg) [![Codecov test coverage](https://codecov.io/gh/gerasy1987/hiddenmeta/branch/master/graph/badge.svg)](https://codecov.io/gh/gerasy1987/hiddenmeta?branch=master) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE)
 
 ## Overview
 
