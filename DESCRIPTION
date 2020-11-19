@@ -29,7 +29,8 @@ Imports:
     parallel,
     testthat,
     methods,
-    sspse
+    sspse,
+    sampling
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

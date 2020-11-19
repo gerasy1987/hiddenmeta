@@ -118,7 +118,7 @@ prop_study <-
             sampling_variable = "prop",
             drop_nonsampled = FALSE, study_1[13]))
 
-# rds_study(prop_study(population_study()))
+prop_study(population_study())
 
 tls_study <- 
   do.call(declare_sampling,
@@ -126,7 +126,8 @@ tls_study <-
             sampling_variable = "tls",
             drop_nonsampled = FALSE, study_1[14]))
 
-# tls_study(rds_study(prop_study(population_study())))
+sample_rds(population_study(), sampling_variable = "rds1", 
+           drop_nonsampled = TRUE, n_seed = 20, target_type = "sample", target_n_rds = 100)
 
 # g <- 
 #   population_study() %$% {
@@ -154,8 +155,10 @@ tls_study <-
 #        # pt.bg = c("grey", "red", "blue", "yellow"), 
 #        pch = 21, col="#777777", pt.cex = 2, cex = 1.5, bty = "o", ncol = 4)
 
+# tls_study(rds_study(prop_study(population_study())))
+
 set.seed(19872312)
-draw_data(population_study + rds_study + prop_study + tls_study)
+data <- draw_data(population_study + rds_study + prop_study + tls_study)
 
 
 study_estimands <- 
@@ -165,9 +168,13 @@ set.seed(19872312)
 draw_estimands(population_study + rds_study + prop_study + tls_study + study_estimands)
 draw_estimands(population_study + study_estimands)
 
-estimator_sspse <- declare_estimator(handler = get_study_est_sspse)
+set.seed(19872312)
 
-draw_estimates(population_study + rds_study + estimator_sspse)
+estimator_sspse <- declare_estimator(handler = get_study_est_sspse)
+estimator_ht <- declare_estimator(handler = get_study_est_ht)
+
+draw_estimates(population_study + rds_study + study_estimands + estimator_sspse)
+draw_estimates(population_study + prop_study + study_estimands + estimator_ht)
 
 # META STUDY ----------------------------------------------------------------------------------
 ```

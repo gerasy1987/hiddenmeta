@@ -1,4 +1,4 @@
-#' Title
+#' SS-PSE estimator
 #'
 #' @param data pass-through population data frame
 #' @param prior_median prior median of hidden population size for SS-PSE estimation
@@ -17,7 +17,7 @@ get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
 
   fit_sspse <-
     data %>%
-    dplyr::filter_at(vars(rds_prefix), ~ . == 1) %>%
+    dplyr::filter_at(dplyr::vars(dplyr::all_of(rds_prefix)), ~ . == 1) %>%
     {
       quiet_sspse(s = .$hidden_visible[order(.[,paste0(rds_prefix, "_t")])],
                   interval = 10,
@@ -28,42 +28,43 @@ get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
     }
 
 
-  data.frame(estimator_label = c("size_hidden_sspse"),
+  data.frame(estimator_label = c("hidden_size_sspse"),
              estimate = c(unname(fit_sspse$result$N["Median AP"])),
-             sd =   c(sd(fit_sspse$result$sample[,"N"])),
+             se =   c(sd(fit_sspse$result$sample[,"N"])),
              estimand_label = c("hidden_size")
   )
 }
 
-#' Title
+#' Horvitz-Thompson estimatior
 #'
 #' @param data pass-through population data frame
+#' @param prop_prefix character prefix used for RDS sample variable
 #'
 #' @return
 #' @export
 #'
 #' @import dplyr
-#' @importFrom sspse posteriorsize
-get_study_est_ht <- function(data) {
+#' @importFrom sampling HTestimator varHT UPmidzunopi2
+get_study_est_ht <- function(data, prop_prefix = "prop") {
 
-  quiet_sspse <- quietly(sspse::posteriorsize)
+  quiet_HT <- quietly(sampling::HTestimator)
+  quiet_varHT <- quietly(sampling::varHT)
 
-  fit_sspse <-
+  fit_ht <-
     data %>%
-    dplyr::filter(rds == 1) %>%
+    dplyr::filter_at(dplyr::vars(dplyr::all_of(prop_prefix)), ~ . == 1) %>%
     {
-      quiet_sspse(s = .$hidden_visible[order(.$rds_t)],
-                  interval = 10,
-                  median.prior.size = prior_median,
-                  verbose = FALSE,
-                  max.coupons = 3
-      )
+      c(est = quiet_HT(y = .$hidden_visible, pik = unlist(.[,paste0(prop_prefix, "_share")]))$result,
+        se = sqrt(quiet_varHT(
+          y = .$hidden_visible,
+          pikl = sampling::UPmidzunopi2(unlist(.[,paste0(prop_prefix, "_prob")])), method = 1)$result))
+
     }
 
 
-  data.frame(estimator_label = c("size_hidden_sspse"),
-             estimate = c(unname(fit_sspse$result$N["Median AP"])),
-             sd =   c(sd(fit_sspse$result$sample[,"N"])),
-             estimand_label = c("size_hidden")
+  data.frame(estimator_label = c("hidden_size_ht"),
+             estimate = fit_ht["est"],
+             se =  fit_ht["se"],
+             estimand_label = c("hidden_size")
   )
 }

@@ -11,26 +11,28 @@
 #' @export
 #'
 #' @import dplyr
+#' @import sampling
 sample_prop <-
   function(data, sampling_variable = "prop", drop_nonsampled = FALSE, target_n_prop = 400
   ) {
 
-    sampled <-
+    data <-
       suppressMessages(
         data %>%
-          dplyr::group_by_at(dplyr::vars(dplyr::starts_with("known"))) %>%
-          dplyr::summarize(prop_sample = dplyr::n()/nrow(data)) %>%
+          # this is sampling according to proportions of all populations at the moment
+          # also this does not include visibility bias
+          dplyr::group_by_at(dplyr::vars(dplyr::starts_with("known"), hidden, -ends_with("visible"))) %>%
+          dplyr::summarize(prop_share = dplyr::n()/nrow(data)) %>%
           dplyr::left_join(data, .) %>%
-          dplyr::slice_sample(n = target_n_prop, weight_by = prop_sample) %>%
+          dplyr::mutate(
+            prop_prob = sampling::inclusionprobabilities(a = prop_share,
+                                                         n = target_n_prop),
+            "{ sampling_variable }" := sampling::UPmidzuno(prop_prob)) %>%
           dplyr::select(-links) %>%
-          dplyr::rename("{ sampling_variable }_sample" := prop_sample)
+          dplyr::rename("{ sampling_variable }_share" := prop_share,
+                        "{ sampling_variable }_prob" := prop_prob) %>%
+          dplyr::left_join(data, .)
       )
-
-    data[,sampling_variable] <- as.integer(data$name %in% sampled$name)
-
-    suppressMessages(
-      data %<>% dplyr::left_join(., sampled)
-    )
 
 
     if (drop_nonsampled) data %<>% dplyr::filter_at(dplyr::vars(sampling_variable), ~ . == 1)

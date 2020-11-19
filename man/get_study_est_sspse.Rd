@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_sspse}
 \alias{get_study_est_sspse}
-\title{Title}
+\title{SS-PSE estimator}
 \usage{
 get_study_est_sspse(data, prior_median = 150, rds_prefix = "rds")
 }
@@ -17,5 +17,5 @@ get_study_est_sspse(data, prior_median = 150, rds_prefix = "rds")
 
 }
 \description{
-Title
+SS-PSE estimator
 }

@@ -2,16 +2,18 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_ht}
 \alias{get_study_est_ht}
-\title{Title}
+\title{Horvitz-Thompson estimatior}
 \usage{
-get_study_est_ht(data)
+get_study_est_ht(data, prop_prefix = "prop")
 }
 \arguments{
 \item{data}{pass-through population data frame}
+
+\item{prop_prefix}{character prefix used for RDS sample variable}
 }
 \value{
 
 }
 \description{
-Title
+Horvitz-Thompson estimatior
 }
