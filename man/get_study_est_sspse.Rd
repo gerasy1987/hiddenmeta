@@ -4,12 +4,14 @@
 \alias{get_study_est_sspse}
 \title{Title}
 \usage{
-get_study_est_sspse(data, prior_median = 150)
+get_study_est_sspse(data, prior_median = 150, rds_prefix = "rds")
 }
 \arguments{
 \item{data}{pass-through population data frame}
 
 \item{prior_median}{prior median of hidden population size for SS-PSE estimation}
+
+\item{rds_prefix}{character prefix used for RDS sample variable}
 }
 \value{
 

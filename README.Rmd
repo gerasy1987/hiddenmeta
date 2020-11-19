@@ -166,8 +166,6 @@ tls_study <-
 #        # pt.bg = c("grey", "red", "blue", "yellow"), 
 #        pch = 21, col="#777777", pt.cex = 2, cex = 1.5, bty = "o", ncol = 4)
 
-# tls_study(rds_study(prop_study(population_study())))
-
 set.seed(19872312)
 draw_data(population_study + rds_study + prop_study + tls_study)
 
