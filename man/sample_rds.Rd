@@ -8,10 +8,10 @@ sample_rds(
   data,
   sampling_variable = "rds",
   drop_nonsampled = FALSE,
-  n_seed_hidden = 10,
-  n_seed_other = 0,
+  n_seed = 10,
   n_coupons = 3,
-  target_size_rds = 80
+  target_type = c("sample", "waves"),
+  target_n = 40
 )
 }
 \arguments{
@@ -21,13 +21,13 @@ sample_rds(
 
 \item{drop_nonsampled}{logical indicating whether to drop units that are not sampled. Default is \code{FALSE}}
 
-\item{n_seed_hidden}{number of seeds randomly drawn from members of hidden population (group K)}
-
-\item{n_seed_other}{number of seeds randomly drawn from non-members of hidden population}
+\item{n_seed}{number of seeds randomly drawn from members of hidden population (group K)}
 
 \item{n_coupons}{number of unique coupons given to each study participant}
 
-\item{target_size_rds}{target size of RDS sample (this might need to be replaced by target number of waves)}
+\item{target_type}{one of 'sample' or 'waves'}
+
+\item{target_n}{numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed}
 }
 \value{
 
