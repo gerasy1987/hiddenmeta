@@ -1,5 +1,0 @@
-language: r
-os: linux
-dist: bionic
-after_success:
-  - Rscript -e 'covr::codecov()'
