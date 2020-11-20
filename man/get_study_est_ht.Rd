@@ -12,7 +12,7 @@ get_study_est_ht(data, prop_prefix = "prop")
 \item{prop_prefix}{character prefix used for RDS sample variable}
 }
 \value{
-
+Data frame of HT estimates for single study
 }
 \description{
 Horvitz-Thompson estimatior

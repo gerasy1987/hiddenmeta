@@ -10,7 +10,7 @@ get_study_estimands(data)
 \item{data}{pass-through population data frame}
 }
 \value{
-
+Estimands data frame for single study
 }
 \description{
 Get individual study estimands

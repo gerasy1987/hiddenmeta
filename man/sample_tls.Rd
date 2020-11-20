@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_sample_tls.R
 \name{sample_tls}
 \alias{sample_tls}
-\title{Draw TLS sample from single study}
+\title{Draw time-loaction (TLS) sample from single study}
 \usage{
 sample_tls(
   data,
@@ -21,7 +21,7 @@ sample_tls(
 \item{target_n_tls}{target number of sampled locations}
 }
 \value{
-
+Population or sample data frame for single study with TLS sample characteristics added
 }
 \description{
 Sampling handler for drawing TLS sample with given characteristics from individual study population

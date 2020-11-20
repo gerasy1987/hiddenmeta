@@ -16,7 +16,7 @@ gen_group_sizes(N, prev_K, rho_K, .ord = NULL)
 \item{.ord}{character vector of ordered names of all possible combinations of group memberships. Default is \code{NULL} to generate the order automatically}
 }
 \value{
-
+Vector of group sizes
 }
 \description{
 Generate sizes of groups in population

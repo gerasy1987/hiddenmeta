@@ -2,7 +2,7 @@
 #'
 #' @param data pass-through population data frame
 #'
-#' @return
+#' @return Estimands data frame for single study
 #' @export
 #'
 #' @import dplyr

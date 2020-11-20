@@ -14,7 +14,7 @@ gen_block_matrix(p_edge_within, p_edge_between, .ord = NULL)
 \item{.ord}{character vector of ordered names of all possible combinations of group memberships. Default is \code{NULL} to generate the order automatically}
 }
 \value{
-
+\code{2^K} by \code{2^K} matrix of probabilities of establishing a link
 }
 \description{
 Returns full block matrix of link probabilities given the group memberships based on probabilities of links within each of the groups and between in- and out-group members

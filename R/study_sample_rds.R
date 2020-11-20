@@ -1,4 +1,4 @@
-#' Draw RDS sample from single study
+#' Draw respondent-driven sample (RDS) sample from single study
 #'
 #' Sampling handler for drawing RDS sample with given characteristics from individual study population
 #'
@@ -10,7 +10,7 @@
 #' @param target_type one of 'sample' or 'waves'
 #' @param target_n_rds numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed
 #'
-#' @return
+#' @return Population or sample data frame for single study with RDS sample characteristics added
 #' @export
 #'
 #' @examples

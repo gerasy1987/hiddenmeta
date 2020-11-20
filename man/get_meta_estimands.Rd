@@ -10,7 +10,7 @@ get_meta_estimands(data)
 \item{data}{pass-through data frame of several study populations}
 }
 \value{
-
+Data frame of estimands for multiple studies
 }
 \description{
 Get estimands for several studies

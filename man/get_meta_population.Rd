@@ -10,7 +10,7 @@ get_meta_population(pop_args)
 \item{pop_args}{named list of named lists of arguments to \code{get_study_population()} (the set of arguments can be excessive)}
 }
 \value{
-
+Population data frame for multiple studies
 }
 \description{
 Simulate populations with given network structure for multiple studies with (possibly) varying designs

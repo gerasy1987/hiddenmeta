@@ -2,7 +2,7 @@
 #'
 #' @param data pass-through data frame of several study populations
 #'
-#' @return
+#' @return Data frame of estimands for multiple studies
 #' @export
 #'
 #' @import dplyr

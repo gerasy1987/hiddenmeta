@@ -7,7 +7,7 @@
 #' @param rho_K numeric vector that gives lower and upper triangles of correlation matrix between group memberships. If single number all group membership correlations are assumed to be equal
 #' @param .ord character vector of ordered names of all possible combinations of group memberships. Default is \code{NULL} to generate the order automatically
 #'
-#' @return
+#' @return Vector of group sizes
 #' @export
 #'
 #' @examples
@@ -74,7 +74,7 @@ gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
 #' @param p_edge_between named list of numeric values giving probability of link between in- and out-group member for each of groups
 #' @param .ord character vector of ordered names of all possible combinations of group memberships. Default is \code{NULL} to generate the order automatically
 #'
-#' @return
+#' @return \code{2^K} by \code{2^K} matrix of probabilities of establishing a link
 #' @export
 #'
 #' @examples
@@ -122,7 +122,7 @@ gen_block_matrix <- function(p_edge_within, p_edge_between, .ord = NULL) {
 #' @param mu location parameter
 #' @param sd scale parameter
 #'
-#' @return
+#' @return vector of draws from Beta distribution
 #' @export
 #'
 #' @examples
@@ -163,9 +163,9 @@ gen_marginal_types <- function(k) {
 }
 
 # helper for population simulations
-mutate_visibility <- function(data, p_visibility) {
+mutate_visibility <- function(data, p_visibility, beta_sd = 0.05) {
   for (var in names(data)[names(data) != "type"]) {
-    data[,paste0("p_visibility_", var)] <- rbeta_mod(nrow(data), mu = p_visibility[[var]], sd = 0.09)
+    data[,paste0("p_visibility_", var)] <- rbeta_mod(nrow(data), mu = p_visibility[[var]], sd = beta_sd)
     data[,paste0(var, "_visible")] <- rbinom(nrow(data), 1, unlist(data[,paste0("p_visibility_", var)])) * data[,var]
   }
   return(data)

@@ -1,4 +1,4 @@
-#' Draw proportional sample from single study
+#' Draw proportional sample (PPS) from single study
 #'
 #' Sampling handler for drawing proportional sample with given characteristics from individual study population
 #'
@@ -7,11 +7,11 @@
 #' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
 #' @param target_n_prop target size of proportional sample
 #'
-#' @return
+#' @return Population or sample data frame for single study with PPS sample characteristics added
 #' @export
 #'
 #' @import dplyr
-sample_prop <-
+sample_pps <-
   function(data, sampling_variable = "prop", drop_nonsampled = FALSE, target_n_prop = 400
   ) {
 

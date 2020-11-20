@@ -14,7 +14,7 @@ get_study_est_sspse(data, prior_median = 150, rds_prefix = "rds")
 \item{rds_prefix}{character prefix used for RDS sample variable}
 }
 \value{
-
+Data frame of SS-PSE estimates for single study
 }
 \description{
 SS-PSE estimator

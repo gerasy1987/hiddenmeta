@@ -2,7 +2,7 @@
 #'
 #' @param pop_args named list of named lists of arguments to \code{get_study_population()} (the set of arguments can be excessive)
 #'
-#' @return
+#' @return Population data frame for multiple studies
 #' @export
 #'
 #' @import dplyr

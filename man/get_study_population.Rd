@@ -36,7 +36,7 @@ get_study_population(
 \item{directed}{logical, whether links are directed or undirected}
 }
 \value{
-
+Population data frame for single study
 }
 \description{
 Simulate single population with given network structure

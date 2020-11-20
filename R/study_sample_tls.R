@@ -1,4 +1,4 @@
-#' Draw TLS sample from single study
+#' Draw time-loaction (TLS) sample from single study
 #'
 #' Sampling handler for drawing TLS sample with given characteristics from individual study population
 #'
@@ -7,7 +7,7 @@
 #' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
 #' @param target_n_tls target number of sampled locations
 #'
-#' @return
+#' @return Population or sample data frame for single study with TLS sample characteristics added
 #' @export
 #'
 #' @import dplyr

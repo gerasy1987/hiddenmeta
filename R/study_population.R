@@ -10,7 +10,7 @@
 #' @param add_groups named list of probabilities of additional group memberships. Examples include probability of service utilization (for service multiplier), going to particular location (for TLS), etc.
 #' @param directed logical, whether links are directed or undirected
 #'
-#' @return
+#' @return Population data frame for single study
 #' @export
 #'
 #' @examples

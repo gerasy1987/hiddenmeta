@@ -4,7 +4,7 @@
 #' @param prior_median prior median of hidden population size for SS-PSE estimation
 #' @param rds_prefix character prefix used for RDS sample variable
 #'
-#' @return
+#' @return Data frame of SS-PSE estimates for single study
 #' @export
 #'
 #' @import dplyr
@@ -40,7 +40,7 @@ get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
 #' @param data pass-through population data frame
 #' @param prop_prefix character prefix used for RDS sample variable
 #'
-#' @return
+#' @return Data frame of HT estimates for single study
 #' @export
 #'
 #' @import dplyr

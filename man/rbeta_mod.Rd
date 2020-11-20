@@ -14,7 +14,7 @@ rbeta_mod(n, mu, sd)
 \item{sd}{scale parameter}
 }
 \value{
-
+vector of draws from Beta distribution
 }
 \description{
 Reparametrization of base R rbeta to take location and scale rather than 2 shape parameters

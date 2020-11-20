@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_sample_rds.R
 \name{sample_rds}
 \alias{sample_rds}
-\title{Draw RDS sample from single study}
+\title{Draw respondent-driven sample (RDS) sample from single study}
 \usage{
 sample_rds(
   data,
@@ -30,7 +30,7 @@ sample_rds(
 \item{target_n_rds}{numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed}
 }
 \value{
-
+Population or sample data frame for single study with RDS sample characteristics added
 }
 \description{
 Sampling handler for drawing RDS sample with given characteristics from individual study population
