@@ -1,7 +1,7 @@
 Package: hiddenmeta
 Type: Package
 Title: Meta-analysis of hidden population studies
-Version: 0.2.0
+Version: 0.1.2
 Date: 2020-11-20
 Author: 
     c(person(given = "Georgiy", family = "Syunyaev", email = "gs2716@columbia.edu",
