@@ -140,3 +140,57 @@ testthat::test_that("PPS sampling with various parameters works", {
 
 })
 
+testthat::test_that("TLS sampling with various parameters works", {
+
+  set.seed(23121987)
+  tls_sample <-
+    do.call(what = sample_tls,
+            args = c(data = list(pop),
+                     sampling_variable = "tls",
+                     drop_nonsampled = FALSE,
+                     study_1[14]))
+
+  tls_sample_drop <-
+    do.call(what = sample_tls,
+            args = c(data = list(pop),
+                     sampling_variable = "PPS",
+                     drop_nonsampled = TRUE,
+                     study_1[14]))
+
+  tls_sample_other <-
+    do.call(what = sample_tls,
+            args = c(data = list(pop),
+                     sampling_variable = "rds",
+                     drop_nonsampled = FALSE,
+                     target_n_tls = 1))
+
+  testthat::expect_equal(nrow(tls_sample), study_1$N)
+  testthat::expect_equal(names(tls_sample)[grep(pattern = "tls", names(tls_sample))],
+                         c("tls_loc_sampled", "tls"))
+
+  testthat::expect_true(nrow(tls_sample_drop) <= study_1$N)
+  testthat::expect_true(all(!grepl(pattern = "tls", names(tls_sample_drop))))
+  testthat::expect_equal(names(tls_sample_drop)[grep(pattern = "PPS", names(tls_sample_drop))],
+                         c("PPS_loc_sampled", "PPS"))
+
+  testthat::expect_true(sum(tls_sample_other$rds == 1, na.rm = T) <=
+                          sum(tls_sample_other$rds_loc_sampled == "loc_1", na.rm = TRUE))
+  testthat::expect_true(all(!grepl(pattern = "tls", names(tls_sample_other))))
+  testthat::expect_length(
+    object = unique(tls_sample_other$rds_loc_sampled[tls_sample_other$rds == 1]),
+    n = 2
+  )
+
+  testthat::expect_equal(ncol(tls_sample), ncol(tls_sample_drop))
+  testthat::expect_equal(dim(tls_sample), dim(tls_sample_other))
+  testthat::expect_equal(ncol(tls_sample), ncol(pop) + 2)
+
+  testthat::expect_error(
+    do.call(what = sample_tls,
+            args = c(data = list(pop),
+                     sampling_variable = "rds",
+                     drop_nonsampled = FALSE,
+                     target_n_tls = 4)),
+    regexp = "Number of requested locations for TLS sample exceeds number of available locations")
+
+})

@@ -17,6 +17,9 @@ sample_tls <-
            target_n_tls = 2
   ) {
 
+    if (length(grep(pattern = "^loc_", x = names(data))) < target_n_tls)
+      stop("Number of requested locations for TLS sample exceeds number of available locations")
+
     sampled_loc <-
       data %>%
       dplyr::filter(hidden == 1) %>%
