@@ -71,6 +71,6 @@ get_study_est_ht <- function(data, prop_prefix = "prop") {
    data.frame(estimator_label = "hidden_prev_ht",
               estimate = fit_ht["est"],
               se =  fit_ht["se"],
-              estimand_label = "hidden_size")
+              estimand_label = "hidden_prev")
  )
 }

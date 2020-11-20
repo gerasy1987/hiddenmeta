@@ -9,32 +9,34 @@ Author:
       person(given = "Macartan", family = "Humphreys", email = "macartan@gmail.com",
              role = c("aut", "cre")))
 Maintainer: Georgiy Syunyaev <gs2716@columbia.edu>
-Description: Helper functions for individual and multi study RDS, TLS and proportional sampling from hidden populations and size estimation. 
-    The functions allow for easy declaration of one or more studies
-    with various design features. In addition, package provides functions for meta-analysis of
-    performance comparison of various estimation methods based on RDS and proportional sampling.
-Depends: R (>= 4.0.0)
-Imports:
-    plyr,
-    dplyr,
-    stringr,
-    purrr,
-    magrittr,
-    igraph,
-    fastDummies,
-    DeclareDesign,
-    MultiRNG,
-    RcppAlgos,
-    pbapply,
-    parallel,
-    testthat,
-    methods,
-    sspse,
-    estimatr
+Description: Helper functions for analysis of individual and multiple studies of 
+    hidden population size and prevalence using RDS, TLS or PPS designs. 
+    The functions are written so that they can be used with DeclareDesign package to 
+    allow for easy declaration of one or more studies with various design features. 
+    In addition, package implements functions for estimation of hidden population size and prevalance based on 
+    RDS, TLS or PPS samples.
+Depends: 
+    R (>= 4.0.0),
+    magrittr (>= 2.0.0), 
+    dplyr (>= 1.0.0), 
+    purrr (>= 0.3.0), 
+    igraph (>= 1.0.0)
 Suggests: 
-    covr
+    covr (>= 3.5.0),
+    DeclareDesign (>= 0.20.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
-
+Imports: 
+    plyr (>= 1.0.0), 
+    stringr (>= 1.0.0), 
+    sspse (>= 0.6.0),
+    estimatr (>= 0.20.0), 
+    chords (>= 0.90.0),
+    RDS,
+    NSUM,
+    fastDummies, 
+    MultiRNG, 
+    testthat, 
+    methods

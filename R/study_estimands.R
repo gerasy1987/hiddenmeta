@@ -8,7 +8,6 @@
 #' @import dplyr
 #' @importFrom magrittr `%>%`
 #' @importFrom purrr map_int
-#' @importFrom pbapply pblapply pboptions
 get_study_estimands <- function(data) {
 
   data %>%

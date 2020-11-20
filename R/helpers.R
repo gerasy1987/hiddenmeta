@@ -84,7 +84,6 @@ gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
 #' }
 #'
 #' @importFrom magrittr `%>%`
-#' @importFrom RcppAlgos permuteGeneral
 gen_block_matrix <- function(p_edge_within, p_edge_between, .ord = NULL) {
 
   if (length(p_edge_within) != length(p_edge_between))
@@ -98,7 +97,7 @@ gen_block_matrix <- function(p_edge_within, p_edge_between, .ord = NULL) {
     Reduce(kronecker, x = .)
 
   between_mat <-
-    lapply(rev(p_edge_between), function(x) RcppAlgos::permuteGeneral(c(1,x))) %>%
+    lapply(rev(p_edge_between), function(x) get_perms(c(1,x))) %>%
     Reduce(kronecker, x = .)
 
   out_mat <- within_mat * between_mat
@@ -152,6 +151,10 @@ merge_vertices <- function(graph_list) {
 
 }
 
+
+# HIDDEN HELPERS ------------------------------------------------------------------------------
+
+# generates vector of marginal type names
 gen_marginal_types <- function(k) {
   sapply(0:k,
          function(x) paste0(paste0(rep("*", times = x), collapse = ""),
@@ -159,6 +162,7 @@ gen_marginal_types <- function(k) {
                             paste0(rep("*", times = k - x), collapse = "")))
 }
 
+# helper for population simulations
 mutate_visibility <- function(data, p_visibility) {
   for (var in names(data)[names(data) != "type"]) {
     data[,paste0("p_visibility_", var)] <- rbeta_mod(nrow(data), mu = p_visibility[[var]], sd = 0.09)
@@ -167,9 +171,24 @@ mutate_visibility <- function(data, p_visibility) {
   return(data)
 }
 
+# helper for population simulations
 mutate_add_groups <- function(data, add_groups) {
   for (var in names(add_groups)) {
     data[,var] <- rbinom(nrow(data), 1, add_groups[[var]])
   }
   return(data)
+}
+
+# permutations helper from https://stackoverflow.com/a/34287541
+get_perms <- function(x) {
+  if (length(x) == 1) {
+    return(x)
+  }
+  else {
+    res <- matrix(nrow = 0, ncol = length(x))
+    for (i in seq_along(x)) {
+      res <- rbind(res, cbind(x[i], Recall(x[-i])))
+    }
+    return(res)
+  }
 }

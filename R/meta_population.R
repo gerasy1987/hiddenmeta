@@ -8,15 +8,10 @@
 #' @import dplyr
 #' @importFrom magrittr `%>%`
 #' @importFrom methods formalArgs
-#' @importFrom pbapply pblapply pboptions
-#' @importFrom parallel detectCores
 get_meta_population <- function(pop_args) {
 
-  pbapply::pboptions(type = "none")
-
-  pbapply::pblapply(
+  lapply(
     X = names(pop_args),
-    cl = parallel::detectCores()/2,
     FUN = function(x) {
 
       do.call(what = get_study_population,
