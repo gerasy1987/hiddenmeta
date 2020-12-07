@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_sspse}
 \alias{get_study_est_sspse}
-\title{SS-PSE estimator}
+\title{SS-PSE estimator by Handcock, Gile and Mar}
 \usage{
 get_study_est_sspse(data, prior_median = 150, rds_prefix = "rds")
 }
@@ -17,5 +17,8 @@ get_study_est_sspse(data, prior_median = 150, rds_prefix = "rds")
 Data frame of SS-PSE estimates for single study
 }
 \description{
-SS-PSE estimator
+SS-PSE estimator by Handcock, Gile and Mar
+}
+\references{
+Handcock, Mark S., Krista J. Gile, and Corinne M. Mar. “Estimating Hidden Population Size Using Respondent-Driven Sampling Data.” Electronic Journal of Statistics 8, no. 1 (2014): 1491–1521. \url{https://doi.org/10.1214/14-EJS923}.
 }

@@ -21,7 +21,7 @@ get_study_population(
 
 \item{K}{number of groups}
 
-\item{prev_K}{named numeric vector of prevalence for each group with last group being hidden population}
+\item{prev_K}{named numeric vector of prevalence for each group with last group being hidden}
 
 \item{rho_K}{numeric vector of correlations in group memberships}
 

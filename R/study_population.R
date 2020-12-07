@@ -2,7 +2,7 @@
 #'
 #' @param N number of units in population
 #' @param K number of groups
-#' @param prev_K named numeric vector of prevalence for each group with last group being hidden population
+#' @param prev_K named numeric vector of prevalence for each group with last group being hidden
 #' @param rho_K numeric vector of correlations in group memberships
 #' @param p_edge_within named list of numeric vectors giving probability of link between in-group members and out-group members for each of groups. The order of objects in list have to follow the order of \code{prev_K}
 #' @param p_edge_between named list of numeric values giving probability of link between in- and out-group member for each of groups. The order of objects in list have to follow the order of \code{prev_K}
@@ -52,10 +52,10 @@ get_study_population <-
            add_groups = list(service_use = 0.3, loc_1 = .3, loc_2 = .3,
                              loc_3 = .2), directed = FALSE) {
 
-    type_names <-
-      lapply(1:K, function(x) 0:1) %>%
-      expand.grid() %>%
-      apply(X = ., MARGIN = 1, FUN = paste0, collapse = "")
+    type_names <- gen_group_types(K = K)
+
+    if (is.null(names(prev_K)) | length(unique(names(prev_K))) != K)
+      stop("prev_K have to be named vector of prevalences with unique names identifying each group. The last element have to correspond to hidden group prevalence")
 
     group_names <- names(prev_K)
 
@@ -77,7 +77,7 @@ get_study_population <-
     igraph::vertex_attr(g) <-
       igraph::vertex_attr(g)$type %>%
       stringr::str_split(., pattern = "", simplify = TRUE) %>%
-      apply(X = ., MARGIN = 2, as.integer) %>%
+      base::apply(X = ., MARGIN = 2, as.integer) %>%
       {`colnames<-`(., group_names)} %>%
       dplyr::as_tibble(.) %>%
       dplyr::mutate(type = igraph::vertex_attr(g)$type) %>%
@@ -89,7 +89,7 @@ get_study_population <-
       fastDummies::dummy_cols(., select_columns = "type_visible",
                               remove_selected_columns = TRUE) %>%
       dplyr::mutate_at(
-        vars(contains("visible")),
+        dplyr::vars(dplyr::contains("visible")),
         ~ colSums(as.matrix((igraph::as_adj(g) * .) == 1))) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(total_visible = sum(dplyr::c_across(dplyr::contains("visible_")))) %>%

@@ -155,11 +155,11 @@ merge_vertices <- function(graph_list) {
 # HIDDEN HELPERS ------------------------------------------------------------------------------
 
 # generates vector of marginal type names
-gen_marginal_types <- function(k) {
-  sapply(0:k,
+gen_marginal_types <- function(K) {
+  sapply(0:K,
          function(x) paste0(paste0(rep("*", times = x), collapse = ""),
                             "1",
-                            paste0(rep("*", times = k - x), collapse = "")))
+                            paste0(rep("*", times = K - x), collapse = "")))
 }
 
 # helper for population simulations
@@ -191,4 +191,11 @@ get_perms <- function(x) {
     }
     return(res)
   }
+}
+
+# generate all possible group membership types based on number of groups k
+gen_group_types <- function(K) {
+  lapply(1:K, function(x) 0:1) %>%
+    expand.grid() %>%
+    apply(X = ., MARGIN = 1, FUN = paste0, collapse = "")
 }

@@ -2,18 +2,18 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_ht}
 \alias{get_study_est_ht}
-\title{Horvitz-Thompson estimatior}
+\title{Horvitz-Thompson estimatior using weighted regression}
 \usage{
-get_study_est_ht(data, prop_prefix = "prop")
+get_study_est_ht(data, pps_prefix = "pps")
 }
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{prop_prefix}{character prefix used for RDS sample variable}
+\item{pps_prefix}{character prefix used for RDS sample variable}
 }
 \value{
 Data frame of HT estimates for single study
 }
 \description{
-Horvitz-Thompson estimatior
+Horvitz-Thompson estimatior using weighted regression
 }

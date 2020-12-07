@@ -71,21 +71,24 @@ testthat::test_that("RDS sampling with various parameters works", {
 
   testthat::expect_equal(nrow(rds_sample), study_1$N)
   testthat::expect_equal(names(rds_sample)[grep(pattern = "rds", names(rds_sample))],
-                         c("rds", "rds_from", "rds_t", "rds_wave", "rds_hidden"))
+                         c("rds", "rds_from", "rds_t", "rds_wave", "rds_hidden", "rds_own_coupon",
+                           paste0("rds_coupon_", 1:study_1$n_coupons)))
 
   testthat::expect_equal(nrow(rds_sample_drop), study_1$target_n_rds)
   testthat::expect_true(all(!grepl(pattern = "rds", names(rds_sample_drop))))
   testthat::expect_equal(names(rds_sample_drop)[grep(pattern = "DRS", names(rds_sample_drop))],
-                         c("DRS", "DRS_from", "DRS_t", "DRS_wave", "DRS_hidden"))
+                         c("DRS", "DRS_from", "DRS_t", "DRS_wave", "DRS_hidden", "DRS_own_coupon",
+                           paste0("DRS_coupon_", 1:study_1$n_coupons)))
 
   testthat::expect_true(length(unique(rds_sample_wave$rds_wave)) <= 3)
   testthat::expect_true(all(table(rds_sample_wave$rds_from) <= 2))
   testthat::expect_equal(names(rds_sample_wave)[grep(pattern = "rds", names(rds_sample_wave))],
-                         c("rds", "rds_from", "rds_t", "rds_wave", "rds_hidden"))
+                         c("rds", "rds_from", "rds_t", "rds_wave", "rds_hidden", "rds_own_coupon",
+                           paste0("rds_coupon_", 1:2)))
 
   testthat::expect_equal(ncol(rds_sample), ncol(rds_sample_drop))
-  testthat::expect_equal(dim(rds_sample), dim(rds_sample_wave))
-  testthat::expect_equal(ncol(rds_sample), ncol(pop) + 5)
+  testthat::expect_equal(dim(rds_sample), c(nrow(rds_sample_wave), ncol(rds_sample_wave) + 1))
+  testthat::expect_equal(ncol(rds_sample), ncol(pop) + 6 + study_1$n_coupons)
 
 })
 
