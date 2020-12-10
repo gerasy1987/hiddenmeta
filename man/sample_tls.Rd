@@ -20,6 +20,8 @@ sample_tls(
 \item{drop_nonsampled}{logical indicating whether to drop units that are not sampled. Default is \code{FALSE}}
 
 \item{target_n_tls}{target number of sampled locations}
+
+\item{loc_pattern}{character string containing regular expression to match all locality names in the study population dataset}
 }
 \value{
 Population or sample data frame for single study with TLS sample characteristics added
