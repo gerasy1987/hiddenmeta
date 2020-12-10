@@ -8,7 +8,8 @@ sample_tls(
   data,
   sampling_variable = "tls",
   drop_nonsampled = FALSE,
-  target_n_tls = 2
+  target_n_tls = 2,
+  loc_pattern = "^loc_[0-9]$"
 )
 }
 \arguments{

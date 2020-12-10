@@ -102,7 +102,10 @@ get_study_population <-
                       dplyr::as_tibble(igraph::vertex_attr(g)),
                       links = igraph::as_adj_list(.))
       } %>%
-      mutate_add_groups(., add_groups = add_groups)
+      mutate_add_groups(., add_groups = add_groups) %>%
+      dplyr::mutate_at(
+        names(add_groups),
+        list(visible = ~ colSums(as.matrix((igraph::as_adj(g) * .) == 1))))
 
     return(data)
 

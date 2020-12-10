@@ -1,8 +1,8 @@
 Package: hiddenmeta
 Type: Package
 Title: Meta-analysis of hidden population studies
-Version: 0.1.2
-Date: 2020-11-20
+Version: 0.0.8
+Date: 2020-12-10
 Author: 
     c(person(given = "Georgiy", family = "Syunyaev", email = "gs2716@columbia.edu",
              role = c("aut", "cre")),
@@ -28,7 +28,8 @@ Imports:
     estimatr (>= 0.20.0), 
     chords (>= 0.90.0),
     RDS,
-    NSUM,
+    networkreporting,
+    surveybootstrap,
     fastDummies, 
     MultiRNG, 
     testthat, 

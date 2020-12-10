@@ -14,16 +14,16 @@
 #' @importFrom magrittr `%>%` `%<>%`
 sample_tls <-
   function(data, sampling_variable = "tls", drop_nonsampled = FALSE,
-           target_n_tls = 2
+           target_n_tls = 2, loc_pattern = "^loc_[0-9]$"
   ) {
 
-    if (length(grep(pattern = "^loc_", x = names(data))) < target_n_tls)
+    if (length(grep(pattern = loc_pattern, x = names(data))) < target_n_tls)
       stop("Number of requested locations for TLS sample exceeds number of available locations")
 
     sampled_loc <-
       data %>%
       dplyr::filter(hidden == 1) %>%
-      dplyr::summarise(across(starts_with("loc"), mean, .names = "{.col}")) %>%
+      dplyr::summarise(across(matches(loc_pattern), mean, .names = "{.col}")) %>%
       t() %>%
       {sample(x = rownames(.), size = target_n_tls, prob = as.vector(.))}
 
@@ -32,7 +32,7 @@ sample_tls <-
       dplyr::mutate(
         loc_sampled = apply(
           X = .[,c("p_visibility_hidden",
-                   names(.)[grepl(pattern = "^loc", names(.))])],
+                   names(.)[grepl(pattern = loc_pattern, names(.))])],
           MARGIN = 1,
           FUN = function(x) {
             if (any(x[-1] == 1)) {
