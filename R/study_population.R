@@ -95,18 +95,21 @@ get_study_population <-
       dplyr::mutate(total_visible = sum(dplyr::c_across(dplyr::contains("visible_")))) %>%
       dplyr::ungroup()
 
-    data <-
+    return(
       g %>%
-      {
-        dplyr::tibble(name = 1:N,
-                      dplyr::as_tibble(igraph::vertex_attr(g)),
-                      links = igraph::as_adj_list(.))
-      } %>%
-      mutate_add_groups(., add_groups = add_groups) %>%
-      dplyr::mutate_at(
-        names(add_groups),
-        list(visible = ~ colSums(as.matrix((igraph::as_adj(g) * .) == 1))))
-
-    return(data)
+        {
+          dplyr::tibble(name = 1:N,
+                        dplyr::as_tibble(igraph::vertex_attr(g)),
+                        links = igraph::as_adj_list(.),
+                        total = N)
+        } %>%
+        mutate_add_groups(., add_groups = add_groups) %>%
+        dplyr::mutate_at(c(group_names, names(add_groups)), list(total = sum)) %>%
+        dplyr::rename_at(vars(ends_with("_total")),
+                         ~ paste0("total_", gsub("_total$", "", .))) %>%
+        dplyr::mutate_at(
+          names(add_groups),
+          list(visible = ~ colSums(as.matrix((igraph::as_adj(g) * .) == 1))))
+    )
 
   }

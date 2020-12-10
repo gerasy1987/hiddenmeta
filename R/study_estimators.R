@@ -28,7 +28,6 @@ get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
       )
     }
 
-
   data.frame(estimator_label = c("hidden_size_sspse"),
              estimate = c(unname(.fit_sspse$result$N["Median AP"])),
              se =   c(sd(.fit_sspse$result$sample[,"N"])),
