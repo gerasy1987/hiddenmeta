@@ -67,7 +67,7 @@ study_1 <-
     # probability of service utilization in hidden population
     # for service multiplier
     add_groups = list(p_service = 0.3, 
-                      loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2),
+                      loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, known_2 = 0.1, known_2 = 0.2),
     
     # RDS parameters
     n_seed = 20,
@@ -187,12 +187,14 @@ draw_estimands(population_study +
 ```{r example_estimators, eval=TRUE}
 estimator_sspse <- declare_estimator(handler = get_study_est_sspse, label = "sspse")
 estimator_ht <- declare_estimator(handler = get_study_est_ht, label = "ht")
+estimator_chords <- declare_estimator(type = "integrated",
+                                      handler = get_study_est_chords, label = "chords")
 
 
-draw_estimates(population_study + 
-                 rds_study + pps_study + tls_study + 
+draw_estimates(population_study +
+                 rds_study + pps_study + tls_study +
                  study_estimands +
-                 estimator_sspse + estimator_ht)
+                 estimator_sspse + estimator_ht + estimator_chords)
 ```
 
 

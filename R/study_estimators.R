@@ -1,4 +1,4 @@
-#' SS-PSE estimator by Handcock, Gile and Mar
+#' SS-PSE population size estimator by Handcock, Gile and Mar
 #'
 #' @param data pass-through population data frame
 #' @param prior_median prior median of hidden population size for SS-PSE estimation
@@ -14,31 +14,29 @@
 #' @importFrom sspse posteriorsize
 get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
 
+  .quiet_sspse <- quietly(sspse::posteriorsize)
 
-
-  quiet_sspse <- quietly(sspse::posteriorsize)
-
-  fit_sspse <-
+  .fit_sspse <-
     data %>%
     dplyr::filter_at(dplyr::vars(dplyr::all_of(rds_prefix)), ~ . == 1) %>%
     {
-      quiet_sspse(s = .$hidden_visible[order(.[,paste0(rds_prefix, "_t")])],
-                  interval = 10,
-                  median.prior.size = prior_median,
-                  verbose = FALSE,
-                  max.coupons = 3
+      .quiet_sspse(s = .$hidden_visible[order(.[,paste0(rds_prefix, "_t")])],
+                   interval = 10,
+                   median.prior.size = prior_median,
+                   verbose = FALSE,
+                   max.coupons = 3
       )
     }
 
 
   data.frame(estimator_label = c("hidden_size_sspse"),
-             estimate = c(unname(fit_sspse$result$N["Median AP"])),
-             se =   c(sd(fit_sspse$result$sample[,"N"])),
+             estimate = c(unname(.fit_sspse$result$N["Median AP"])),
+             se =   c(sd(.fit_sspse$result$sample[,"N"])),
              estimand_label = c("hidden_size")
   )
 }
 
-#' Horvitz-Thompson estimatior using weighted regression
+#' Horvitz-Thompson prevalence estimator using weighted regression
 #'
 #' @param data pass-through population data frame
 #' @param pps_prefix character prefix used for RDS sample variable
@@ -50,7 +48,7 @@ get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
 #' @importFrom estimatr lm_robust
 get_study_est_ht <- function(data, pps_prefix = "pps") {
 
-  fit_ht <-
+  .fit_ht <-
     data %>%
     dplyr::filter_at(dplyr::vars(dplyr::all_of(pps_prefix)), ~ . == 1) %>%
     estimatr::lm_robust(hidden ~ 1, weights = 1/get(paste0(pps_prefix, "_share")), data = .) %>%
@@ -72,16 +70,18 @@ get_study_est_ht <- function(data, pps_prefix = "pps") {
 
  return(
    data.frame(estimator_label = "hidden_prev_ht",
-              estimate = fit_ht["est"],
-              se =  fit_ht["se"],
+              estimate = .fit_ht["est"],
+              se =  .fit_ht["se"],
               estimand_label = "hidden_prev")
  )
 }
 
 
-#' Chords estimatior
+#' Chords population size estimatior by Berchenko, Rosenblatt and Frost
 #'
 #' @param data pass-through population data frame
+#' @param type a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, \code{jeffreys} or \code{leave-d-out}. See \code{?chords::Estimate.b.k} and the original paper from the references for details
+#' @param rds_prefix character prefix used for RDS sample variable
 #'
 #' @return Data frame of HT estimates for single study
 #'
@@ -90,14 +90,55 @@ get_study_est_ht <- function(data, pps_prefix = "pps") {
 #' @export
 #'
 #' @import dplyr
-#' @importFrom estimatr lm_robust
-get_study_est_chords <- function(data) {
+#' @importFrom chords initializeRdsObject Estimate.b.k makeJackControl
+get_study_est_chords <- function(data,
+                                 type = c("mle", "integrated", "jeffreys", "leave-d-out"),
+                                 rds_prefix = "rds") {
+
+  type <- match.arg(type)
+  .K <- log2(length(grep(pattern = "^type_visible_", names(data))))
+  .pattern <- paste0("^type_visible_", paste0(rep("[0-9]", .K - 1), collapse = ""), "1$")
+
+  .data_mod <-
+    data %>%
+    dplyr::filter_at(dplyr::vars(dplyr::all_of(rds_prefix)), ~ . == 1) %>%
+    dplyr::mutate(
+      NS1 = apply(.[,grep(pattern = .pattern, x = names(data))], 1, sum),
+      refCoupNum = get(paste0(rds_prefix, "_own_coupon")),
+      interviewDt = get(paste0(rds_prefix, "_t"))) %>%
+    dplyr::rename_at(vars(starts_with(paste0(rds_prefix, "_coupon_"))),
+                     ~ gsub(pattern = paste0(rds_prefix, "\\_coupon\\_"), replacement = "coup", .))
+
+  if (type == "leave-d-out") {
+    .jack_control <- chords::makeJackControl(1, 1e2)
+
+    .fit_chords <-
+      chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
+                           type = type,
+                           jack.control = .jack_control) %>%
+      {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
+         degree_hidden =
+           stats::weighted.mean(
+             x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
+             w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+
+  } else {
+
+    .fit_chords <-
+      chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
+                           type = type) %>%
+      {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
+         degree_hidden =
+           stats::weighted.mean(
+             x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
+             w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+
+  }
 
   return(
-    data.frame(estimator_label = "hidden_prev_ht",
-               estimate = fit_ht["est"],
-               se =  fit_ht["se"],
-               estimand_label = "hidden_prev")
+    data.frame(estimator_label = c("hidden_size_chords", "degree_hidden_chords"),
+               estimate = c(.fit_chords["est"], .fit_chords["degree_hidden"]),
+               estimand_label = c("hidden_size", "degree_hidden_average"))
   )
 }
 

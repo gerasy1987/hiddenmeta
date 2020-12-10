@@ -2,18 +2,26 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_chords}
 \alias{get_study_est_chords}
-\title{Chords estimatior}
+\title{Chords population size estimatior by Berchenko, Rosenblatt and Frost}
 \usage{
-get_study_est_chords(data)
+get_study_est_chords(
+  data,
+  type = c("mle", "integrated", "jeffreys", "leave-d-out"),
+  rds_prefix = "rds"
+)
 }
 \arguments{
 \item{data}{pass-through population data frame}
+
+\item{type}{a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, \code{jeffreys} or \code{leave-d-out}. See \code{?chords::Estimate.b.k} and the original paper from the references for details}
+
+\item{rds_prefix}{character prefix used for RDS sample variable}
 }
 \value{
 Data frame of HT estimates for single study
 }
 \description{
-Chords estimatior
+Chords population size estimatior by Berchenko, Rosenblatt and Frost
 }
 \references{
 Berchenko, Yakir, Jonathan D. Rosenblatt, and Simon D. W. Frost. “Modeling and Analyzing Respondent-Driven Sampling as a Counting Process.” Biometrics 73, no. 4 (2017): 1189–98. \url{https://doi.org/10.1111/biom.12678}.

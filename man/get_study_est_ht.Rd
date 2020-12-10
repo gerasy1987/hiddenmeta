@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_ht}
 \alias{get_study_est_ht}
-\title{Horvitz-Thompson estimatior using weighted regression}
+\title{Horvitz-Thompson prevalence estimator using weighted regression}
 \usage{
 get_study_est_ht(data, pps_prefix = "pps")
 }
@@ -15,5 +15,5 @@ get_study_est_ht(data, pps_prefix = "pps")
 Data frame of HT estimates for single study
 }
 \description{
-Horvitz-Thompson estimatior using weighted regression
+Horvitz-Thompson prevalence estimator using weighted regression
 }
