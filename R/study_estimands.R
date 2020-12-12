@@ -18,7 +18,7 @@ get_study_estimands <- function(data, known_pattern = "^known", hidden_pattern =
       degree_hidden =
         purrr::map_int(links,
                        ~ sum(unlist(data[data$name %in% .x,
-                                         grep(pattern = "^hidden$", names(data))])))
+                                         grep(pattern = hidden_pattern, names(data))])))
     ) %>%
     {
       dplyr::bind_cols(
@@ -39,6 +39,7 @@ get_study_estimands <- function(data, known_pattern = "^known", hidden_pattern =
         estimand_label = names(.),
         estimand = unname(t(.)),
         stringsAsFactors = FALSE)
-    }
+    } %>%
+    {.[!grepl(pattern = known_pattern, .$estimand_label),]}
 
 }
