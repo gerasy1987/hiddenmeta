@@ -169,12 +169,13 @@ draw_estimates(population_study +
 ### Step 6. Diagnose study design
 
 ```{r example_diagnose}
-study_diagnosands <- 
+study_diagnosands <-
   declare_diagnosands(
-    bias = mean(estimate - estimand),
-    rmse = sqrt(mean((estimate - estimand) ^ 2)),
+    mean_estimand = mean(estimand),
     mean_estimate = mean(estimate),
-    sd_estimate = sd(estimate)
+    sd_estimate = sd(estimate),
+    bias = mean(estimate - estimand),
+    rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
 
 diagnose_design(

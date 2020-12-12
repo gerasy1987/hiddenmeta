@@ -210,7 +210,7 @@ get_study_est_nsum <- function(data, pps_prefix = "pps",
   #     missing = "complete.obs")
 
   return(
-    data.frame(estimator_label = c("degree_average_nsum", "hidden_size_nsum"),
+    data.frame(estimator_label = c("hidden_size_nsum", "degree_average_nsum"),
                estimate = c(unname(.fit_nsum$estimate), mean(.data_mod$d_est, na.rm = TRUE)),
                estimand_label = c("hidden_size", "degree_average"))
   )

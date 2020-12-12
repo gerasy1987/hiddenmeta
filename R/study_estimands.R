@@ -30,7 +30,8 @@ get_study_estimands <- function(data, known_pattern = "^known", hidden_pattern =
                                            dplyr::matches(hidden_pattern),
                                            -dplyr::contains("visible")),
                             list(prev = mean), na.rm  = TRUE),
-        dplyr::summarise_at(., dplyr::vars(degree, degree_hidden, -dplyr::contains("visible")),
+        dplyr::summarise_at(., dplyr::vars(degree, degree_hidden,
+                                           -dplyr::contains("visible")),
                             list(average = mean), na.rm  = TRUE)
       )
     } %>%
