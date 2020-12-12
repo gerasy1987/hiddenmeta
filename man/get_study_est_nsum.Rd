@@ -7,8 +7,8 @@
 get_study_est_nsum(
   data,
   pps_prefix = "pps",
-  known_prefix = "known",
-  hidden_prefix = "hidden_visible"
+  known_pattern = "known",
+  hidden_pattern = "hidden_visible"
 )
 }
 \arguments{
@@ -16,9 +16,9 @@ get_study_est_nsum(
 
 \item{pps_prefix}{character prefix used for PPS sample variables}
 
-\item{known_prefix}{character prefix for known population variables}
+\item{known_pattern}{character prefix for known population variables}
 
-\item{hidden_prefix}{character prefix for hidden population variable}
+\item{hidden_pattern}{character prefix for hidden population variable}
 }
 \value{
 Data frame of NSUM estimates for a single study with PPS sample

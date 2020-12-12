@@ -146,8 +146,8 @@ get_study_est_chords <- function(data,
 #'
 #' @param data pass-through population data frame
 #' @param pps_prefix character prefix used for PPS sample variables
-#' @param known_prefix character prefix for known population variables
-#' @param hidden_prefix character prefix for hidden population variable
+#' @param known_pattern character prefix for known population variables
+#' @param hidden_pattern character prefix for hidden population variable
 #'
 #' @return Data frame of NSUM estimates for a single study with PPS sample
 #' @export
@@ -157,7 +157,7 @@ get_study_est_chords <- function(data,
 #' @import dplyr
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
 get_study_est_nsum <- function(data, pps_prefix = "pps",
-                               known_prefix = "known", hidden_prefix = "hidden_visible") {
+                               known_pattern = "known", hidden_pattern = "hidden_visible") {
 
   .quiet_nsum <- quietly(networkreporting::nsum.estimator)
   .quiet_degree_nsum <- quietly(networkreporting::kp.degree.estimator)
@@ -168,7 +168,7 @@ get_study_est_nsum <- function(data, pps_prefix = "pps",
 
   .known_pops <-
     .data_mod %>%
-    dplyr::select(total, matches(paste0("^total_", known_prefix))) %>%
+    dplyr::select(total, matches(paste0("^total_", known_pattern))) %>%
     dplyr::rename_at(vars(starts_with("total_")), ~ paste0(gsub("^total\\_", "", .), "_visible")) %>%
     apply(., MARGIN = 2, unique)
 
@@ -182,7 +182,7 @@ get_study_est_nsum <- function(data, pps_prefix = "pps",
     .quiet_nsum(survey.data = .data_mod,
                 d.hat.vals = .data_mod$d_est,
                 total.popn.size = .known_pops[1],
-                y.vals = hidden_prefix,
+                y.vals = hidden_pattern,
                 missing = "complete.obs")$result
 
   # idu.est <-
