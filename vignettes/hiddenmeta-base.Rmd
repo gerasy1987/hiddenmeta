@@ -190,24 +190,35 @@ estimator_sspse <- declare_estimator(handler = get_study_est_sspse, label = "ssp
 estimator_ht <- declare_estimator(handler = get_study_est_ht, label = "ht")
 estimator_chords <- declare_estimator(type = "integrated",
                                       handler = get_study_est_chords, label = "chords")
+estimator_nsum <- declare_estimator(handler = get_study_est_nsum, label = "nsum")
 
-
+set.seed(19872312)
 draw_estimates(population_study +
                  rds_study + pps_study + tls_study +
                  study_estimands +
-                 estimator_sspse + estimator_ht + estimator_chords)
+                 estimator_sspse + estimator_ht + estimator_chords + estimator_nsum)
 ```
 
 
 ## Step 6. Diagnose study design
 
-```{r example_diagnose, eval=FALSE}
+```{r example_diagnose, eval=TRUE}
+study_diagnosands <- 
+  declare_diagnosands(
+    bias = mean(estimate - estimand),
+    rmse = sqrt(mean((estimate - estimand) ^ 2)),
+    mean_estimate = mean(estimate),
+    sd_estimate = sd(estimate)
+  )
+
 diagnose_design(
   population_study + 
     rds_study + pps_study + 
     study_estimands + 
-    estimator_sspse + estimator_ht, 
-  sims = 10)
+    estimator_sspse + estimator_ht + estimator_chords + estimator_nsum, 
+  diagnosands = study_diagnosands,
+  sims = 10,
+  bootstrap_sims = 10)
 ```
 
 # Meta-analysis
