@@ -149,12 +149,12 @@ get_study_est_chords <- function(data,
 #' @param known_pattern character prefix for known population variables
 #' @param hidden_pattern character prefix for hidden population variable
 #' @param degree_ratio numeric value between 0 and 1 representing degree ratio
-#' @param hidden_pattern numeric value between 0 and 1 representing information transmission rate
+#' @param transmission_rate numeric value between 0 and 1 representing information transmission rate
 #'
 #' @return Data frame of NSUM estimates for a single study with PPS sample
 #' @export
 #'
-#' @references Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{http://cran.r-project.org/package=networkreporting}.
+#' @references Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
 #'
 #' @import dplyr
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator

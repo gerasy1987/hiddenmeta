@@ -20,9 +20,11 @@ get_study_est_nsum(
 
 \item{known_pattern}{character prefix for known population variables}
 
-\item{hidden_pattern}{numeric value between 0 and 1 representing information transmission rate}
+\item{hidden_pattern}{character prefix for hidden population variable}
 
 \item{degree_ratio}{numeric value between 0 and 1 representing degree ratio}
+
+\item{transmission_rate}{numeric value between 0 and 1 representing information transmission rate}
 }
 \value{
 Data frame of NSUM estimates for a single study with PPS sample
@@ -31,5 +33,5 @@ Data frame of NSUM estimates for a single study with PPS sample
 NSUM estimatior
 }
 \references{
-Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{http://cran.r-project.org/package=networkreporting}.
+Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
 }
