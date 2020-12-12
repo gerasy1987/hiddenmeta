@@ -3,23 +3,24 @@
 
 ## Overview
 
+### Install and load packages
+
 ``` r
-if (!require(pacman)) install.packages("pacman")
+install.packages("DeclareDesign")
+install.packages("igraph")
 
-pacman::p_load_current_gh("gerasy1987/hiddenmeta")
+devtools::install_github("gerasy1987/hiddenmeta", build_vignettes = TRUE)
+```
 
-pacman::p_load(
-  tidyverse, knitr, magrittr, # data management/plotting/printing
-  DeclareDesign, # Design declaration
-  RcppAlgos, # speed up combinatorics
-  sampling, # HT estimator
-  networkreporting, NSUM, # NSUM methods
-  sspse, RDS, chords # RDS+ methods
-)
+``` r
+library(hiddenmeta)
+library(DeclareDesign)
+library(igraph)
+```
 
-# number of studies
-N_studies <- 2
+### Step 1. Provide study design features
 
+``` r
 ## STUDY 1
 study_1 <- 
   list(
@@ -44,8 +45,9 @@ study_1 <-
     
     # probability of service utilization in hidden population
     # for service multiplier
-    add_groups = list(p_service = 0.3, 
-                      loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2),
+    add_groups = list(service_use = 0.3, 
+                      loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, 
+                      known_2 = 0.1, known_3 = 0.2),
     
     # RDS parameters
     n_seed = 20,
@@ -59,90 +61,108 @@ study_1 <-
     # TLS sampling parameters
     target_n_tls = 1
   )
+```
 
-# SINGLE STUDY --------------------------------------------------------------------------------
+### Step 2. Declare study population
 
+``` r
 population_study <-
   do.call(what = declare_population,
           args = c(handler = get_study_population, study_1[1:8]))
 
-# population_study()
+set.seed(19872312)
+( example_pop <- population_study() )
+```
 
+### Step 3. Declare all relevant study sampling procedures
+
+The sampling procedures are additive in a sense that each procedure
+appends several columns relevant to the sampling procedure and
+particular draw based on population simulation, but does not change the
+study population data frame (unless you specify
+`drop_nonsampled = TRUE`).
+
+``` r
 rds_study <- 
   do.call(declare_sampling,
           c(handler = sample_rds, 
             sampling_variable = "rds",
             drop_nonsampled = FALSE, study_1[9:12]))
 
-# rds_study(population_study())
+set.seed(19872312)
+draw_data(population_study + 
+            rds_study)
+```
 
+``` r
 pps_study <- 
   do.call(declare_sampling,
           c(handler = sample_pps, 
             sampling_variable = "pps",
             drop_nonsampled = FALSE, study_1[13]))
 
-# pps_study(population_study())
+set.seed(19872312)
+draw_data(population_study + 
+            rds_study + pps_study)
+```
 
+``` r
 tls_study <- 
   do.call(declare_sampling,
           c(handler = sample_tls, 
             sampling_variable = "tls",
             drop_nonsampled = FALSE, study_1[14]))
 
-# sample_rds(population_study(), sampling_variable = "rds1", 
-#            drop_nonsampled = TRUE, n_seed = 20, target_type = "sample", target_n_rds = 100)
-
-# g <- 
-#   population_study() %$% {
-#     igraph::graph_from_adj_list(links, 
-#                                 mode = "all") %>% 
-#       igraph::set_vertex_attr("name", value = name) %>%
-#       igraph::set_vertex_attr("type", value = type)
-#   }
-# 
-# 
-# igraph::V(g)$color <- 
-#   plyr::mapvalues(igraph::V(g)$type, 
-#                   from = c("000", "001", "010", "011", "100", "101", "110", "111"), 
-#                   to = c("gray50", "tomato", "gray50", "gold", "gray50", "gold", "gray50", "gold"))
-# # to = c("grey", "red", "blue", "yellow"))
-# 
-# plot(g, 
-#      layout = igraph::layout_on_grid(g, dim = 2, width = 100), 
-#      vertex.size=4, vertex.label=NA, edge.width = 1.5,
-#      edge.arrow.size=.2, edge.curved=.2) 
-# 
-# legend(x = -1, y = -1.2, 
-#        legend = c("none","hidden only", "known only", "both"), 
-#        pt.bg = c("gray50", "tomato", "cyan", "gold"),
-#        # pt.bg = c("grey", "red", "blue", "yellow"), 
-#        pch = 21, col="#777777", pt.cex = 2, cex = 1.5, bty = "o", ncol = 4)
-
-# tls_study(rds_study(pps_study(population_study())))
-
 set.seed(19872312)
-data <- draw_data(population_study + rds_study + pps_study + tls_study)
+draw_data(population_study + 
+            rds_study + pps_study + tls_study)
+```
 
+### Step 4. Declare study level estimands
 
+``` r
 study_estimands <- 
   declare_estimand(handler = get_study_estimands)
 
 set.seed(19872312)
-draw_estimands(population_study + rds_study + pps_study + tls_study + study_estimands)
-draw_estimands(population_study + study_estimands)
+draw_estimands(population_study + 
+                 rds_study + pps_study + tls_study + 
+                 study_estimands)
+```
 
-set.seed(19872312)
+### Step 5. Declare estimators used in the study
 
+``` r
 estimator_sspse <- declare_estimator(handler = get_study_est_sspse, label = "sspse")
 estimator_ht <- declare_estimator(handler = get_study_est_ht, label = "ht")
+estimator_chords <- declare_estimator(type = "integrated",
+                                      handler = get_study_est_chords, label = "chords")
+estimator_nsum <- declare_estimator(handler = get_study_est_nsum, label = "nsum")
+
+set.seed(19872312)
+draw_estimates(population_study +
+                 rds_study + pps_study + tls_study +
+                 study_estimands +
+                 estimator_sspse + estimator_ht + estimator_chords + estimator_nsum)
+```
+
+### Step 6. Diagnose study design
+
+``` r
+study_diagnosands <- 
+  declare_diagnosands(
+    bias = mean(estimate - estimand),
+    rmse = sqrt(mean((estimate - estimand) ^ 2)),
+    mean_estimate = mean(estimate),
+    sd_estimate = sd(estimate)
+  )
 
 diagnose_design(
   population_study + 
     rds_study + pps_study + 
     study_estimands + 
-    estimator_sspse + estimator_ht, 
-  sims = 10)
-
-# META STUDY ----------------------------------------------------------------------------------
+    estimator_sspse + estimator_ht + estimator_chords + estimator_nsum, 
+  diagnosands = study_diagnosands,
+  sims = 10,
+  bootstrap_sims = 10)
 ```
