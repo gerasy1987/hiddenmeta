@@ -45,12 +45,14 @@
 #' @importFrom stringr str_split
 #' @importFrom stats rbinom
 get_study_population <-
-  function(N = 1000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
+  function(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
            p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
            p_edge_between = list(known = 0.05, hidden = 0.01),
            p_visibility = list(hidden = .7, known = .99),
-           add_groups = list(service_use = 0.3, loc_1 = .3, loc_2 = .3,
-                             loc_3 = .2), directed = FALSE) {
+           add_groups = list(service_use = 0.3,
+                             loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2,
+                             known_2 = 0.1, known_3 = 0.2),
+           directed = FALSE) {
 
     type_names <- gen_group_types(K = K)
 

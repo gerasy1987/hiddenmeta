@@ -5,14 +5,15 @@
 \title{Simulate single population with given network structure}
 \usage{
 get_study_population(
-  N = 1000,
+  N = 2000,
   K = 2,
   prev_K = c(known = 0.3, hidden = 0.1),
   rho_K = 0.05,
   p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
   p_edge_between = list(known = 0.05, hidden = 0.01),
   p_visibility = list(hidden = 0.7, known = 0.99),
-  add_groups = list(service_use = 0.3, loc_1 = 0.3, loc_2 = 0.3, loc_3 = 0.2),
+  add_groups = list(service_use = 0.3, loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, known_2 =
+    0.1, known_3 = 0.2),
   directed = FALSE
 )
 }
