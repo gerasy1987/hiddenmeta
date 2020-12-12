@@ -148,6 +148,8 @@ get_study_est_chords <- function(data,
 #' @param pps_prefix character prefix used for PPS sample variables
 #' @param known_pattern character prefix for known population variables
 #' @param hidden_pattern character prefix for hidden population variable
+#' @param degree_ratio numeric value between 0 and 1 representing degree ratio
+#' @param hidden_pattern numeric value between 0 and 1 representing information transmission rate
 #'
 #' @return Data frame of NSUM estimates for a single study with PPS sample
 #' @export
@@ -157,7 +159,8 @@ get_study_est_chords <- function(data,
 #' @import dplyr
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
 get_study_est_nsum <- function(data, pps_prefix = "pps",
-                               known_pattern = "known", hidden_pattern = "hidden_visible") {
+                               known_pattern = "known", hidden_pattern = "hidden_visible",
+                               degree_ratio = 1, transmission_rate = 1) {
 
   .quiet_nsum <- quietly(networkreporting::nsum.estimator)
   .quiet_degree_nsum <- quietly(networkreporting::kp.degree.estimator)
@@ -176,14 +179,17 @@ get_study_est_nsum <- function(data, pps_prefix = "pps",
     .quiet_degree_nsum(survey.data = .data_mod,
                        known.popns = .known_pops[2:length(.known_pops)],
                        total.popn.size = .known_pops[1],
-                       missing = "complete.obs")$result
+                       missing = "ignore")$result
 
   .fit_nsum <-
     .quiet_nsum(survey.data = .data_mod,
-                d.hat.vals = .data_mod$d_est,
+                d.hat.vals = "d_est",
                 total.popn.size = .known_pops[1],
+                killworth.se = TRUE,
                 y.vals = hidden_pattern,
-                missing = "complete.obs")$result
+                missing = "ignore",
+                deg.ratio = degree_ratio,
+                tx.rate = transmission_rate)$result
 
   # idu.est <-
   #   surveybootstrap::bootstrap.estimates(## this describes the sampling design of the
@@ -212,6 +218,7 @@ get_study_est_nsum <- function(data, pps_prefix = "pps",
   return(
     data.frame(estimator_label = c("hidden_size_nsum", "degree_average_nsum"),
                estimate = c(unname(.fit_nsum$estimate), mean(.data_mod$d_est, na.rm = TRUE)),
+               se = c(unname(.fit_nsum$killworth.se), NA),
                estimand_label = c("hidden_size", "degree_average"))
   )
 }

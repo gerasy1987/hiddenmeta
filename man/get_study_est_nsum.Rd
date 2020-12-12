@@ -8,7 +8,9 @@ get_study_est_nsum(
   data,
   pps_prefix = "pps",
   known_pattern = "known",
-  hidden_pattern = "hidden_visible"
+  hidden_pattern = "hidden_visible",
+  degree_ratio = 1,
+  transmission_rate = 1
 )
 }
 \arguments{
@@ -18,7 +20,9 @@ get_study_est_nsum(
 
 \item{known_pattern}{character prefix for known population variables}
 
-\item{hidden_pattern}{character prefix for hidden population variable}
+\item{hidden_pattern}{numeric value between 0 and 1 representing information transmission rate}
+
+\item{degree_ratio}{numeric value between 0 and 1 representing degree ratio}
 }
 \value{
 Data frame of NSUM estimates for a single study with PPS sample

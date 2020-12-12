@@ -39,9 +39,6 @@ library(igraph)
 
 ```{r example_designs}
 
-# number of studies
-# N_studies <- 2
-
 ## STUDY 1
 study_1 <- 
   list(
@@ -208,6 +205,7 @@ study_diagnosands <-
     mean_estimand = mean(estimand),
     mean_estimate = mean(estimate),
     sd_estimate = sd(estimate),
+    mean_se = mean(se),
     bias = mean(estimate - estimand),
     rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
