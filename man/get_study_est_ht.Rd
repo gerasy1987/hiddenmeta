@@ -9,10 +9,10 @@ get_study_est_ht(data, pps_prefix = "pps")
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{pps_prefix}{character prefix used for RDS sample variable}
+\item{pps_prefix}{character prefix used for RDS sample variables}
 }
 \value{
-Data frame of HT estimates for single study
+Data frame of HT estimates for a single study
 }
 \description{
 Horvitz-Thompson prevalence estimator using weighted regression

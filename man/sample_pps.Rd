@@ -8,7 +8,8 @@ sample_pps(
   data,
   sampling_variable = "prop",
   drop_nonsampled = FALSE,
-  target_n_pps = 400
+  target_n_pps = 400,
+  group_pattern = "^known|^hidden$"
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ sample_pps(
 \item{drop_nonsampled}{logical indicating whether to drop units that are not sampled. Default is \code{FALSE}}
 
 \item{target_n_pps}{target size of proportional sample}
+
+\item{group_pattern}{character string containing regular expression to match all groups used for proportional sampling}
 }
 \value{
 Population or sample data frame for single study with PPS sample characteristics added

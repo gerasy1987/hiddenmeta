@@ -11,10 +11,10 @@ get_study_est_sspse(data, prior_median = 150, rds_prefix = "rds")
 
 \item{prior_median}{prior median of hidden population size for SS-PSE estimation}
 
-\item{rds_prefix}{character prefix used for RDS sample variable}
+\item{rds_prefix}{character prefix used for RDS sample variables}
 }
 \value{
-Data frame of SS-PSE estimates for single study
+Data frame of SS-PSE estimates for a single study
 }
 \description{
 SS-PSE population size estimator by Handcock, Gile and Mar

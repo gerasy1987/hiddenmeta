@@ -15,10 +15,10 @@ get_study_est_chords(
 
 \item{type}{a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, \code{jeffreys} or \code{leave-d-out}. See \code{?chords::Estimate.b.k} and the original paper from the references for details}
 
-\item{rds_prefix}{character prefix used for RDS sample variable}
+\item{rds_prefix}{character prefix used for RDS sample variables}
 }
 \value{
-Data frame of HT estimates for single study
+Data frame of Chords estimates for a single study with RDS sample
 }
 \description{
 Chords population size estimatior by Berchenko, Rosenblatt and Frost

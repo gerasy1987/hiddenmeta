@@ -92,7 +92,7 @@ get_study_population <-
         dplyr::vars(dplyr::contains("visible")),
         ~ colSums(as.matrix((igraph::as_adj(g) * .) == 1))) %>%
       dplyr::rowwise() %>%
-      dplyr::mutate(total_visible = sum(dplyr::c_across(dplyr::contains("visible_")))) %>%
+      dplyr::mutate(n_visible = sum(dplyr::c_across(dplyr::contains("visible_")))) %>%
       dplyr::ungroup()
 
     return(

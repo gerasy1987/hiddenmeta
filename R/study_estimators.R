@@ -2,9 +2,9 @@
 #'
 #' @param data pass-through population data frame
 #' @param prior_median prior median of hidden population size for SS-PSE estimation
-#' @param rds_prefix character prefix used for RDS sample variable
+#' @param rds_prefix character prefix used for RDS sample variables
 #'
-#' @return Data frame of SS-PSE estimates for single study
+#' @return Data frame of SS-PSE estimates for a single study
 #'
 #' @references
 #' Handcock, Mark S., Krista J. Gile, and Corinne M. Mar. “Estimating Hidden Population Size Using Respondent-Driven Sampling Data.” Electronic Journal of Statistics 8, no. 1 (2014): 1491–1521. \url{https://doi.org/10.1214/14-EJS923}.
@@ -38,9 +38,9 @@ get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
 #' Horvitz-Thompson prevalence estimator using weighted regression
 #'
 #' @param data pass-through population data frame
-#' @param pps_prefix character prefix used for RDS sample variable
+#' @param pps_prefix character prefix used for RDS sample variables
 #'
-#' @return Data frame of HT estimates for single study
+#' @return Data frame of HT estimates for a single study
 #' @export
 #'
 #' @import dplyr
@@ -80,9 +80,9 @@ get_study_est_ht <- function(data, pps_prefix = "pps") {
 #'
 #' @param data pass-through population data frame
 #' @param type a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, \code{jeffreys} or \code{leave-d-out}. See \code{?chords::Estimate.b.k} and the original paper from the references for details
-#' @param rds_prefix character prefix used for RDS sample variable
+#' @param rds_prefix character prefix used for RDS sample variables
 #'
-#' @return Data frame of HT estimates for single study
+#' @return Data frame of Chords estimates for a single study with RDS sample
 #'
 #' @references Berchenko, Yakir, Jonathan D. Rosenblatt, and Simon D. W. Frost. “Modeling and Analyzing Respondent-Driven Sampling as a Counting Process.” Biometrics 73, no. 4 (2017): 1189–98. \url{https://doi.org/10.1111/biom.12678}.
 #'
@@ -145,20 +145,74 @@ get_study_est_chords <- function(data,
 #' NSUM estimatior
 #'
 #' @param data pass-through population data frame
+#' @param pps_prefix character prefix used for PPS sample variables
+#' @param known_prefix character prefix for known population variables
+#' @param hidden_prefix character prefix for hidden population variable
 #'
-#' @return Data frame of HT estimates for single study
+#' @return Data frame of NSUM estimates for a single study with PPS sample
 #' @export
 #'
+#' @references Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{http://cran.r-project.org/package=networkreporting}.
+#'
 #' @import dplyr
-#' @importFrom estimatr lm_robust
-get_study_est_nsum <- function(data) {
+#' @importFrom networkreporting kp.degree.estimator nsum.estimator
+get_study_est_nsum <- function(data, pps_prefix = "pps",
+                               known_prefix = "known", hidden_prefix = "hidden_visible") {
 
+  .quiet_nsum <- quietly(networkreporting::nsum.estimator)
+  .quiet_degree_nsum <- quietly(networkreporting::kp.degree.estimator)
+
+  .data_mod <-
+    data %>%
+    dplyr::filter_at(dplyr::vars(dplyr::all_of(pps_prefix)), ~ . == 1)
+
+  .known_pops <-
+    .data_mod %>%
+    dplyr::select(total, matches(paste0("^total_", known_prefix))) %>%
+    dplyr::rename_at(vars(starts_with("total_")), ~ paste0(gsub("^total\\_", "", .), "_visible")) %>%
+    apply(., MARGIN = 2, unique)
+
+  .data_mod$d_est <-
+    .quiet_degree_nsum(survey.data = .data_mod,
+                       known.popns = .known_pops[2:length(.known_pops)],
+                       total.popn.size = .known_pops[1],
+                       missing = "complete.obs")$result
+
+  .fit_nsum <-
+    .quiet_nsum(survey.data = .data_mod,
+                d.hat.vals = .data_mod$d_est,
+                total.popn.size = .known_pops[1],
+                y.vals = hidden_prefix,
+                missing = "complete.obs")$result
+
+  # idu.est <-
+  #   surveybootstrap::bootstrap.estimates(## this describes the sampling design of the
+  #     ## survey; here, the PSUs are given by the
+  #     ## variable cluster, and the strata are given
+  #     ## by the variable region
+  #     survey.design = ~ known + known_2 + known_3,
+  #     ## the number of bootstrap resamples to obtain
+  #     ## (NOTE: in practice, you should use more than 100.
+  #     ##  this keeps building the package relatively fast)
+  #     num.reps = 100,
+  #     ## this is the name of the function
+  #     ## we want to use to produce an estimate
+  #     ## from each bootstrapped dataset
+  #     estimator.fn = "nsum.estimator",
+  #     bootstrap.fn = "rescaled.bootstrap.sample",
+  #     ## our dataset
+  #     survey.data = dat,
+  #     ## other parameters we need to pass
+  #     ## to the nsum.estimator function
+  #     d.hat.vals = dat$d.hat,
+  #     total.popn.size = known_pops[1],
+  #     y.vals = "hidden_visible",
+  #     missing = "complete.obs")
 
   return(
-    data.frame(estimator_label = "hidden_prev_ht",
-               estimate = fit_ht["est"],
-               se =  fit_ht["se"],
-               estimand_label = "hidden_prev")
+    data.frame(estimator_label = c("degree_average_nsum", "hidden_size_nsum"),
+               estimate = c(unname(.fit_nsum$estimate), mean(.data_mod$d_est, na.rm = TRUE)),
+               estimand_label = c("hidden_size", "degree_average"))
   )
 }
 

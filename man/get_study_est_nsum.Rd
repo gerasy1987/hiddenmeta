@@ -4,14 +4,28 @@
 \alias{get_study_est_nsum}
 \title{NSUM estimatior}
 \usage{
-get_study_est_nsum(data)
+get_study_est_nsum(
+  data,
+  pps_prefix = "pps",
+  known_prefix = "known",
+  hidden_prefix = "hidden_visible"
+)
 }
 \arguments{
 \item{data}{pass-through population data frame}
+
+\item{pps_prefix}{character prefix used for PPS sample variables}
+
+\item{known_prefix}{character prefix for known population variables}
+
+\item{hidden_prefix}{character prefix for hidden population variable}
 }
 \value{
-Data frame of HT estimates for single study
+Data frame of NSUM estimates for a single study with PPS sample
 }
 \description{
 NSUM estimatior
+}
+\references{
+Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{http://cran.r-project.org/package=networkreporting}.
 }
