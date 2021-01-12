@@ -10,11 +10,11 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  eval = FALSE
 )
 
 ```
-
 
 ## Install and load packages
 
@@ -84,9 +84,7 @@ study_1 <-
 
 ## Step 2. Declare study population
 
-
-
-```{r example_pop, eval=TRUE}
+```{r example_pop}
 
 population_study <-
   do.call(what = declare_population,
@@ -166,10 +164,9 @@ draw_data(population_study +
             rds_study + pps_study + tls_study)
 ```
 
-
 ## Step 4. Declare study level estimands
 
-```{r example_estimands, eval=TRUE}
+```{r example_estimands}
 study_estimands <- 
   declare_estimand(handler = get_study_estimands)
 
@@ -179,10 +176,9 @@ draw_estimands(population_study +
                  study_estimands)
 ```
 
-
 ## Step 5. Declare estimators used in the study
 
-```{r example_estimators, eval=TRUE}
+```{r example_estimators}
 estimator_sspse <- declare_estimator(handler = get_study_est_sspse, label = "sspse")
 estimator_ht <- declare_estimator(handler = get_study_est_ht, label = "ht")
 estimator_chords <- declare_estimator(type = "integrated",
@@ -196,10 +192,9 @@ draw_estimates(population_study +
                  estimator_sspse + estimator_ht + estimator_chords + estimator_nsum)
 ```
 
-
 ## Step 6. Diagnose study design
 
-```{r example_diagnose, eval=TRUE}
+```{r example_diagnose}
 study_diagnosands <-
   declare_diagnosands(
     mean_estimand = mean(estimand),
