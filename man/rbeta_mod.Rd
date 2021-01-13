@@ -5,6 +5,8 @@
 \title{Random generation from Beta distribution}
 \usage{
 rbeta_mod(n, mu, sd)
+
+rbeta_mod(n, mu, sd)
 }
 \arguments{
 \item{n}{number of observations}
@@ -15,11 +17,19 @@ rbeta_mod(n, mu, sd)
 }
 \value{
 vector of draws from Beta distribution
+
+vector of draws from Beta distribution
 }
 \description{
 Reparametrization of base R rbeta to take location and scale rather than 2 shape parameters
+
+Reparametrization of base R rbeta to take location and scale rather than 2 shape parameters
 }
 \examples{
+\dontrun{
+rbeta_mod(4, .5, .1)
+}
+
 \dontrun{
 rbeta_mod(4, .5, .1)
 }
