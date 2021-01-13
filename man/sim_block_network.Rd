@@ -33,7 +33,7 @@ sim_block_network(
 igraph network object with vertex attribute \code{type} in the binary coded format (consists of 0's and 1's only)
 }
 \description{
-Simulate network using block model matrix based on the group memberships
+Draw a Simulation of Network Using Block Matrix of Probabilities of Edges Based on Group Memberships
 }
 \examples{
 \dontrun{

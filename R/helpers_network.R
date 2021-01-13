@@ -2,7 +2,7 @@
 
 #' Handler for Simulation of Network Using Block Model
 #'
-#' Simulate network using block model matrix based on the group memberships
+#' Draw a Simulation of Network Using Block Matrix of Probabilities of Edges Based on Group Memberships
 #'
 #' @param N number of units in population
 #' @param K number of groups
@@ -66,4 +66,58 @@ sim_block_network <-
 
     return(g)
 
+  }
+
+
+
+#' Handler for Simulation of Network Using ERGM
+#'
+#' Draw a Simulation of Network Using Distribution Of An Exponential Family Random Graph Model Based on Observed Data
+#'
+#' @param fit object of ergm class produced by fitting model using \code{ergm} function
+#' @param type_function function of igraph object \code{g} that takes existing vertex attributes and transforms them into \code{type} attribute in the binary coded format (consists of 0's and 1's only)
+#'
+#' @return igraph network object with vertex attribute \code{type} in the binary coded format (consists of 0's and 1's only)
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' library(network)
+#' library(ergm)
+#'
+#' data('faux.magnolia.high')
+#'
+#' fit <- ergm(faux.magnolia.high ~
+#'               edges +
+#'               gwesp(0.25,fixed=T) +
+#'               nodematch("Grade") + nodematch("Sex"),
+#'             control = control.ergm(MCMC.interval = 10000),
+#'             verbose = F)
+#'
+#' sim_ergm_network(fit = fit,
+#'                  type_function = function(g) {
+#'                    paste0( as.integer(igraph::vertex_attr(g)$Sex == "M"),
+#'                            as.integer(igraph::vertex_attr(g)$Grade == 9))})
+#'
+#' }
+#'
+#' @importFrom stats simulate
+#' @importFrom intergraph asIgraph
+#' @importFrom igraph vertex_attr
+#' @importFrom magrittr `%>%` `%<>%`
+#' @importFrom plyr mapvalues
+sim_ergm_network <-
+  function(fit,
+           type_function) {
+
+    if (class(fit) != "ergm") stop("fit should be ergm object")
+
+    g <-
+      stats::simulate(fit, nsim = 1) %>%
+      intergraph::asIgraph(.)
+
+    igraph::vertex_attr(g) %<>%
+      { c(list(type = type_function(g)), .) }
+
+    return(g)
   }
