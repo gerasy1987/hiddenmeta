@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_network.R
 \name{sim_block_network}
 \alias{sim_block_network}
-\title{Simulate Network Using Block Model}
+\title{Handler for Simulation of Network Using Block Model}
 \usage{
 sim_block_network(
   N = 2000,

@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE
+  eval = TRUE
 )
 
 ```
@@ -42,30 +42,23 @@ library(igraph)
 ## STUDY 1
 study_1 <- 
   list(
-    # total population size for one study
-    N = 2000,
-    # number of groups
-    # (K-th group is hidden population we are interested in)
-    K = 2,
-    # probability of membership in each of the groups (prev_K[K] is the true prevalence)
-    prev_K = c(known = .3, hidden = .1),
-    # correlation matrix of group memberships
-    rho_K = .05,
+    network_handler = sim_block_network,
+    network_handler_args = 
+      list(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
+           p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
+           p_edge_between = list(known = 0.05, hidden = 0.01),
+           directed = FALSE),
     
-    # block edge probabilities depending on group memberships
-    # 1 - list of in- and out-group probability of links for each group
-    # 2 - probability of link between in- and out-group members
-    p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
-    p_edge_between = list(known = 0.05, hidden = 0.01),
+    group_names = c("known", "hidden"),
     
     # probability of visibility (show-up) for each group
     p_visibility = list(known = .99, hidden = .7),
     
     # probability of service utilization in hidden population
     # for service multiplier
-    add_groups = list(service_use = 0.3, 
+    add_groups = list(p_service = 0.3, 
                       loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, 
-                      known_2 = 0.1, known_3 = 0.2),
+                      known_2 = 0.1, known_2 = 0.2),
     
     # RDS parameters
     n_seed = 20,
@@ -88,7 +81,7 @@ study_1 <-
 
 population_study <-
   do.call(what = declare_population,
-          args = c(handler = get_study_population, study_1[1:8]))
+          args = c(handler = get_study_population, study_1[1:5]))
 
 set.seed(19872312)
 ( example_pop <- population_study() )
@@ -133,7 +126,7 @@ rds_study <-
   do.call(declare_sampling,
           c(handler = sample_rds, 
             sampling_variable = "rds",
-            drop_nonsampled = FALSE, study_1[9:12]))
+            drop_nonsampled = FALSE, study_1[6:9]))
 
 set.seed(19872312)
 draw_data(population_study + 
@@ -145,7 +138,7 @@ pps_study <-
   do.call(declare_sampling,
           c(handler = sample_pps, 
             sampling_variable = "pps",
-            drop_nonsampled = FALSE, study_1[13]))
+            drop_nonsampled = FALSE, study_1[10]))
 
 set.seed(19872312)
 draw_data(population_study + 
@@ -157,7 +150,7 @@ tls_study <-
   do.call(declare_sampling,
           c(handler = sample_tls, 
             sampling_variable = "tls",
-            drop_nonsampled = FALSE, study_1[14]))
+            drop_nonsampled = FALSE, study_1[11]))
 
 set.seed(19872312)
 draw_data(population_study + 
@@ -194,7 +187,7 @@ draw_estimates(population_study +
 
 ## Step 6. Diagnose study design
 
-```{r example_diagnose}
+```{r example_diagnose, eval=FALSE}
 study_diagnosands <-
   declare_diagnosands(
     mean_estimand = mean(estimand),

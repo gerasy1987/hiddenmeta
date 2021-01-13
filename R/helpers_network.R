@@ -1,6 +1,6 @@
 ## Network simulation helpers
 
-#' Simulate Network Using Block Model
+#' Handler for Simulation of Network Using Block Model
 #'
 #' Simulate network using block model matrix based on the group memberships
 #'

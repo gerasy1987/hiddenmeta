@@ -5,7 +5,10 @@
 \title{Simulate single population with given network structure}
 \usage{
 get_study_population(
-  g,
+  network_handler = sim_block_network,
+  network_handler_args = list(N = 2000, K = 2, prev_K = c(known = 0.3, hidden = 0.1),
+    rho_K = 0.05, p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
+    p_edge_between = list(known = 0.05, hidden = 0.01), directed = FALSE),
   group_names = c("known", "hidden"),
   p_visibility = list(known = 0.99, hidden = 0.7),
   add_groups = list(service_use = 0.3, loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, known_2 =
@@ -13,7 +16,9 @@ get_study_population(
 )
 }
 \arguments{
-\item{g}{igraph network object with vertex attribute \code{type} in the binary coded format (consists of 0's and 1's only)}
+\item{network_handler}{function that takes several arguments and returns igraph network object with vertex attribute \code{type} in the binary coded format (consists of 0's and 1's only)}
+
+\item{network_handler_args}{list of arguments passed to \code{network_handler}}
 
 \item{group_names}{named numeric vector of prevalence for each group with last group being hidden}
 
@@ -30,7 +35,12 @@ Simulate single population with given network structure
 \examples{
 \dontrun{
 get_study_population(
-  g = sim_block_network(),
+  network_handler = sim_block_network,
+  network_handler_args =
+    list(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
+         p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
+         p_edge_between = list(known = 0.05, hidden = 0.01),
+         directed = FALSE),
   group_names = c("known", "hidden"),
   p_visibility = list(known = .99, hidden = .7),
   add_groups = list(service_use = 0.3,
