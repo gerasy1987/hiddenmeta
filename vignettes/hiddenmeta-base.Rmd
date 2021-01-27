@@ -81,6 +81,7 @@ study_1 <-
                    # prop sampling parameters
                    target_n_pps = 400)
       ),
+    estimands = list(handler = get_study_estimands),
     estimators = 
       list(
         sspse = list(handler = get_study_est_sspse, label = "sspse"),
@@ -355,6 +356,7 @@ study_2 <-
                    # prop sampling parameters
                    target_n_pps = 1000)
       ),
+    estimands = list(handler = get_study_estimands),
     estimators = 
       list(
         ht = list(handler = get_study_est_ht, label = "ht"),
@@ -447,54 +449,56 @@ samples_args <-
   list(study_1 = study_1$sample,
        study_2 = study_2$sample)
 
-study_estimators <- 
+estimators_args <- 
   list(study_1 = study_1$estimators,
        study_2 = study_2$estimators)
 
-study_estimands <- 
-  list(study_1 = get_study_estimands,
-       study_2 = get_study_estimands)
+estimands_args <- 
+  list(study_1 = study_1$estimands,
+       study_2 = study_2$estimands)
 
 
-study_populations <- 
-  declare_population(handler = get_study_populations, 
+multi_populations <- 
+  declare_population(handler = get_multi_populations, 
                      pops_args = pops_args)
 
 set.seed(19872312)
-( example_pops <- study_populations() )
+( example_pops <- multi_populations() )
 
-study_samples <- 
-  declare_sampling(handler = get_study_samples, samples_args) 
+multi_samples <- 
+  declare_sampling(handler = get_multi_samples, 
+                   samples_args = samples_args) 
 
-study_estimands <- 
-  declare_estimand(handler = get_study_estimands, study_estimands) 
+set.seed(19872312)
+draw_data(multi_populations + multi_samples)
 
-study_estimators <- 
-  declare_estimator(handler = get_study_estimators, study_estimators) 
+multi_estimands <- 
+  declare_estimand(handler = get_multi_estimands, 
+                   estimands_args = estimands_args) 
 
-meta_switch <- 
-  declare_step(prep_study_estimators, get_study_estimators)
+set.seed(19872312)
+draw_estimands(multi_populations + multi_samples + multi_estimands)
 
-meta_estimands <- 
-  declare_estimand(handler = get_meta_estimands)
 
-meta_estimators <- 
-  declare_estimator(handler = get_meta_estimators)
-
-meta_design <- 
-  study_populations +
-  study_samples +
-  study_estimands +
-  study_estimators +
-  meta_switch +
-  meta_estimands +
-  meta_estimators
+# multi_estimators <- 
+#   declare_estimator(handler = get_multi_estimators, multi_estimators) 
+# 
+# meta_switch <- 
+#   declare_step(prep_multi_estimators, get_multi_estimators)
+# 
+# meta_estimands <- 
+#   declare_estimand(handler = get_meta_estimands)
+# 
+# meta_estimators <- 
+#   declare_estimator(handler = get_meta_estimators)
+# 
+# meta_design <- 
+#   multi_populations +
+#   multi_samples +
+#   multi_estimands +
+#   multi_estimators +
+#   meta_switch +
+#   meta_estimands +
+#   meta_estimators
  
 ```
-
-
-## Implementation To-Do
-
-- [ ] Need to write a wrapper functions that will allow to perform single study declarations on multiple studies with fixed labels
-- [ ] Need a transformation function for `meta_switch` step
-- [ ] Need to double-check and enhance Stan code for meta-analyses and 
