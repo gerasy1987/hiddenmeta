@@ -11,7 +11,11 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = TRUE
+  eval = TRUE,
+  echo = TRUE,
+  fig.path = "vignette-",
+  message=FALSE,
+  warning=FALSE
 )
 
 ```
@@ -37,40 +41,67 @@ library(igraph)
 
 ## Step 1. Provide study design features
 
-```{r example_designs}
+```{r example_study_1}
 
 ## STUDY 1
 study_1 <- 
   list(
-    network_handler = sim_block_network,
-    network_handler_args = 
-      list(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
-           p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
-           p_edge_between = list(known = 0.05, hidden = 0.01),
-           directed = FALSE),
-    
-    group_names = c("known", "hidden"),
-    
-    # probability of visibility (show-up) for each group
-    p_visibility = list(known = .99, hidden = .7),
-    
-    # probability of service utilization in hidden population
-    # for service multiplier
-    add_groups = list(p_service = 0.3, 
-                      loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, 
-                      known_2 = 0.1, known_2 = 0.2),
-    
-    # RDS parameters
-    n_seed = 20,
-    n_coupons = 3,
-    target_type = "sample",
-    target_n_rds = 100,
-    
-    # prop sampling parameters
-    target_n_pps = 400,
-    
-    # TLS sampling parameters
-    target_n_tls = 1
+    pop = 
+      list(
+        handler = get_study_population,
+        network_handler = sim_block_network,
+        network_handler_args = 
+          list(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
+               p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
+               p_edge_between = list(known = 0.05, hidden = 0.01),
+               directed = FALSE),
+        
+        group_names = c("known", "hidden"),
+        
+        # probability of visibility (show-up) for each group
+        p_visibility = list(known = .99, hidden = .7),
+        
+        # probability of service utilization in hidden population
+        # for service multiplier
+        add_groups = list(p_service = 0.3, 
+                          loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, 
+                          known_2 = 0.1, known_2 = 0.2)
+      ),
+    sample = 
+      list(
+        rds = list(handler = sample_rds,
+                   # RDS parameters
+                   sampling_variable = "rds",
+                   n_seed = 20,
+                   n_coupons = 3,
+                   target_type = "sample",
+                   target_n_rds = 100),
+        tls = list(handler = sample_tls,
+                   sampling_variable = "tls",
+                   # TLS sampling parameters
+                   target_n_tls = 1),
+        pps = list(handler = sample_pps,
+                   sampling_variable = "pps",
+                   # prop sampling parameters
+                   target_n_pps = 400)
+      ),
+    estimands = list(handler = get_study_estimands),
+    estimators = 
+      list(
+        rds = 
+          list(sspse = list(handler = get_study_est_sspse, 
+                            label = "rds_sspse",
+                            prior_median = 150,
+                            rds_prefix = "rds"),
+               chords = list(handler = get_study_est_chords,  
+                             type = "integrated", 
+                             label = "rds_chords")),
+        pps = 
+          list(ht = list(handler = get_study_est_ht, 
+                         label = "pps_ht"),
+               nsum = list(handler = get_study_est_nsum, 
+                           label = "pps_nsum"))
+      )
   )
 
 ```
@@ -81,7 +112,7 @@ study_1 <-
 
 study_population <-
   do.call(what = declare_population,
-          args = c(handler = get_study_population, study_1[1:5]))
+          args = study_1$pop)
 
 set.seed(19872312)
 ( example_pop <- study_population() )
@@ -123,34 +154,26 @@ The sampling procedures are additive in a sense that each procedure appends seve
 
 ```{r example_rds}
 study_sample_rds <- 
-  do.call(declare_sampling,
-          c(handler = sample_rds, 
-            sampling_variable = "rds",
-            drop_nonsampled = FALSE, study_1[6:9]))
+  do.call(what = declare_sampling, 
+          args = study_1$sample$rds)
 
 set.seed(19872312)
-draw_data(study_population + 
-            study_sample_rds)
+draw_data(study_population + study_sample_rds)
 ```
 
 ```{r example_pps}
 study_sample_pps <- 
-  do.call(declare_sampling,
-          c(handler = sample_pps, 
-            sampling_variable = "pps",
-            drop_nonsampled = FALSE, study_1[10]))
+  do.call(what = declare_sampling, 
+          args = study_1$sample$pps)
 
 set.seed(19872312)
-draw_data(study_population + 
-            study_sample_rds + study_sample_pps)
+draw_data(study_population + study_sample_rds + study_sample_pps)
 ```
 
 ```{r example_tls}
 study_sample_tls <- 
-  do.call(declare_sampling,
-          c(handler = sample_tls, 
-            sampling_variable = "tls",
-            drop_nonsampled = FALSE, study_1[11]))
+  do.call(what = declare_sampling, 
+          args = study_1$sample$tls)
 
 set.seed(19872312)
 draw_data(study_population + 
@@ -161,7 +184,8 @@ draw_data(study_population +
 
 ```{r example_estimands}
 study_estimands <- 
-  declare_estimand(handler = get_study_estimands)
+  do.call(what = declare_estimand, 
+          args = study_1$estimands)
 
 set.seed(19872312)
 draw_estimands(study_population + 
@@ -172,11 +196,14 @@ draw_estimands(study_population +
 ## Step 5. Declare estimators used in the study
 
 ```{r example_estimators}
-estimator_sspse <- declare_estimator(handler = get_study_est_sspse, label = "sspse")
-estimator_ht <- declare_estimator(handler = get_study_est_ht, label = "ht")
-estimator_chords <- declare_estimator(type = "integrated",
-                                      handler = get_study_est_chords, label = "chords")
-estimator_nsum <- declare_estimator(handler = get_study_est_nsum, label = "nsum")
+estimator_sspse <- do.call(what = declare_estimator, 
+                           args = study_1$estimators$rds$sspse)
+estimator_chords <- do.call(what = declare_estimator, 
+                            args = study_1$estimators$rds$chords)
+estimator_ht <- do.call(what = declare_estimator, 
+                        args = study_1$estimators$pps$ht)
+estimator_nsum <- do.call(what = declare_estimator, 
+                          args = study_1$estimators$pps$nsum)
 
 set.seed(19872312)
 draw_estimates(study_population +
@@ -189,7 +216,7 @@ draw_estimates(study_population +
 
 ```{r example_diagnose, eval=FALSE}
 study_diagnosands <-
-  declare_diagnosands(
+ declare_diagnosands(
     mean_estimand = mean(estimand),
     mean_estimate = mean(estimate),
     sd_estimate = sd(estimate),
@@ -208,9 +235,7 @@ diagnose_design(
   bootstrap_sims = 10)
 ```
 
-# Meta-analysis
-
-## Draft structure
+## Meta-analysis Draft structure
 
 1. Get all estimates produced for each of the studies (depending on the design) in a single data frame that will include estimator and standard error for each estimator (or potentially for each sampling-estimator pair) 
 2. Then we can _feed_ this data frame into Stan model akin the one below
@@ -300,68 +325,146 @@ get_meta_estimators = function(data) {
 
 ## Meta declaration
 
-```{r meta_study, eval=FALSE}
+### Additional study
 
-pop_args <- 
-  list(study_1 = study_1$pop,
-       study_2 = study_2$pop,
-       study_3 = study_3$pop,
-       study_4 = study_4$pop)
+```{r example_study_2}
 
-sample_args <- 
-  list(study_1 = study_1$sample,
-       study_2 = study_2$sample,
-       study_3 = study_3$sample,
-       study_4 = study_4$sample)
+study_2 <- 
+  list(
+    pop = 
+      list(
+        handler = get_study_population,
+        network_handler = sim_block_network,
+        network_handler_args = 
+          list(N = 5000, K = 3, 
+               prev_K = c(known_1 = .3, known_2 = .2, known_3 = .1), 
+               rho_K = c(.1, .1, .1),
+               p_edge_within = list(known_1 = c(0.2, 0.2), 
+                                    known_2 = c(0.2, 0.2), 
+                                    hidden = c(0.1, 0.9)),
+               p_edge_between = list(known_1 = 0.1, 
+                                     known_2 = 0.1, 
+                                     hidden = 0.01),
+               directed = FALSE),
+        
+        group_names = c("known_1", "known_2", "hidden"),
+        
+        # probability of visibility (show-up) for each group
+        p_visibility = list(known_1 = .99, known_2 = .99, hidden = .6),
+        
+        # probability of service utilization in hidden population
+        # for service multiplier
+        add_groups = list(p_service = 0.3, 
+                          loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2)
+      ),
+    sample = 
+      list(
+        rds = list(handler = sample_rds,
+                   # RDS parameters
+                   sampling_variable = "rds",
+                   n_seed = 100,
+                   n_coupons = 3,
+                   target_type = "waves",
+                   target_n_rds = 2),
+        pps = list(handler = sample_pps,
+                   sampling_variable = "pps",
+                   # prop sampling parameters
+                   target_n_pps = 1000)
+      ),
+    estimands = list(handler = get_study_estimands),
+    estimators = 
+      list(
+        rds = 
+          list(
+            chords = list(handler = get_study_est_chords, 
+                          type = "integrated",
+                          label = "rds_chords")
+          ),
+        pps = 
+          list(
+            ht = list(handler = get_study_est_ht, label = "pps_ht"),
+            nsum = list(handler = get_study_est_nsum, label = "pps_nsum")
+          )
+      )
+  )
 
-study_estimators <- 
-  list(study_1 = study_1$estimators,
-       study_2 = study_2$estimators,
-       study_3 = study_3$estimators,
-       study_4 = study_4$estimators)
-
-study_estimands <- 
-  list(study_1 = get_study_estimands,
-       study_2 = get_study_estimands,
-       study_3 = get_study_estimands,
-       study_4 = get_study_estimands)
-
-
-study_populations <- 
-  declare_population(handler = get_stduy_populations, handler_args = meta_pop_args)
-
-study_samples <- 
-  declare_sampling(handler = get_study_samples, handler_args = meta_sample_args) 
-
-study_estimands <- 
-  declare_estimand(handler = get_study_estimands, handler_args = study_estimands) 
-
-study_estimators <- 
-  declare_estimator(handler = get_study_estimators, handler_args = study_estimators) 
-
-meta_switch <- 
-  declare_step(prep_study_estimators, handler_args = get_study_estimators)
-
-meta_estimands <- 
-  declare_estimand(handler = get_meta_estimands)
-
-meta_estimators <- 
-  declare_estimator(handler = get_meta_estimators)
-
-meta_design <- 
-  study_populations +
-  study_samples +
-  study_estimands +
-  study_estimators +
-  meta_switch +
-  meta_estimands +
-  meta_estimators
- 
 ```
 
+### Declare multiple studies
 
-## Implementation To-Do
+```{r meta_study}
 
-- Need to write a wrapper functions that will allow to perform single study declarations on multiple studies with fixed labels
-- Need a transformation function for `meta_switch` step
-- Need to double-check and enhance Stan code for meta-analyses and 
+pops_args <- 
+  list(study_1 = study_1$pop,
+       study_2 = study_2$pop)
+
+samples_args <- 
+  list(study_1 = study_1$sample,
+       study_2 = study_2$sample)
+
+estimators_args <- 
+  list(study_1 = study_1$estimators,
+       study_2 = study_2$estimators)
+
+estimands_args <- 
+  list(study_1 = study_1$estimands,
+       study_2 = study_2$estimands)
+
+
+multi_population <- 
+  declare_population(handler = get_multi_populations, 
+                     pops_args = pops_args)
+
+set.seed(19872312)
+multi_population()
+
+multi_sampling <- 
+  declare_sampling(handler = get_multi_samples, 
+                   samples_args = samples_args) 
+
+set.seed(19872312)
+draw_data(multi_population + multi_sampling)
+
+multi_estimands <- 
+  declare_estimand(handler = get_multi_estimands, 
+                   estimands_args = estimands_args) 
+
+multi_estimators <-
+  declare_estimator(handler = get_multi_estimates,
+                    estimators_args = estimators_args)
+
+set.seed(19872312)
+draw_estimands(multi_population + multi_sampling + multi_estimands + multi_estimators)
+draw_estimates(multi_population + multi_sampling + multi_estimands + multi_estimators)
+
+```
+
+```{r diagnose_meta, eval=FALSE}
+
+simulations <- 
+  simulate_design(multi_population +
+                    multi_sampling + 
+                    multi_estimands + 
+                    multi_estimators, sims = 2)
+
+diagnosis   <- diagnose_design(simulations_df = simulations, diagnosands = study_diagnosands)
+
+# meta_switch <- 
+#   declare_step(prep_multi_estimators, get_multi_estimators)
+# 
+# meta_estimands <- 
+#   declare_estimand(handler = get_meta_estimands)
+# 
+# meta_estimators <- 
+#   declare_estimator(handler = get_meta_estimators)
+# 
+# meta_design <- 
+#   multi_populations +
+#   multi_samples +
+#   multi_estimands +
+#   multi_estimators +
+#   meta_switch +
+#   meta_estimands +
+#   meta_estimators
+ 
+```

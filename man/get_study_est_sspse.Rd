@@ -4,7 +4,12 @@
 \alias{get_study_est_sspse}
 \title{SS-PSE population size estimator by Handcock, Gile and Mar}
 \usage{
-get_study_est_sspse(data, prior_median = 150, rds_prefix = "rds")
+get_study_est_sspse(
+  data,
+  prior_median = 150,
+  rds_prefix = "rds",
+  label = "sspse"
+)
 }
 \arguments{
 \item{data}{pass-through population data frame}
@@ -12,6 +17,8 @@ get_study_est_sspse(data, prior_median = 150, rds_prefix = "rds")
 \item{prior_median}{prior median of hidden population size for SS-PSE estimation}
 
 \item{rds_prefix}{character prefix used for RDS sample variables}
+
+\item{label}{character string describing the estimator}
 }
 \value{
 Data frame of SS-PSE estimates for a single study

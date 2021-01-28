@@ -4,10 +4,12 @@
 \alias{get_study_est_service}
 \title{Service multiplier estimator}
 \usage{
-get_study_est_service(data)
+get_study_est_service(data, label = "service")
 }
 \arguments{
 \item{data}{pass-through population data frame}
+
+\item{label}{character string describing the estimator}
 }
 \value{
 Data frame of HT estimates for single study
