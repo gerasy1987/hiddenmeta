@@ -4,10 +4,12 @@
 \alias{get_study_est_gnsum}
 \title{Generalized NSUM estimatior}
 \usage{
-get_study_est_gnsum(data)
+get_study_est_gnsum(data, label = "gnsum")
 }
 \arguments{
 \item{data}{pass-through population data frame}
+
+\item{label}{character string describing the estimator}
 }
 \value{
 Data frame of HT estimates for single study

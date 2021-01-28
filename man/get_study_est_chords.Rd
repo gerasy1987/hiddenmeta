@@ -7,7 +7,8 @@
 get_study_est_chords(
   data,
   type = c("mle", "integrated", "jeffreys", "leave-d-out"),
-  rds_prefix = "rds"
+  rds_prefix = "rds",
+  label = "chords"
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ get_study_est_chords(
 \item{type}{a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, \code{jeffreys} or \code{leave-d-out}. See \code{?chords::Estimate.b.k} and the original paper from the references for details}
 
 \item{rds_prefix}{character prefix used for RDS sample variables}
+
+\item{label}{character string describing the estimator}
 }
 \value{
 Data frame of Chords estimates for a single study with RDS sample

@@ -10,7 +10,8 @@ get_study_est_nsum(
   known_pattern = "known",
   hidden_pattern = "hidden_visible",
   degree_ratio = 1,
-  transmission_rate = 1
+  transmission_rate = 1,
+  label = "nsum"
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ get_study_est_nsum(
 \item{degree_ratio}{numeric value between 0 and 1 representing degree ratio}
 
 \item{transmission_rate}{numeric value between 0 and 1 representing information transmission rate}
+
+\item{label}{character string describing the estimator}
 }
 \value{
 Data frame of NSUM estimates for a single study with PPS sample

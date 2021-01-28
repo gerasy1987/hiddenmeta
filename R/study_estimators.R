@@ -3,6 +3,7 @@
 #' @param data pass-through population data frame
 #' @param prior_median prior median of hidden population size for SS-PSE estimation
 #' @param rds_prefix character prefix used for RDS sample variables
+#' @param label character string describing the estimator
 #'
 #' @return Data frame of SS-PSE estimates for a single study
 #'
@@ -12,9 +13,13 @@
 #'
 #' @import dplyr
 #' @importFrom sspse posteriorsize
-get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
+#' @importFrom purrr quietly
+get_study_est_sspse <- function(data,
+                                prior_median = 150,
+                                rds_prefix = "rds",
+                                label = "sspse") {
 
-  .quiet_sspse <- quietly(sspse::posteriorsize)
+  .quiet_sspse <- purrr::quietly(sspse::posteriorsize)
 
   .fit_sspse <-
     data %>%
@@ -28,7 +33,7 @@ get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
       )
     }
 
-  data.frame(estimator_label = c("hidden_size_sspse"),
+  data.frame(estimator_label = paste0("hidden_size_", label),
              estimate = c(unname(.fit_sspse$result$N["Median AP"])),
              se =   c(sd(.fit_sspse$result$sample[,"N"])),
              estimand_label = c("hidden_size")
@@ -39,13 +44,16 @@ get_study_est_sspse <- function(data, prior_median = 150, rds_prefix = "rds") {
 #'
 #' @param data pass-through population data frame
 #' @param pps_prefix character prefix used for RDS sample variables
+#' @param label character string describing the estimator
 #'
 #' @return Data frame of HT estimates for a single study
 #' @export
 #'
 #' @import dplyr
 #' @importFrom estimatr lm_robust
-get_study_est_ht <- function(data, pps_prefix = "pps") {
+get_study_est_ht <- function(data,
+                             pps_prefix = "pps",
+                             label = "ht") {
 
   .fit_ht <-
     data %>%
@@ -68,7 +76,7 @@ get_study_est_ht <- function(data, pps_prefix = "pps") {
   #   }
 
  return(
-   data.frame(estimator_label = "hidden_prev_ht",
+   data.frame(estimator_label = paste0("hidden_prev_", label),
               estimate = .fit_ht["est"],
               se =  .fit_ht["se"],
               estimand_label = "hidden_prev")
@@ -81,6 +89,7 @@ get_study_est_ht <- function(data, pps_prefix = "pps") {
 #' @param data pass-through population data frame
 #' @param type a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, \code{jeffreys} or \code{leave-d-out}. See \code{?chords::Estimate.b.k} and the original paper from the references for details
 #' @param rds_prefix character prefix used for RDS sample variables
+#' @param label character string describing the estimator
 #'
 #' @return Data frame of Chords estimates for a single study with RDS sample
 #'
@@ -92,7 +101,8 @@ get_study_est_ht <- function(data, pps_prefix = "pps") {
 #' @importFrom chords initializeRdsObject Estimate.b.k makeJackControl
 get_study_est_chords <- function(data,
                                  type = c("mle", "integrated", "jeffreys", "leave-d-out"),
-                                 rds_prefix = "rds") {
+                                 rds_prefix = "rds",
+                                 label = "chords") {
 
   type <- match.arg(type)
   .K <- log2(length(grep(pattern = "^type_visible_", names(data))))
@@ -135,7 +145,7 @@ get_study_est_chords <- function(data,
   }
 
   return(
-    data.frame(estimator_label = c("hidden_size_chords", "degree_hidden_chords"),
+    data.frame(estimator_label = paste0(c("hidden_size_", "degree_hidden_"), label),
                estimate = c(.fit_chords["est"], .fit_chords["degree_hidden"]),
                estimand_label = c("hidden_size", "degree_hidden_average"))
   )
@@ -150,6 +160,7 @@ get_study_est_chords <- function(data,
 #' @param hidden_pattern character prefix for hidden population variable
 #' @param degree_ratio numeric value between 0 and 1 representing degree ratio
 #' @param transmission_rate numeric value between 0 and 1 representing information transmission rate
+#' @param label character string describing the estimator
 #'
 #' @return Data frame of NSUM estimates for a single study with PPS sample
 #' @export
@@ -160,7 +171,8 @@ get_study_est_chords <- function(data,
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
 get_study_est_nsum <- function(data, pps_prefix = "pps",
                                known_pattern = "known", hidden_pattern = "hidden_visible",
-                               degree_ratio = 1, transmission_rate = 1) {
+                               degree_ratio = 1, transmission_rate = 1,
+                               label = "nsum") {
 
   .quiet_nsum <- quietly(networkreporting::nsum.estimator)
   .quiet_degree_nsum <- quietly(networkreporting::kp.degree.estimator)
@@ -216,7 +228,7 @@ get_study_est_nsum <- function(data, pps_prefix = "pps",
   #     missing = "complete.obs")
 
   return(
-    data.frame(estimator_label = c("hidden_size_nsum", "degree_average_nsum"),
+    data.frame(estimator_label = paste0(c("hidden_size_", "degree_average_"), label),
                estimate = c(unname(.fit_nsum$estimate), mean(.data_mod$d_est, na.rm = TRUE)),
                se = c(unname(.fit_nsum$killworth.se), NA),
                estimand_label = c("hidden_size", "degree_average"))
@@ -227,16 +239,17 @@ get_study_est_nsum <- function(data, pps_prefix = "pps",
 #' Generalized NSUM estimatior
 #'
 #' @param data pass-through population data frame
+#' @param label character string describing the estimator
 #'
 #' @return Data frame of HT estimates for single study
 #' @export
 #'
 #' @import dplyr
 #' @importFrom estimatr lm_robust
-get_study_est_gnsum <- function(data) {
+get_study_est_gnsum <- function(data, label = "gnsum") {
 
   return(
-    data.frame(estimator_label = "hidden_prev_ht",
+    data.frame(estimator_label = paste0("hidden_prev_", label),
                estimate = fit_ht["est"],
                se =  fit_ht["se"],
                estimand_label = "hidden_prev")
@@ -247,16 +260,17 @@ get_study_est_gnsum <- function(data) {
 #' Service multiplier estimator
 #'
 #' @param data pass-through population data frame
+#' @param label character string describing the estimator
 #'
 #' @return Data frame of HT estimates for single study
 #' @export
 #'
 #' @import dplyr
 #' @importFrom estimatr lm_robust
-get_study_est_service <- function(data) {
+get_study_est_service <- function(data, label = "service") {
 
   return(
-    data.frame(estimator_label = "hidden_prev_ht",
+    data.frame(estimator_label = paste0("hidden_prev_", label),
                estimate = fit_ht["est"],
                se =  fit_ht["se"],
                estimand_label = "hidden_prev")

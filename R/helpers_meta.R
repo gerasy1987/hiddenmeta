@@ -100,6 +100,40 @@ get_multi_estimands <- function(data, estimands_args) {
 
 }
 
+#' Calculate estimands from multiple study populations
+#'
+#' Handler for calculating estimand(s) from multiple study populations
+#'
+#' @param data pass-through populations data frame
+#' @param estimates_args named list of named lists of arguments to estimation functions for each study and sampling strategy
+#'
+#' @return Data frame with estimands and estimand labels
+#'
+#' @export
+#'
+#' @import dplyr
+#' @importFrom purrr list_along
+#' @importFrom tidyr unnest
+#' @importFrom magrittr `%>%`
+#' @importFrom methods formalArgs
+get_multi_estimates <- function(data, estimates_args) {
+
+  return(
+    data %>%
+      dplyr::mutate(
+        estimands =
+          purrr::map2(study, population, ~ apply_args(study = .x,
+                                                      args = estimands_args[[.x]],
+                                                      data = .y))) %>%
+      tidyr::unnest(estimands) %>%
+      dplyr::mutate(estimand_label = paste0(study, "_", sample, "_", estimand_label)) %>%
+      dplyr::select(estimand_label, estimand) %>%
+      as.data.frame(x = ., stringsAsFactors = FALSE)
+  )
+
+}
+
+
 #'
 apply_args <- function(study, args, data = NULL) {
 
