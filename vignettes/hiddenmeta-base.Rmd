@@ -11,7 +11,11 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = TRUE
+  eval = TRUE,
+  echo = TRUE,
+  fig.path = "vignette-",
+  message=FALSE,
+  warning=FALSE
 )
 
 ```
@@ -212,7 +216,7 @@ draw_estimates(study_population +
 
 ```{r example_diagnose, eval=FALSE}
 study_diagnosands <-
-  declare_diagnosands(
+ declare_diagnosands(
     mean_estimand = mean(estimand),
     mean_estimate = mean(estimate),
     sd_estimate = sd(estimate),
@@ -231,9 +235,7 @@ diagnose_design(
   bootstrap_sims = 10)
 ```
 
-# Meta-analysis
-
-## Draft structure
+## Meta-analysis Draft structure
 
 1. Get all estimates produced for each of the studies (depending on the design) in a single data frame that will include estimator and standard error for each estimator (or potentially for each sampling-estimator pair) 
 2. Then we can _feed_ this data frame into Stan model akin the one below
@@ -323,7 +325,7 @@ get_meta_estimators = function(data) {
 
 ## Meta declaration
 
-### Declare additional study
+### Additional study
 
 ```{r example_study_2}
 
@@ -388,9 +390,9 @@ study_2 <-
 
 ```
 
-### Declare meta study
+### Declare multiple studies
 
-```{r meta_study, eval=FALSE}
+```{r meta_study}
 
 pops_args <- 
   list(study_1 = study_1$pop,
@@ -409,31 +411,44 @@ estimands_args <-
        study_2 = study_2$estimands)
 
 
-multi_populations <- 
+multi_population <- 
   declare_population(handler = get_multi_populations, 
                      pops_args = pops_args)
 
 set.seed(19872312)
-( example_pops <- multi_populations() )
+multi_population()
 
-multi_samples <- 
+multi_sampling <- 
   declare_sampling(handler = get_multi_samples, 
                    samples_args = samples_args) 
 
 set.seed(19872312)
-draw_data(multi_populations + multi_samples)
+draw_data(multi_population + multi_sampling)
 
 multi_estimands <- 
   declare_estimand(handler = get_multi_estimands, 
                    estimands_args = estimands_args) 
 
+multi_estimators <-
+  declare_estimator(handler = get_multi_estimates,
+                    estimators_args = estimators_args)
+
 set.seed(19872312)
-draw_estimands(multi_populations + multi_samples + multi_estimands)
+draw_estimands(multi_population + multi_sampling + multi_estimands + multi_estimators)
+draw_estimates(multi_population + multi_sampling + multi_estimands + multi_estimators)
 
+```
 
-# multi_estimators <- 
-#   declare_estimator(handler = get_multi_estimators, multi_estimators) 
-# 
+```{r diagnose_meta, eval=FALSE}
+
+simulations <- 
+  simulate_design(multi_population +
+                    multi_sampling + 
+                    multi_estimands + 
+                    multi_estimators, sims = 2)
+
+diagnosis   <- diagnose_design(simulations_df = simulations, diagnosands = study_diagnosands)
+
 # meta_switch <- 
 #   declare_step(prep_multi_estimators, get_multi_estimators)
 # 

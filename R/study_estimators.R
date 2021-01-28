@@ -33,10 +33,11 @@ get_study_est_sspse <- function(data,
       )
     }
 
-  data.frame(estimator_label = paste0("hidden_size_", label),
-             estimate = c(unname(.fit_sspse$result$N["Median AP"])),
-             se =   c(sd(.fit_sspse$result$sample[,"N"])),
-             estimand_label = c("hidden_size")
+  return(
+    data.frame(estimator_label = paste0("hidden_size_", label),
+               estimate = c(unname(.fit_sspse$result$N["Median AP"])),
+               se =   c(sd(.fit_sspse$result$sample[,"N"])),
+               estimand_label = c("hidden_size"))
   )
 }
 

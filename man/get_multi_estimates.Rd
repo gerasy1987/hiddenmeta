@@ -2,18 +2,18 @@
 % Please edit documentation in R/helpers_meta.R
 \name{get_multi_estimates}
 \alias{get_multi_estimates}
-\title{Calculate estimands from multiple study populations}
+\title{Calculate estimators from multiple study samples}
 \usage{
-get_multi_estimates(data, estimates_args)
+get_multi_estimates(data, estimators_args)
 }
 \arguments{
 \item{data}{pass-through populations data frame}
 
-\item{estimates_args}{named list of named lists of arguments to estimation functions for each study and sampling strategy}
+\item{estimators_args}{named list of named lists of arguments to estimation functions for each study and sampling strategy}
 }
 \value{
 Data frame with estimands and estimand labels
 }
 \description{
-Handler for calculating estimand(s) from multiple study populations
+Handler for calculating estimator(s) from multiple study samples
 }
