@@ -501,28 +501,9 @@ multi_population <-
   declare_population(handler = get_multi_populations, 
                      pops_args = pops_args)
 
-set.seed(19872312)
-multi_population()
-#> # A tibble: 2 x 2
-#>   study   population           
-#>   <chr>   <list>               
-#> 1 study_1 <tibble [2,000 × 32]>
-#> 2 study_2 <tibble [5,000 × 37]>
-
 multi_sampling <- 
   declare_sampling(handler = get_multi_samples, 
                    samples_args = samples_args) 
-
-set.seed(19872312)
-draw_data(multi_population + multi_sampling)
-#> # A tibble: 5 x 3
-#>   study   sample population           
-#>   <chr>   <chr>  <list>               
-#> 1 study_1 rds    <tibble [2,000 × 41]>
-#> 2 study_1 tls    <tibble [2,000 × 34]>
-#> 3 study_1 pps    <tibble [2,000 × 34]>
-#> 4 study_2 rds    <tibble [5,000 × 46]>
-#> 5 study_2 pps    <tibble [5,000 × 39]>
 
 multi_estimands <- 
   declare_estimand(handler = get_multi_estimands, 
@@ -532,30 +513,42 @@ multi_estimators <-
   declare_estimator(handler = get_multi_estimates,
                     estimators_args = estimators_args)
 
+multi_design <- multi_population + multi_sampling + multi_estimands + multi_estimators
+
 set.seed(19872312)
+
+draw_data(multi_population + multi_sampling + multi_estimands + multi_estimators)
+#> # A tibble: 5 x 3
+#>   study   sample population           
+#>   <chr>   <chr>  <list>               
+#> 1 study_1 rds    <tibble [2,000 × 41]>
+#> 2 study_1 tls    <tibble [2,000 × 34]>
+#> 3 study_1 pps    <tibble [2,000 × 34]>
+#> 4 study_2 rds    <tibble [5,000 × 46]>
+#> 5 study_2 pps    <tibble [5,000 × 39]>
 draw_estimands(multi_population + multi_sampling + multi_estimands + multi_estimators)
 #>                  estimand_label estimand
-#> 1           study_1_hidden_size 190.0000
-#> 2           study_1_hidden_prev   0.0950
-#> 3        study_1_degree_average   5.0810
-#> 4 study_1_degree_hidden_average   0.8655
-#> 5           study_2_hidden_size 535.0000
-#> 6           study_2_hidden_prev   0.1070
-#> 7        study_2_degree_average  12.3052
-#> 8 study_2_degree_hidden_average   1.3056
+#> 1           study_1_hidden_size 213.0000
+#> 2           study_1_hidden_prev   0.1065
+#> 3        study_1_degree_average   5.2460
+#> 4 study_1_degree_hidden_average   1.1085
+#> 5           study_2_hidden_size 496.0000
+#> 6           study_2_hidden_prev   0.0992
+#> 7        study_2_degree_average  12.3364
+#> 8 study_2_degree_hidden_average   1.1536
 draw_estimates(multi_population + multi_sampling + multi_estimands + multi_estimators)
 #>             estimator_label    estimate          se
-#> 1     hidden_size_rds_sspse 195.0000000 75.31903470
-#> 2    hidden_size_rds_chords 236.0000000          NA
-#> 3  degree_hidden_rds_chords   6.4872881          NA
-#> 4        hidden_prev_pps_ht   0.1311388  0.03968275
-#> 5      hidden_size_pps_nsum 264.5292014 14.88647927
-#> 6   degree_average_pps_nsum   5.1790123          NA
-#> 7    hidden_size_rds_chords 475.0000000          NA
-#> 8  degree_hidden_rds_chords   6.3115789          NA
-#> 9        hidden_prev_pps_ht   0.1333254  0.01716015
-#> 10     hidden_size_pps_nsum 400.3909844 14.51478897
-#> 11  degree_average_pps_nsum   8.7414556          NA
+#> 1     hidden_size_rds_sspse 225.5000000 74.29794856
+#> 2    hidden_size_rds_chords 308.0000000          NA
+#> 3  degree_hidden_rds_chords   6.3701299          NA
+#> 4        hidden_prev_pps_ht   0.1137713  0.02153610
+#> 5      hidden_size_pps_nsum 264.4380265 14.88173926
+#> 6   degree_average_pps_nsum   5.1807980          NA
+#> 7    hidden_size_rds_chords 561.0000000          NA
+#> 8  degree_hidden_rds_chords   6.3689840          NA
+#> 9        hidden_prev_pps_ht   0.1243481  0.01575626
+#> 10     hidden_size_pps_nsum 394.7357811 14.75727131
+#> 11  degree_average_pps_nsum   8.3473558          NA
 #>                   estimand_label
 #> 1            study_1_hidden_size
 #> 2            study_1_hidden_size

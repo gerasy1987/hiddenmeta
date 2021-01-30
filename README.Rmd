@@ -411,9 +411,6 @@ multi_population <-
   declare_population(handler = get_multi_populations, 
                      pops_args = pops_args)
 
-set.seed(19872312)
-multi_population()
-
 multi_sampling <- 
   declare_sampling(handler = get_multi_samples, 
                    samples_args = samples_args) 
