@@ -418,9 +418,6 @@ multi_sampling <-
   declare_sampling(handler = get_multi_samples, 
                    samples_args = samples_args) 
 
-set.seed(19872312)
-draw_data(multi_population + multi_sampling)
-
 multi_estimands <- 
   declare_estimand(handler = get_multi_estimands, 
                    estimands_args = estimands_args) 
@@ -429,7 +426,11 @@ multi_estimators <-
   declare_estimator(handler = get_multi_estimates,
                     estimators_args = estimators_args)
 
+multi_design <- multi_population + multi_sampling + multi_estimands + multi_estimators
+
 set.seed(19872312)
+
+draw_data(multi_population + multi_sampling + multi_estimands + multi_estimators)
 draw_estimands(multi_population + multi_sampling + multi_estimands + multi_estimators)
 draw_estimates(multi_population + multi_sampling + multi_estimands + multi_estimators)
 
