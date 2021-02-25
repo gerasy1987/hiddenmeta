@@ -16,7 +16,7 @@ Description: Helper functions for analysis of individual and multiple studies of
     In addition, package implements functions for estimation of hidden population size and prevalance based on 
     RDS, TLS or PPS samples.
 Depends: 
-    R (>= 4.0.0),
+    R (>= 3.6.0),
     magrittr (>= 2.0.0), 
     dplyr (>= 1.0.0)
 Imports: 

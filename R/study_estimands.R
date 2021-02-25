@@ -37,10 +37,10 @@ get_study_estimands <- function(data, known_pattern = "^known", hidden_pattern =
     } %>%
     {
       data.frame(
-        estimand_label = names(.),
+        inquiry_label = names(.),
         estimand = unname(t(.)),
         stringsAsFactors = FALSE)
     } %>%
-    {.[!grepl(pattern = known_pattern, .$estimand_label),]}
+    {.[!grepl(pattern = known_pattern, .$inquiry_label),]}
 
 }

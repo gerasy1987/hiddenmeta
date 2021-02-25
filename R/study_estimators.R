@@ -37,7 +37,7 @@ get_study_est_sspse <- function(data,
     data.frame(estimator_label = paste0("hidden_size_", label),
                estimate = c(unname(.fit_sspse$result$N["Median AP"])),
                se =   c(sd(.fit_sspse$result$sample[,"N"])),
-               estimand_label = c("hidden_size"))
+               inquiry_label = c("hidden_size"))
   )
 }
 
@@ -80,7 +80,7 @@ get_study_est_ht <- function(data,
    data.frame(estimator_label = paste0("hidden_prev_", label),
               estimate = .fit_ht["est"],
               se =  .fit_ht["se"],
-              estimand_label = "hidden_prev")
+              inquiry_label = "hidden_prev")
  )
 }
 
@@ -148,7 +148,7 @@ get_study_est_chords <- function(data,
   return(
     data.frame(estimator_label = paste0(c("hidden_size_", "degree_hidden_"), label),
                estimate = c(.fit_chords["est"], .fit_chords["degree_hidden"]),
-               estimand_label = c("hidden_size", "degree_hidden_average"))
+               inquiry_label = c("hidden_size", "degree_hidden_average"))
   )
 }
 
@@ -232,7 +232,7 @@ get_study_est_nsum <- function(data, pps_prefix = "pps",
     data.frame(estimator_label = paste0(c("hidden_size_", "degree_average_"), label),
                estimate = c(unname(.fit_nsum$estimate), mean(.data_mod$d_est, na.rm = TRUE)),
                se = c(unname(.fit_nsum$killworth.se), NA),
-               estimand_label = c("hidden_size", "degree_average"))
+               inquiry_label = c("hidden_size", "degree_average"))
   )
 }
 
@@ -253,7 +253,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
     data.frame(estimator_label = paste0("hidden_prev_", label),
                estimate = fit_ht["est"],
                se =  fit_ht["se"],
-               estimand_label = "hidden_prev")
+               inquiry_label = "hidden_prev")
   )
 }
 
@@ -274,6 +274,6 @@ get_study_est_service <- function(data, label = "service") {
     data.frame(estimator_label = paste0("hidden_prev_", label),
                estimate = fit_ht["est"],
                se =  fit_ht["se"],
-               estimand_label = "hidden_prev")
+               inquiry_label = "hidden_prev")
   )
 }

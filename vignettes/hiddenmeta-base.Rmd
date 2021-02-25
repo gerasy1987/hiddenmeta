@@ -85,7 +85,7 @@ study_1 <-
                    # prop sampling parameters
                    target_n_pps = 400)
       ),
-    estimands = list(handler = get_study_estimands),
+    inquiries = list(handler = get_study_estimands),
     estimators = 
       list(
         rds = 
@@ -184,13 +184,13 @@ draw_data(study_population +
 
 ```{r example_estimands}
 study_estimands <- 
-  do.call(what = declare_estimand, 
-          args = study_1$estimands)
+  do.call(what = declare_inquiry, 
+          args = study_1$inquiries)
 
 set.seed(19872312)
-draw_estimands(study_population + 
-                 study_sample_rds + study_sample_pps + study_sample_tls + 
-                 study_estimands)
+draw_inquiry(study_population + 
+                study_sample_rds + study_sample_pps + study_sample_tls + 
+                study_estimands)
 ```
 
 ## Step 5. Declare estimators used in the study
@@ -214,7 +214,7 @@ draw_estimates(study_population +
 
 ## Step 6. Diagnose study design
 
-```{r example_diagnose, eval=FALSE}
+```{r example_diagnose}
 study_diagnosands <-
  declare_diagnosands(
     mean_estimand = mean(estimand),
@@ -231,10 +231,10 @@ study_simulations <-
       study_sample_rds + study_sample_pps + 
       study_estimands + 
       estimator_sspse + estimator_ht + estimator_chords + estimator_nsum, 
-    sims = 10)
+    sims = 2)
 
-diagnose_design(simulations_df = study_simulations, 
-                diagnosands = study_diagnosands)
+diagnose_design(study_simulations, 
+                diagnosands = study_diagnosands, sims = 2)
 ```
 
 ## Meta-analysis Draft structure
@@ -287,7 +287,7 @@ stan_model_meta <- "
 
 get_meta_estimands <- function(data) {
   
-  data.frame(estimand_label = c(paste0("prevalence_", 1:N)),
+  data.frame(inquiry_label = c(paste0("prevalence_", 1:N)),
              estimand = c(data[,1]),
              stringsAsFactors = FALSE)
 }
@@ -317,7 +317,7 @@ get_meta_estimators = function(data) {
   data.frame(estimator_label = c(paste0("prev_", 1:N)),
              estimate = c(apply(fit$alpha, 2, mean)),
              sd =   c(apply(fit$alpha, 2, sd)),
-             estimand_label = c(paste0("hidden_prev", 1:N)),
+             inquiry_label = c(paste0("hidden_prev", 1:N)),
              big_Rhat = big_Rhat
              )
   
@@ -373,7 +373,7 @@ study_2 <-
                    # prop sampling parameters
                    target_n_pps = 1000)
       ),
-    estimands = list(handler = get_study_estimands),
+    inquiries = list(handler = get_study_estimands),
     estimators = 
       list(
         rds = 
@@ -406,27 +406,28 @@ multi_sampling <-
                    samples_args = list(study_1 = study_1$sample,
                                        study_2 = study_2$sample)) 
 
-multi_estimands <- 
-  declare_estimand(handler = get_multi_estimands, 
-                   estimands_args = list(study_1 = study_1$estimands,
-                                         study_2 = study_2$estimands)) 
+multi_inquiry <- 
+  declare_inquiry(handler = get_multi_estimands, 
+                  inquiries_args = list(study_1 = study_1$inquiries,
+                                        study_2 = study_2$inquiries)) 
 
 multi_estimators <-
   declare_estimator(handler = get_multi_estimates,
                     estimators_args = list(study_1 = study_1$estimators,
                                            study_2 = study_2$estimators))
 
-multi_design <- multi_population + multi_sampling + multi_estimands + multi_estimators
+multi_design <- multi_population + multi_sampling + multi_inquiry + multi_estimators
+
 
 set.seed(19872312)
 draw_data(multi_design)
-draw_estimands(multi_design)
+draw_inquiry(multi_design)
 draw_estimates(multi_design)
 
 multi_simulations <- 
   simulate_design(multi_population +
                     multi_sampling + 
-                    multi_estimands + 
+                    multi_inquiry + 
                     multi_estimators, sims = 10)
 
 diagnose_design(simulations_df = multi_simulations, 
@@ -446,6 +447,6 @@ diagnose_design(simulations_df = multi_simulations,
 #   declare_estimator(handler = get_meta_estimators)
 # 
 
-meta_design <- meta_population + meta_estimands + meta_estimators
+meta_design <- meta_population + meta_inquiry + meta_estimators
  
 ```

@@ -19,7 +19,7 @@ get_meta_estimands <- function(data) {
 
         pop %>%
           get_study_estimands(.) %>%
-          dplyr::mutate(estimand_label = paste0(unique(pop$study), "_", estimand_label))
+          dplyr::mutate(inquiry_label = paste0(unique(pop$study), "_", inquiry_label))
 
       }) %>%
     dplyr::bind_rows(.)
