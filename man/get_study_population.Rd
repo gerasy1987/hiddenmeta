@@ -6,11 +6,12 @@
 \usage{
 get_study_population(
   network_handler = sim_block_network,
-  network_handler_args = list(N = 2000, K = 2, prev_K = c(known = 0.3, hidden = 0.1),
-    rho_K = 0.05, p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
-    p_edge_between = list(known = 0.05, hidden = 0.01), directed = FALSE),
-  group_names = c("known", "hidden"),
-  p_visibility = list(known = 0.99, hidden = 0.7),
+  network_handler_args = list(N = 2000, K = 3, prev_K = c(frame = 0.7, known = 0.2,
+    hidden = 0.05), rho_K = c(0.05, 0.01, 0.01), p_edge_within = list(frame = c(0.3,
+    0.3), known = c(0.3, 0.3), hidden = c(0.3, 0.9)), p_edge_between = list(frame = 0.3,
+    known = 0.3, hidden = 0.05), directed = FALSE),
+  group_names = c("frame", "known", "hidden"),
+  p_visible = list(frame = 1, known = 1, hidden = 0.7),
   add_groups = list(service_use = 0.3, loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, known_2 =
     0.1, known_3 = 0.2)
 )
@@ -22,7 +23,7 @@ get_study_population(
 
 \item{group_names}{named numeric vector of prevalence for each group with last group being hidden}
 
-\item{p_visibility}{named list of visibility tendencies by group. This is used as mean of Beta distribution (with SD = 0.09) to generate probability of being recognized as member of group, being sampled as seed, etc. The order of objects in list have to follow the order of \code{group_names}}
+\item{p_visible}{named list of visibility tendencies by group. This is used as mean of Beta distribution (with SD = 0.09) to generate probability of being recognized as member of group, being sampled as seed, etc. The order of objects in list have to follow the order of \code{group_names}}
 
 \item{add_groups}{named list of probabilities of additional group memberships. Examples include probability of service utilization (for service multiplier), being present at particular time-location (for TLS), etc.}
 }
@@ -42,7 +43,7 @@ get_study_population(
          p_edge_between = list(known = 0.05, hidden = 0.01),
          directed = FALSE),
   group_names = c("known", "hidden"),
-  p_visibility = list(known = .99, hidden = .7),
+  p_visible = list(known = .99, hidden = .7),
   add_groups = list(service_use = 0.3,
                     loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2,
                     known_2 = 0.1, known_3 = 0.2))

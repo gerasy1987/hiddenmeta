@@ -6,11 +6,11 @@
 \usage{
 sim_block_network(
   N = 2000,
-  K = 2,
-  prev_K = c(known = 0.3, hidden = 0.1),
-  rho_K = 0.05,
-  p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
-  p_edge_between = list(known = 0.05, hidden = 0.01),
+  K = 3,
+  prev_K = c(frame = 0.7, known = 0.2, hidden = 0.05),
+  rho_K = c(0.05, 0.01, 0.01),
+  p_edge_within = list(frame = c(0.3, 0.3), known = c(0.3, 0.3), hidden = c(0.3, 0.9)),
+  p_edge_between = list(frame = 0.3, known = 0.3, hidden = 0.05),
   directed = FALSE
 )
 }

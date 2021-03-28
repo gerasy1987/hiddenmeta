@@ -134,7 +134,8 @@ g <-
 igraph::V(g)$color <-
   plyr::mapvalues(igraph::V(g)$type,
                   from = unique(igraph::V(g)$type),
-                  to = grDevices::palette.colors(n = length(unique(igraph::V(g)$type)), palette = "Set 3"))
+                  to = grDevices::palette.colors(n = length(unique(igraph::V(g)$type)), 
+                                                 palette = "Set 3"))
 
 plot(g,
      layout = igraph::layout_on_grid(g, dim = 2, width = 100),
@@ -239,12 +240,15 @@ diagnose_design(study_simulations,
 
 ## Meta-analysis Draft structure
 
-1. Get all estimates produced for each of the studies (depending on the design) in a single data frame that will include estimator and standard error for each estimator (or potentially for each sampling-estimator pair) 
-2. Then we can _feed_ this data frame into Stan model akin the one below
-    a. Use the data frame to produce observed estimator vectors for each estimator/sampling-estimator pair, `observed*`
-    b. Use the data frame produced by study designs to produce arrays of observed estimates and corresponding standard errors (with dummy value where missing), `est*` and `est*_sd`
-    c. Assume that deviation from true parameter of interest (`error`) is driven by use of estimator
-3. We then declare the relevant estimands and run diagnosis
+1.  Get all estimates produced for each of the studies (depending on the design) in a single data frame that will include estimator and standard error for each estimator (or potentially for each sampling-estimator pair)
+
+2.  Then we can *feed* this data frame into Stan model akin the one below
+
+    a.  Use the data frame to produce observed estimator vectors for each estimator/sampling-estimator pair, `observed*`
+    b.  Use the data frame produced by study designs to produce arrays of observed estimates and corresponding standard errors (with dummy value where missing), `est*` and `est*_sd`
+    c.  Assume that deviation from true parameter of interest (`error`) is driven by use of estimator
+
+3.  We then declare the relevant estimands and run diagnosis
 
 ```{r stan_meta, eval=FALSE}
 

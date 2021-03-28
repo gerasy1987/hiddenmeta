@@ -35,13 +35,23 @@
 #'   directed = FALSE)
 #' }
 #'
-#' @importFrom igraph sample_pref vertex_attr
+#' @importFrom igraph sample_sbm vertex_attr
 #' @importFrom magrittr `%>%`
 #' @importFrom plyr mapvalues
 sim_block_network <-
-  function(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
-           p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
-           p_edge_between = list(known = 0.05, hidden = 0.01),
+  function(N = 2000, K = 3,
+           prev_K = c(frame = .7,
+                      known = .2,
+                      hidden = .05),
+           rho_K = c(.05, .01, .01),
+           p_edge_within =
+             list(frame = c(.3,.3),
+                  known = c(.3,.3),
+                  hidden = c(.3,.9)),
+           p_edge_between =
+             list(frame = 0.3,
+                  known = 0.3,
+                  hidden = 0.05),
            directed = FALSE) {
 
     if (is.null(names(prev_K)) | length(unique(names(prev_K))) != K)
@@ -54,11 +64,10 @@ sim_block_network <-
                           type.dist = gen_group_sizes(N = N,
                                                       prev_K = prev_K, rho_K = rho_K,
                                                       .ord = type_names),
-                          fixed.sizes = TRUE, directed = FALSE, loops = FALSE,
                           pref.matrix = gen_block_matrix(p_edge_within = p_edge_within,
                                                          p_edge_between = p_edge_between,
-                                                         .ord = type_names))
-
+                                                         .ord = type_names),
+                          fixed.sizes = TRUE, directed = directed, loops = FALSE)
 
     igraph::vertex_attr(g)$type <-
       igraph::vertex_attr(g)$type %>%
