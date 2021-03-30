@@ -82,7 +82,8 @@ study_1 <-
         tls = list(handler = sample_tls,
                    sampling_variable = "tls",
                    # TLS sampling parameters
-                   target_n_tls = 1),
+                   target_n_tls = 1,
+                   cluster = paste0("loc_", 1:3)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
