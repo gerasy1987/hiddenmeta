@@ -11,7 +11,7 @@ sample_rds(
   n_seed = 10,
   n_coupons = 3,
   target_type = c("sample", "waves"),
-  target_n_rds = 40
+  target_n_rds = 3
 )
 }
 \arguments{
