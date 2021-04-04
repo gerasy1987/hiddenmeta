@@ -4,12 +4,12 @@
 \alias{get_study_est_ht}
 \title{Horvitz-Thompson prevalence estimator using weighted regression}
 \usage{
-get_study_est_ht(data, pps_prefix = "pps", label = "ht")
+get_study_est_ht(data, prefix = "pps", label = "ht")
 }
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{pps_prefix}{character prefix used for RDS sample variables}
+\item{prefix}{character prefix used for sampling variables (has to include \code{[prefix]_weights})}
 
 \item{label}{character string describing the estimator}
 }

@@ -9,10 +9,10 @@ sample_pps(
   sampling_variable = "pps",
   drop_nonsampled = FALSE,
   target_n_pps = 400,
+  n_clusters = target_n_pps,
   sampling_frame = NULL,
   strata = NULL,
   cluster = NULL,
-  n_clusters = target_n_pps,
   weighs_type = c("absolute", "relative")
 )
 }
@@ -25,13 +25,15 @@ sample_pps(
 
 \item{target_n_pps}{target size of proportional sample}
 
+\item{n_clusters}{number of clusters}
+
 \item{sampling_frame}{character vector containing all binary vectors identifying sampling frame}
 
 \item{strata}{character vector containing name(s) of stratifying variables. Currently not implemented}
 
 \item{cluster}{character vector containing name(s) of all cluster variables}
 
-\item{weighs_type}{character string giving the type of weights to compute. Can be one of "absolute" or "relative"}
+\item{weighs_type}{character string giving the type of weights to compute. Can be one of "absolute" or "relative". Currently only absolute weights are calculated}
 }
 \value{
 Population or sample data frame for single study with PPS sample characteristics added

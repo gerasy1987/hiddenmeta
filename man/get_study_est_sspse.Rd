@@ -6,17 +6,26 @@
 \usage{
 get_study_est_sspse(
   data,
-  prior_median = 150,
   rds_prefix = "rds",
+  prior_mean = 150,
+  prior_sd = 50,
+  n_coupons = 3,
+  mcmc_params = list(interval = 1, burnin = 1000, samplesize = 100),
   label = "sspse"
 )
 }
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{prior_median}{prior median of hidden population size for SS-PSE estimation}
-
 \item{rds_prefix}{character prefix used for RDS sample variables}
+
+\item{prior_mean}{the mean of the prior distribution on the population size for SS-PSE estimation}
+
+\item{prior_sd}{the standard deviation of the prior distribution on the population size for SS-PSE estimation}
+
+\item{n_coupons}{The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.}
+
+\item{mcmc_params}{parameters for MCMC sampling}
 
 \item{label}{character string describing the estimator}
 }

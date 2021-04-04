@@ -10,6 +10,13 @@
 #' @param cluster character string containing names of all locality names in the study population data frame
 #'
 #' @return Population or sample data frame for single study with TLS sample characteristics added
+#'  \describe{
+#'   \item{[sampling_variable]}{Sampling indicator}
+#'   \item{[sampling_variable]_loc_sampled}{Location at which subject is enrolled}
+#'   \item{[sampling_variable]_sampled_locs}{Sampled locations}
+#'   \item{[sampling_variable]_weight}{Sampling weights}
+#'  }
+#'
 #' @export
 #'
 #' @import dplyr
@@ -26,10 +33,13 @@ sample_tls <-
     if (length(cluster) < target_n_clusters)
       stop("Number of requested locations for TLS sample exceeds number of available locations")
 
-    sampled_locs <-
+    sampling_probs <-
       data %>%
       dplyr::filter(hidden == 1) %>%
-      dplyr::summarise(dplyr::across(dplyr::all_of(cluster), mean, .names = "{.col}")) %>%
+      dplyr::summarise(dplyr::across(dplyr::all_of(cluster), mean, .names = "{.col}"))
+
+    sampled_locs <-
+      sampling_probs %>%
       t() %>%
       {
         sample(x = rownames(.), size = target_n_clusters, prob = as.vector(.))
@@ -58,12 +68,14 @@ sample_tls <-
                     sampled_locs = paste0(sampled_locs, collapse = ";")) %>%
       dplyr::rename("{ sampling_variable }" := sampled,
                     "{ sampling_variable }_sampled_locs" := sampled_locs,
-                    "{ sampling_variable }_loc_sampled" := loc_sampled)
+                    "{ sampling_variable }_loc_sampled" := loc_sampled) %>%
+      dplyr::select(temp_id, all_of(sampling_variable), everything())
 
-    data %<>%
+    data %>%
       dplyr::left_join(., temp_data, by = "temp_id") %>%
       dplyr::select(-temp_id) %>%
-      dplyr::mutate(across(all_of(sampling_variable), ~ ifelse(is.na(.), 0, .)))
+      dplyr::mutate(across(all_of(sampling_variable), ~ ifelse(is.na(.), 0, .)),
+                    "{ sampling_variable }_weight" := as.matrix(.[, cluster]) %*% t(sampling_probs))
 
     if (drop_nonsampled) data %<>% dplyr::filter(if_all(all_of(sampling_variable), ~ . == 1))
 
