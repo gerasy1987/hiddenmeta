@@ -43,7 +43,7 @@ sample_rds <-
 
     # at t=1 only seeds are sampled
     sampled <-
-      dplyr::tibble(name = seeds, from = NA_integer_, t = 1:length(seeds), wave = 1,
+      dplyr::tibble(name = seeds, from = -999, t = 1:length(seeds), wave = 1,
                     hidden = data$hidden[data$name %in% seeds], own_coupon = as.character(t))
 
     for (j in 1:n_coupons) {
