@@ -3,9 +3,8 @@
 #' @param data pass-through population data frame
 #' @param rds_prefix character prefix used for RDS sample variables
 #' @param prior_mean the mean of the prior distribution on the population size for SS-PSE estimation
-#' @param prior_sd the standard deviation of the prior distribution on the population size for SS-PSE estimation
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
-#' @param mcmc_params parameters for MCMC sampling
+#' @param mcmc_params named list of parameters passed to \code{sspse::posteriorsize} for MCMC sampling
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of SS-PSE estimates for a single study
@@ -16,13 +15,13 @@
 #'
 #' @import dplyr
 #' @importFrom sspse posteriorsize
+#' @importFrom RDS as.rds.data.frame
 #' @importFrom purrr quietly
 get_study_est_sspse <- function(data,
                                 rds_prefix = "rds",
-                                prior_mean = 150,
-                                prior_sd = 50,
+                                prior_mean = .1 * nrow(data),
                                 n_coupons = 3,
-                                mcmc_params = list(interval = 1, burnin = 1000, samplesize = 100),
+                                mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
                                 label = "sspse") {
 
   .quiet_sspse <- purrr::quietly(sspse::posteriorsize)
@@ -30,14 +29,22 @@ get_study_est_sspse <- function(data,
   .fit_sspse <-
     data %>%
     dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
+    dplyr::select(name, hidden_visible_out, starts_with(rds_prefix), total) %>%
+    RDS::as.rds.data.frame(df = .,
+                           id = "name",
+                           recruiter.id = paste0(rds_prefix, "_from"),
+                           network.size = "hidden_visible_out",
+                           time = paste0(rds_prefix, "_t"),
+                           population.size = unique(.$total),
+                           max.coupons = n_coupons) %>%
     {
-      .quiet_sspse(s = .$hidden_visible_out[order(.[,paste0(rds_prefix, "_t")])],
+      .quiet_sspse(s = .,
                    interval = mcmc_params$interval,
                    samplesize = mcmc_params$samplesize,
                    burnin = mcmc_params$burnin,
                    mean.prior.size = prior_mean,
-                   sd.prior.size = prior_sd,
                    verbose = FALSE,
+                   # visibility = TRUE,
                    max.coupons = n_coupons
       )
     }
@@ -180,7 +187,8 @@ get_study_est_chords <- function(data,
 #' @import dplyr
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
 #' @importFrom purrr quietly
-get_study_est_nsum <- function(data, prefix = "pps",
+get_study_est_nsum <- function(data,
+                               prefix = "pps",
                                known = c("known", "known_2", "known_3"),
                                hidden = "hidden_visible_out",
                                degree_ratio = 1,

@@ -24,7 +24,8 @@
 #' @importFrom purrr map_chr
 #' @importFrom magrittr `%<>%`
 sample_tls <-
-  function(data, sampling_variable = "tls", drop_nonsampled = FALSE,
+  function(data,
+           sampling_variable = "tls", drop_nonsampled = FALSE,
            target_n_clusters = 2,
            target_n_tls = 50,
            cluster = paste0("loc_", 1:3)
@@ -71,11 +72,11 @@ sample_tls <-
                     "{ sampling_variable }_loc_sampled" := loc_sampled) %>%
       dplyr::select(temp_id, all_of(sampling_variable), everything())
 
-    data %>%
+    data %<>%
       dplyr::left_join(., temp_data, by = "temp_id") %>%
       dplyr::select(-temp_id) %>%
       dplyr::mutate(across(all_of(sampling_variable), ~ ifelse(is.na(.), 0, .)),
-                    "{ sampling_variable }_weight" := as.matrix(.[, cluster]) %*% t(sampling_probs))
+                    "{ sampling_variable }_weight" := as.vector(as.matrix(.[, cluster]) %*% t(sampling_probs)))
 
     if (drop_nonsampled) data %<>% dplyr::filter(if_all(all_of(sampling_variable), ~ . == 1))
 
