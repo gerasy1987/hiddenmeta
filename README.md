@@ -25,23 +25,26 @@ study_1 <-
     pop = 
       list(
         handler = get_study_population,
+        
+        # network structure setup
         network_handler = sim_block_network,
         network_handler_args = 
           list(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
-               p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
+               p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.7)),
                p_edge_between = list(known = 0.05, hidden = 0.01),
                directed = FALSE),
         
+        # groups
         group_names = c("known", "hidden"),
         
         # probability of visibility (show-up) for each group
-        p_visibility = list(known = .99, hidden = .7),
+        p_visible = list(known = 1, hidden = .7),
         
         # probability of service utilization in hidden population
         # for service multiplier
         add_groups = list(p_service = 0.3, 
                           loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, 
-                          known_2 = 0.1, known_2 = 0.2)
+                          known_2 = 0.1, known_3 = 0.2)
       ),
     sample = 
       list(
@@ -55,27 +58,38 @@ study_1 <-
         tls = list(handler = sample_tls,
                    sampling_variable = "tls",
                    # TLS sampling parameters
-                   target_n_tls = 1),
+                   target_n_clusters = 2,
+                   target_n_tls = 100,
+                   cluster = paste0("loc_", 1:3)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
+                   sampling_frame = NULL,
+                   strata = NULL,
+                   cluster = NULL,
                    target_n_pps = 400)
       ),
-    estimands = list(handler = get_study_estimands),
+    inquiries = list(handler = get_study_estimands),
     estimators = 
       list(
         rds = 
           list(sspse = list(handler = get_study_est_sspse, 
                             label = "rds_sspse",
-                            prior_median = 150,
-                            rds_prefix = "rds"),
-               chords = list(handler = get_study_est_chords,  
-                             type = "integrated", 
-                             label = "rds_chords")),
+                            prior_mean = 200,
+                            mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+                            rds_prefix = "rds")),
+        # tls = 
+        #   list(nsum = list(handler = get_study_est_nsum,
+        #                    prefix = "tls",
+        #                    known = c("known", "known_2", "known_3"),
+        #                    hidden = "hidden_visible_out",
+        #                    label = "tls_nsum")),
         pps = 
           list(ht = list(handler = get_study_est_ht, 
                          label = "pps_ht"),
-               nsum = list(handler = get_study_est_nsum, 
+               nsum = list(handler = get_study_est_nsum,
+                           known = c("known", "known_2", "known_3"),
+                           hidden = "hidden_visible_out",
                            label = "pps_nsum"))
       )
   )
@@ -90,27 +104,34 @@ study_population <-
 
 set.seed(19872312)
 ( example_pop <- study_population() )
-#> # A tibble: 2,000 x 32
-#>     name known hidden type  p_visibility_kn… known_visible p_visibility_hi…
-#>    <int> <int>  <int> <chr>            <dbl>         <dbl>            <dbl>
-#>  1     1     0      0 00               1                 1            0.700
-#>  2     2     0      0 00               1.00              1            0.717
-#>  3     3     0      0 00               0.994             1            0.683
-#>  4     4     0      0 00               1.00              0            0.642
-#>  5     5     0      0 00               1                 1            0.709
-#>  6     6     0      0 00               1                 1            0.675
-#>  7     7     0      0 00               0.968             1            0.688
-#>  8     8     0      0 00               1.00              1            0.740
-#>  9     9     0      0 00               1.00              0            0.739
-#> 10    10     0      0 00               1.00              1            0.600
-#> # … with 1,990 more rows, and 25 more variables: hidden_visible <dbl>,
-#> #   type_visible_00 <dbl>, type_visible_01 <dbl>, type_visible_10 <dbl>,
-#> #   type_visible_11 <dbl>, n_visible <dbl>, links <list>, total <int>,
-#> #   p_service <int>, loc_1 <int>, loc_2 <int>, loc_3 <int>, known_2 <int>,
-#> #   total_known <int>, total_hidden <int>, total_p_service <int>,
-#> #   total_loc_1 <int>, total_loc_2 <int>, total_loc_3 <int>,
-#> #   total_known_2 <int>, p_service_visible <dbl>, loc_1_visible <dbl>,
-#> #   loc_2_visible <dbl>, loc_3_visible <dbl>, known_2_visible <dbl>
+#> # A tibble: 2,000 x 47
+#>     name type  known hidden links    p_service loc_1 loc_2 loc_3 known_2 known_3
+#>    <int> <chr> <int>  <int> <list>       <int> <int> <int> <int>   <int>   <int>
+#>  1     1 00        0      0 <igrph.…         0     1     0     0       0       1
+#>  2     2 00        0      0 <igrph.…         0     0     0     1       0       0
+#>  3     3 00        0      0 <igrph.…         1     0     1     0       0       0
+#>  4     4 00        0      0 <igrph.…         0     0     0     0       1       0
+#>  5     5 00        0      0 <igrph.…         0     1     0     1       0       1
+#>  6     6 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  7     7 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  8     8 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  9     9 00        0      0 <igrph.…         0     1     0     0       0       0
+#> 10    10 00        0      0 <igrph.…         0     0     0     0       1       0
+#> # … with 1,990 more rows, and 36 more variables: n_visible_out <dbl>,
+#> #   known_visible_out <dbl>, hidden_visible_out <dbl>,
+#> #   type_00_visible_out <dbl>, type_01_visible_out <dbl>,
+#> #   type_10_visible_out <dbl>, type_11_visible_out <dbl>,
+#> #   p_service_visible_out <dbl>, loc_1_visible_out <dbl>,
+#> #   loc_2_visible_out <dbl>, loc_3_visible_out <dbl>,
+#> #   known_2_visible_out <dbl>, known_3_visible_out <dbl>,
+#> #   known_visible_in <dbl>, hidden_visible_in <dbl>, type_00_visible_in <dbl>,
+#> #   type_01_visible_in <dbl>, type_10_visible_in <dbl>,
+#> #   type_11_visible_in <dbl>, p_service_visible_in <dbl>,
+#> #   loc_1_visible_in <dbl>, loc_2_visible_in <dbl>, loc_3_visible_in <dbl>,
+#> #   known_2_visible_in <dbl>, known_3_visible_in <dbl>, p_visible_known <dbl>,
+#> #   p_visible_hidden <dbl>, total <int>, total_known <int>, total_hidden <int>,
+#> #   total_p_service <int>, total_loc_1 <int>, total_loc_2 <int>,
+#> #   total_loc_3 <int>, total_known_2 <int>, total_known_3 <int>
 ```
 
 ### Show the network
@@ -127,7 +148,8 @@ g <-
 igraph::V(g)$color <-
   plyr::mapvalues(igraph::V(g)$type,
                   from = unique(igraph::V(g)$type),
-                  to = grDevices::palette.colors(n = length(unique(igraph::V(g)$type)), palette = "Set 3"))
+                  to = grDevices::palette.colors(n = length(unique(igraph::V(g)$type)), 
+                                                 palette = "Set 3"))
 
 plot(g,
      layout = igraph::layout_on_grid(g, dim = 2, width = 100),
@@ -140,7 +162,7 @@ legend(x = -1, y = -1.2,
        pch = 21, col = "#777777", pt.cex = 2, cex = 1.5, bty = "o", ncol = 2)
 ```
 
-![](README-example_network-1.png)<!-- -->
+![](README-plot_pop_network-1.png)<!-- -->
 
 ## Step 3. Declare all relevant study sampling procedures
 
@@ -157,28 +179,35 @@ study_sample_rds <-
 
 set.seed(19872312)
 draw_data(study_population + study_sample_rds)
-#> # A tibble: 2,000 x 41
-#>     name known hidden type  p_visibility_kn… known_visible p_visibility_hi…
-#>    <int> <int>  <int> <chr>            <dbl>         <dbl>            <dbl>
-#>  1     1     0      0 00               1                 1            0.700
-#>  2     2     0      0 00               1.00              1            0.717
-#>  3     3     0      0 00               0.994             1            0.683
-#>  4     4     0      0 00               1.00              0            0.642
-#>  5     5     0      0 00               1                 1            0.709
-#>  6     6     0      0 00               1                 1            0.675
-#>  7     7     0      0 00               0.968             1            0.688
-#>  8     8     0      0 00               1.00              1            0.740
-#>  9     9     0      0 00               1.00              0            0.739
-#> 10    10     0      0 00               1.00              1            0.600
-#> # … with 1,990 more rows, and 34 more variables: hidden_visible <dbl>,
-#> #   type_visible_00 <dbl>, type_visible_01 <dbl>, type_visible_10 <dbl>,
-#> #   type_visible_11 <dbl>, n_visible <dbl>, links <list>, total <int>,
-#> #   p_service <int>, loc_1 <int>, loc_2 <int>, loc_3 <int>, known_2 <int>,
-#> #   total_known <int>, total_hidden <int>, total_p_service <int>,
-#> #   total_loc_1 <int>, total_loc_2 <int>, total_loc_3 <int>,
-#> #   total_known_2 <int>, p_service_visible <dbl>, loc_1_visible <dbl>,
-#> #   loc_2_visible <dbl>, loc_3_visible <dbl>, known_2_visible <dbl>, rds <int>,
-#> #   rds_from <int>, rds_t <dbl>, rds_wave <dbl>, rds_hidden <int>,
+#> # A tibble: 2,000 x 56
+#>     name type  known hidden links    p_service loc_1 loc_2 loc_3 known_2 known_3
+#>    <int> <chr> <int>  <int> <list>       <int> <int> <int> <int>   <int>   <int>
+#>  1     1 00        0      0 <igrph.…         0     1     0     0       0       1
+#>  2     2 00        0      0 <igrph.…         0     0     0     1       0       0
+#>  3     3 00        0      0 <igrph.…         1     0     1     0       0       0
+#>  4     4 00        0      0 <igrph.…         0     0     0     0       1       0
+#>  5     5 00        0      0 <igrph.…         0     1     0     1       0       1
+#>  6     6 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  7     7 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  8     8 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  9     9 00        0      0 <igrph.…         0     1     0     0       0       0
+#> 10    10 00        0      0 <igrph.…         0     0     0     0       1       0
+#> # … with 1,990 more rows, and 45 more variables: n_visible_out <dbl>,
+#> #   known_visible_out <dbl>, hidden_visible_out <dbl>,
+#> #   type_00_visible_out <dbl>, type_01_visible_out <dbl>,
+#> #   type_10_visible_out <dbl>, type_11_visible_out <dbl>,
+#> #   p_service_visible_out <dbl>, loc_1_visible_out <dbl>,
+#> #   loc_2_visible_out <dbl>, loc_3_visible_out <dbl>,
+#> #   known_2_visible_out <dbl>, known_3_visible_out <dbl>,
+#> #   known_visible_in <dbl>, hidden_visible_in <dbl>, type_00_visible_in <dbl>,
+#> #   type_01_visible_in <dbl>, type_10_visible_in <dbl>,
+#> #   type_11_visible_in <dbl>, p_service_visible_in <dbl>,
+#> #   loc_1_visible_in <dbl>, loc_2_visible_in <dbl>, loc_3_visible_in <dbl>,
+#> #   known_2_visible_in <dbl>, known_3_visible_in <dbl>, p_visible_known <dbl>,
+#> #   p_visible_hidden <dbl>, total <int>, total_known <int>, total_hidden <int>,
+#> #   total_p_service <int>, total_loc_1 <int>, total_loc_2 <int>,
+#> #   total_loc_3 <int>, total_known_2 <int>, total_known_3 <int>, rds <int>,
+#> #   rds_from <dbl>, rds_t <dbl>, rds_wave <dbl>, rds_hidden <int>,
 #> #   rds_own_coupon <chr>, rds_coupon_1 <chr>, rds_coupon_2 <chr>,
 #> #   rds_coupon_3 <chr>
 ```
@@ -190,30 +219,38 @@ study_sample_pps <-
 
 set.seed(19872312)
 draw_data(study_population + study_sample_rds + study_sample_pps)
-#> # A tibble: 2,000 x 43
-#>     name known hidden type  p_visibility_kn… known_visible p_visibility_hi…
-#>    <int> <int>  <int> <chr>            <dbl>         <dbl>            <dbl>
-#>  1     1     0      0 00               1                 1            0.700
-#>  2     2     0      0 00               1.00              1            0.717
-#>  3     3     0      0 00               0.994             1            0.683
-#>  4     4     0      0 00               1.00              0            0.642
-#>  5     5     0      0 00               1                 1            0.709
-#>  6     6     0      0 00               1                 1            0.675
-#>  7     7     0      0 00               0.968             1            0.688
-#>  8     8     0      0 00               1.00              1            0.740
-#>  9     9     0      0 00               1.00              0            0.739
-#> 10    10     0      0 00               1.00              1            0.600
-#> # … with 1,990 more rows, and 36 more variables: hidden_visible <dbl>,
-#> #   type_visible_00 <dbl>, type_visible_01 <dbl>, type_visible_10 <dbl>,
-#> #   type_visible_11 <dbl>, n_visible <dbl>, links <list>, total <int>,
-#> #   p_service <int>, loc_1 <int>, loc_2 <int>, loc_3 <int>, known_2 <int>,
-#> #   total_known <int>, total_hidden <int>, total_p_service <int>,
-#> #   total_loc_1 <int>, total_loc_2 <int>, total_loc_3 <int>,
-#> #   total_known_2 <int>, p_service_visible <dbl>, loc_1_visible <dbl>,
-#> #   loc_2_visible <dbl>, loc_3_visible <dbl>, known_2_visible <dbl>, rds <int>,
-#> #   rds_from <int>, rds_t <dbl>, rds_wave <dbl>, rds_hidden <int>,
+#> # A tibble: 2,000 x 62
+#>     name type  known hidden links    p_service loc_1 loc_2 loc_3 known_2 known_3
+#>    <int> <chr> <int>  <int> <list>       <int> <int> <int> <int>   <int>   <int>
+#>  1     1 00        0      0 <igrph.…         0     1     0     0       0       1
+#>  2     2 00        0      0 <igrph.…         0     0     0     1       0       0
+#>  3     3 00        0      0 <igrph.…         1     0     1     0       0       0
+#>  4     4 00        0      0 <igrph.…         0     0     0     0       1       0
+#>  5     5 00        0      0 <igrph.…         0     1     0     1       0       1
+#>  6     6 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  7     7 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  8     8 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  9     9 00        0      0 <igrph.…         0     1     0     0       0       0
+#> 10    10 00        0      0 <igrph.…         0     0     0     0       1       0
+#> # … with 1,990 more rows, and 51 more variables: n_visible_out <dbl>,
+#> #   known_visible_out <dbl>, hidden_visible_out <dbl>,
+#> #   type_00_visible_out <dbl>, type_01_visible_out <dbl>,
+#> #   type_10_visible_out <dbl>, type_11_visible_out <dbl>,
+#> #   p_service_visible_out <dbl>, loc_1_visible_out <dbl>,
+#> #   loc_2_visible_out <dbl>, loc_3_visible_out <dbl>,
+#> #   known_2_visible_out <dbl>, known_3_visible_out <dbl>,
+#> #   known_visible_in <dbl>, hidden_visible_in <dbl>, type_00_visible_in <dbl>,
+#> #   type_01_visible_in <dbl>, type_10_visible_in <dbl>,
+#> #   type_11_visible_in <dbl>, p_service_visible_in <dbl>,
+#> #   loc_1_visible_in <dbl>, loc_2_visible_in <dbl>, loc_3_visible_in <dbl>,
+#> #   known_2_visible_in <dbl>, known_3_visible_in <dbl>, p_visible_known <dbl>,
+#> #   p_visible_hidden <dbl>, total <int>, total_known <int>, total_hidden <int>,
+#> #   total_p_service <int>, total_loc_1 <int>, total_loc_2 <int>,
+#> #   total_loc_3 <int>, total_known_2 <int>, total_known_3 <int>, rds <int>,
+#> #   rds_from <dbl>, rds_t <dbl>, rds_wave <dbl>, rds_hidden <int>,
 #> #   rds_own_coupon <chr>, rds_coupon_1 <chr>, rds_coupon_2 <chr>,
-#> #   rds_coupon_3 <chr>, pps_share <dbl>, pps <dbl>
+#> #   rds_coupon_3 <chr>, pps <dbl>, pps_frame <dbl>, pps_cluster_id <int>,
+#> #   pps_cluster_prop <dbl>, pps_weight <dbl>, pps_sampled_cluster <dbl>
 ```
 
 ``` r
@@ -224,49 +261,57 @@ study_sample_tls <-
 set.seed(19872312)
 draw_data(study_population + 
             study_sample_rds + study_sample_pps + study_sample_tls)
-#> # A tibble: 2,000 x 45
-#>     name known hidden type  p_visibility_kn… known_visible p_visibility_hi…
-#>    <int> <int>  <int> <chr>            <dbl>         <dbl>            <dbl>
-#>  1     1     0      0 00               1                 1            0.700
-#>  2     2     0      0 00               1.00              1            0.717
-#>  3     3     0      0 00               0.994             1            0.683
-#>  4     4     0      0 00               1.00              0            0.642
-#>  5     5     0      0 00               1                 1            0.709
-#>  6     6     0      0 00               1                 1            0.675
-#>  7     7     0      0 00               0.968             1            0.688
-#>  8     8     0      0 00               1.00              1            0.740
-#>  9     9     0      0 00               1.00              0            0.739
-#> 10    10     0      0 00               1.00              1            0.600
-#> # … with 1,990 more rows, and 38 more variables: hidden_visible <dbl>,
-#> #   type_visible_00 <dbl>, type_visible_01 <dbl>, type_visible_10 <dbl>,
-#> #   type_visible_11 <dbl>, n_visible <dbl>, links <list>, total <int>,
-#> #   p_service <int>, loc_1 <int>, loc_2 <int>, loc_3 <int>, known_2 <int>,
-#> #   total_known <int>, total_hidden <int>, total_p_service <int>,
-#> #   total_loc_1 <int>, total_loc_2 <int>, total_loc_3 <int>,
-#> #   total_known_2 <int>, p_service_visible <dbl>, loc_1_visible <dbl>,
-#> #   loc_2_visible <dbl>, loc_3_visible <dbl>, known_2_visible <dbl>, rds <int>,
-#> #   rds_from <int>, rds_t <dbl>, rds_wave <dbl>, rds_hidden <int>,
+#> # A tibble: 2,000 x 66
+#>     name type  known hidden links    p_service loc_1 loc_2 loc_3 known_2 known_3
+#>    <int> <chr> <int>  <int> <list>       <int> <int> <int> <int>   <int>   <int>
+#>  1     1 00        0      0 <igrph.…         0     1     0     0       0       1
+#>  2     2 00        0      0 <igrph.…         0     0     0     1       0       0
+#>  3     3 00        0      0 <igrph.…         1     0     1     0       0       0
+#>  4     4 00        0      0 <igrph.…         0     0     0     0       1       0
+#>  5     5 00        0      0 <igrph.…         0     1     0     1       0       1
+#>  6     6 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  7     7 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  8     8 00        0      0 <igrph.…         1     0     0     0       0       0
+#>  9     9 00        0      0 <igrph.…         0     1     0     0       0       0
+#> 10    10 00        0      0 <igrph.…         0     0     0     0       1       0
+#> # … with 1,990 more rows, and 55 more variables: n_visible_out <dbl>,
+#> #   known_visible_out <dbl>, hidden_visible_out <dbl>,
+#> #   type_00_visible_out <dbl>, type_01_visible_out <dbl>,
+#> #   type_10_visible_out <dbl>, type_11_visible_out <dbl>,
+#> #   p_service_visible_out <dbl>, loc_1_visible_out <dbl>,
+#> #   loc_2_visible_out <dbl>, loc_3_visible_out <dbl>,
+#> #   known_2_visible_out <dbl>, known_3_visible_out <dbl>,
+#> #   known_visible_in <dbl>, hidden_visible_in <dbl>, type_00_visible_in <dbl>,
+#> #   type_01_visible_in <dbl>, type_10_visible_in <dbl>,
+#> #   type_11_visible_in <dbl>, p_service_visible_in <dbl>,
+#> #   loc_1_visible_in <dbl>, loc_2_visible_in <dbl>, loc_3_visible_in <dbl>,
+#> #   known_2_visible_in <dbl>, known_3_visible_in <dbl>, p_visible_known <dbl>,
+#> #   p_visible_hidden <dbl>, total <int>, total_known <int>, total_hidden <int>,
+#> #   total_p_service <int>, total_loc_1 <int>, total_loc_2 <int>,
+#> #   total_loc_3 <int>, total_known_2 <int>, total_known_3 <int>, rds <int>,
+#> #   rds_from <dbl>, rds_t <dbl>, rds_wave <dbl>, rds_hidden <int>,
 #> #   rds_own_coupon <chr>, rds_coupon_1 <chr>, rds_coupon_2 <chr>,
-#> #   rds_coupon_3 <chr>, pps_share <dbl>, pps <dbl>, tls_loc_sampled <chr>,
-#> #   tls <dbl>
+#> #   rds_coupon_3 <chr>, pps <dbl>, pps_frame <dbl>, pps_cluster_id <int>,
+#> #   pps_cluster_prop <dbl>, pps_weight <dbl>, pps_sampled_cluster <dbl>,
+#> #   tls <dbl>, tls_loc_sampled <chr>, tls_sampled_locs <chr>, tls_weight <dbl>
 ```
 
 ## Step 4. Declare study level estimands
 
 ``` r
 study_estimands <- 
-  do.call(what = declare_estimand, 
-          args = study_1$estimands)
+  do.call(what = declare_inquiry, 
+          args = study_1$inquiries)
 
 set.seed(19872312)
-draw_estimands(study_population + 
-                 study_sample_rds + study_sample_pps + study_sample_tls + 
-                 study_estimands)
-#>          estimand_label estimand
+draw_inquiry(study_population + 
+                study_sample_rds + study_sample_pps + study_sample_tls + 
+                study_estimands)
+#>           inquiry_label estimand
 #> 1           hidden_size 190.0000
 #> 2           hidden_prev   0.0950
-#> 3        degree_average   5.0810
-#> 4 degree_hidden_average   0.8655
+#> 3        degree_average   4.9310
+#> 4 degree_hidden_average   0.7155
 ```
 
 ## Step 5. Declare estimators used in the study
@@ -274,10 +319,10 @@ draw_estimands(study_population +
 ``` r
 estimator_sspse <- do.call(what = declare_estimator, 
                            args = study_1$estimators$rds$sspse)
-estimator_chords <- do.call(what = declare_estimator, 
-                            args = study_1$estimators$rds$chords)
 estimator_ht <- do.call(what = declare_estimator, 
                         args = study_1$estimators$pps$ht)
+# estimator_nsum_tls <- do.call(what = declare_estimator, 
+#                               args = study_1$estimators$tls$nsum)
 estimator_nsum <- do.call(what = declare_estimator, 
                           args = study_1$estimators$pps$nsum)
 
@@ -285,14 +330,14 @@ set.seed(19872312)
 draw_estimates(study_population +
                  study_sample_rds + study_sample_pps + study_sample_tls +
                  study_estimands +
-                 estimator_sspse + estimator_ht + estimator_chords + estimator_nsum)
-#>            estimator_label    estimate          se        estimand_label
-#> 1    hidden_size_rds_sspse 154.0000000 59.65263542           hidden_size
-#> 2       hidden_prev_pps_ht   0.1056964  0.02155903           hidden_prev
-#> 3   hidden_size_rds_chords 176.0000000          NA           hidden_size
-#> 4 degree_hidden_rds_chords   6.1022727          NA degree_hidden_average
-#> 5     hidden_size_pps_nsum 210.5490196 13.80913455           hidden_size
-#> 6  degree_average_pps_nsum   4.9394673          NA        degree_average
+                 estimator_sspse + estimator_ht + #estimator_nsum_tls + 
+                 estimator_nsum)
+#>           estimator_label  estimate           se  inquiry_label
+#> 1   hidden_size_rds_sspse 221.50000 121.30762406    hidden_size
+#> 2      hidden_prev_pps_ht   0.09750   0.01485044    hidden_prev
+#> 3      hidden_size_pps_ht 195.00000  29.70088984    hidden_size
+#> 4    hidden_size_pps_nsum 190.07131  13.08324953    hidden_size
+#> 5 degree_average_pps_nsum   5.02443           NA degree_average
 ```
 
 ## Step 6. Diagnose study design
@@ -308,14 +353,45 @@ study_diagnosands <-
     rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
 
-diagnose_design(
-  study_population + 
-    study_sample_rds + study_sample_pps + 
-    study_estimands + 
-    estimator_sspse + estimator_ht + estimator_chords + estimator_nsum, 
-  diagnosands = study_diagnosands,
-  sims = 10,
-  bootstrap_sims = 10)
+study_simulations <- 
+  simulate_design(
+    study_population + 
+      study_sample_rds + study_sample_pps + 
+      study_estimands + 
+      estimator_sspse + estimator_ht + estimator_nsum, 
+    sims = 10)
+
+diagnose_design(study_simulations, 
+                diagnosands = study_diagnosands, sims = 2)
+#> 
+#> Research design diagnosis based on 10 simulations. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
+#> 
+#>  Design Label         Inquiry Label         Estimator Label N Sims
+#>      design_1        degree_average degree_average_pps_nsum     10
+#>                                                                   
+#>      design_1 degree_hidden_average                    <NA>     10
+#>                                                                   
+#>      design_1           hidden_prev      hidden_prev_pps_ht     10
+#>                                                                   
+#>      design_1           hidden_size      hidden_size_pps_ht     10
+#>                                                                   
+#>      design_1           hidden_size    hidden_size_pps_nsum     10
+#>                                                                   
+#>      design_1           hidden_size   hidden_size_rds_sspse     10
+#>                                                                   
+#>  Mean Estimand Mean Estimate SD Estimate Mean Se   Bias   RMSE
+#>           4.91          4.89        0.21      NA  -0.02   0.14
+#>         (0.02)        (0.07)      (0.03)      NA (0.05) (0.02)
+#>           0.78            NA          NA      NA     NA     NA
+#>         (0.04)            NA          NA      NA     NA     NA
+#>           0.10          0.10        0.01    0.01  -0.00   0.01
+#>         (0.00)        (0.00)      (0.00)  (0.00) (0.00) (0.00)
+#>         197.50        195.00       15.99   29.67  -2.50  15.73
+#>         (5.19)        (5.09)      (3.09)  (0.35) (4.76) (2.59)
+#>         197.50        211.86       15.11   13.91  14.36  18.59
+#>         (5.19)        (4.99)      (3.14)  (0.16) (3.89) (3.84)
+#>         197.50        165.05       16.69   65.42 -32.45  42.92
+#>         (5.19)        (5.40)      (2.43)  (6.07) (9.77) (6.90)
 ```
 
 ## Meta-analysis Draft structure
@@ -324,8 +400,10 @@ diagnose_design(
     design) in a single data frame that will include estimator and
     standard error for each estimator (or potentially for each
     sampling-estimator pair)
+
 2.  Then we can *feed* this data frame into Stan model akin the one
     below
+
     1.  Use the data frame to produce observed estimator vectors for
         each estimator/sampling-estimator pair, `observed*`
     2.  Use the data frame produced by study designs to produce arrays
@@ -333,6 +411,7 @@ diagnose_design(
         dummy value where missing), `est*` and `est*_sd`
     3.  Assume that deviation from true parameter of interest (`error`)
         is driven by use of estimator
+
 3.  We then declare the relevant estimands and run diagnosis
 
 ``` r
@@ -375,7 +454,7 @@ stan_model_meta <- "
 
 get_meta_estimands <- function(data) {
   
-  data.frame(estimand_label = c(paste0("prevalence_", 1:N)),
+  data.frame(inquiry_label = c(paste0("prevalence_", 1:N)),
              estimand = c(data[,1]),
              stringsAsFactors = FALSE)
 }
@@ -405,7 +484,7 @@ get_meta_estimators = function(data) {
   data.frame(estimator_label = c(paste0("prev_", 1:N)),
              estimate = c(apply(fit$alpha, 2, mean)),
              sd =   c(apply(fit$alpha, 2, sd)),
-             estimand_label = c(paste0("hidden_prev", 1:N)),
+             inquiry_label = c(paste0("hidden_prev", 1:N)),
              big_Rhat = big_Rhat
              )
   
@@ -425,20 +504,20 @@ study_2 <-
         network_handler = sim_block_network,
         network_handler_args = 
           list(N = 5000, K = 3, 
-               prev_K = c(known_1 = .3, known_2 = .2, known_3 = .1), 
-               rho_K = c(.1, .1, .1),
-               p_edge_within = list(known_1 = c(0.2, 0.2), 
-                                    known_2 = c(0.2, 0.2), 
-                                    hidden = c(0.1, 0.9)),
-               p_edge_between = list(known_1 = 0.1, 
-                                     known_2 = 0.1, 
+               prev_K = c(frame = .5, known = .2, hidden = .1), 
+               rho_K = c(.05, .05, .05),
+               p_edge_within = list(frame = c(0.05, 0.05), 
+                                    known = c(0.1, 0.05), 
+                                    hidden = c(0.2, 0.9)),
+               p_edge_between = list(frame = 0.05, 
+                                     known = 0.1, 
                                      hidden = 0.01),
                directed = FALSE),
         
-        group_names = c("known_1", "known_2", "hidden"),
+        group_names = c("frame", "known", "hidden"),
         
         # probability of visibility (show-up) for each group
-        p_visibility = list(known_1 = .99, known_2 = .99, hidden = .6),
+        p_visible = list(frame = 1, known = 1, hidden = .6),
         
         # probability of service utilization in hidden population
         # for service multiplier
@@ -459,19 +538,23 @@ study_2 <-
                    # prop sampling parameters
                    target_n_pps = 1000)
       ),
-    estimands = list(handler = get_study_estimands),
+    inquiries = list(handler = get_study_estimands),
     estimators = 
       list(
         rds = 
-          list(
-            chords = list(handler = get_study_est_chords, 
-                          type = "integrated",
-                          label = "rds_chords")
-          ),
+          list(sspse = list(handler = get_study_est_sspse, 
+                            label = "rds_sspse",
+                            prior_mean = 450,
+                            mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+                            rds_prefix = "rds")),
         pps = 
           list(
-            ht = list(handler = get_study_est_ht, label = "pps_ht"),
-            nsum = list(handler = get_study_est_nsum, label = "pps_nsum")
+            ht = list(handler = get_study_est_ht, 
+                      label = "pps_ht"),
+            nsum = list(handler = get_study_est_nsum,
+                        known = c("frame", "known"),
+                        hidden = "hidden_visible_out",
+                        label = "pps_nsum")
           )
       )
   )
@@ -480,85 +563,136 @@ study_2 <-
 ### Declare multiple studies
 
 ``` r
-pops_args <- 
-  list(study_1 = study_1$pop,
-       study_2 = study_2$pop)
-
-samples_args <- 
-  list(study_1 = study_1$sample,
-       study_2 = study_2$sample)
-
-estimators_args <- 
-  list(study_1 = study_1$estimators,
-       study_2 = study_2$estimators)
-
-estimands_args <- 
-  list(study_1 = study_1$estimands,
-       study_2 = study_2$estimands)
-
-
 multi_population <- 
   declare_population(handler = get_multi_populations, 
-                     pops_args = pops_args)
+                     pops_args = list(study_1 = study_1$pop,
+                                      study_2 = study_2$pop))
 
 multi_sampling <- 
   declare_sampling(handler = get_multi_samples, 
-                   samples_args = samples_args) 
+                   samples_args = list(study_1 = study_1$sample,
+                                       study_2 = study_2$sample)) 
 
-multi_estimands <- 
-  declare_estimand(handler = get_multi_estimands, 
-                   estimands_args = estimands_args) 
+multi_inquiry <- 
+  declare_inquiry(handler = get_multi_estimands, 
+                  inquiries_args = list(study_1 = study_1$inquiries,
+                                        study_2 = study_2$inquiries)) 
 
 multi_estimators <-
   declare_estimator(handler = get_multi_estimates,
-                    estimators_args = estimators_args)
+                    estimators_args = list(study_1 = study_1$estimators,
+                                           study_2 = study_2$estimators))
 
-multi_design <- multi_population + multi_sampling + multi_estimands + multi_estimators
+multi_design <- multi_population + multi_sampling + multi_inquiry + multi_estimators
+
 
 set.seed(19872312)
-
-draw_data(multi_population + multi_sampling + multi_estimands + multi_estimators)
+draw_data(multi_design)
 #> # A tibble: 5 x 3
-#>   study   sample population           
-#>   <chr>   <chr>  <list>               
-#> 1 study_1 rds    <tibble [2,000 × 41]>
-#> 2 study_1 tls    <tibble [2,000 × 34]>
-#> 3 study_1 pps    <tibble [2,000 × 34]>
-#> 4 study_2 rds    <tibble [5,000 × 46]>
-#> 5 study_2 pps    <tibble [5,000 × 39]>
-draw_estimands(multi_population + multi_sampling + multi_estimands + multi_estimators)
-#>                  estimand_label estimand
-#> 1           study_1_hidden_size 213.0000
-#> 2           study_1_hidden_prev   0.1065
-#> 3        study_1_degree_average   5.2460
-#> 4 study_1_degree_hidden_average   1.1085
-#> 5           study_2_hidden_size 496.0000
-#> 6           study_2_hidden_prev   0.0992
-#> 7        study_2_degree_average  12.3364
-#> 8 study_2_degree_hidden_average   1.1536
-draw_estimates(multi_population + multi_sampling + multi_estimands + multi_estimators)
-#>             estimator_label    estimate          se
-#> 1     hidden_size_rds_sspse 225.5000000 74.29794856
-#> 2    hidden_size_rds_chords 308.0000000          NA
-#> 3  degree_hidden_rds_chords   6.3701299          NA
-#> 4        hidden_prev_pps_ht   0.1137713  0.02153610
-#> 5      hidden_size_pps_nsum 264.4380265 14.88173926
-#> 6   degree_average_pps_nsum   5.1807980          NA
-#> 7    hidden_size_rds_chords 561.0000000          NA
-#> 8  degree_hidden_rds_chords   6.3689840          NA
-#> 9        hidden_prev_pps_ht   0.1243481  0.01575626
-#> 10     hidden_size_pps_nsum 394.7357811 14.75727131
-#> 11  degree_average_pps_nsum   8.3473558          NA
-#>                   estimand_label
-#> 1            study_1_hidden_size
-#> 2            study_1_hidden_size
-#> 3  study_1_degree_hidden_average
-#> 4            study_1_hidden_prev
-#> 5            study_1_hidden_size
-#> 6         study_1_degree_average
-#> 7            study_2_hidden_size
-#> 8  study_2_degree_hidden_average
-#> 9            study_2_hidden_prev
-#> 10           study_2_hidden_size
-#> 11        study_2_degree_average
+#>   study   sample population                
+#>   <chr>   <chr>  <list>                    
+#> 1 study_1 rds    <tibble[,56] [2,000 × 56]>
+#> 2 study_1 tls    <tibble[,51] [2,000 × 51]>
+#> 3 study_1 pps    <tibble[,53] [2,000 × 53]>
+#> 4 study_2 rds    <tibble[,61] [5,000 × 61]>
+#> 5 study_2 pps    <tibble[,58] [5,000 × 58]>
+draw_inquiry(multi_design)
+#>                   inquiry_label estimand
+#> 1           study_1_hidden_size 215.0000
+#> 2           study_1_hidden_prev   0.1075
+#> 3        study_1_degree_average   4.9100
+#> 4 study_1_degree_hidden_average   0.9235
+#> 5           study_2_hidden_size 488.0000
+#> 6           study_2_hidden_prev   0.0976
+#> 7        study_2_degree_average   4.3332
+#> 8 study_2_degree_hidden_average   0.2374
+draw_estimates(multi_design)
+#>            estimator_label   estimate           se          inquiry_label
+#> 1    hidden_size_rds_sspse 160.500000 5.619659e+01    study_1_hidden_size
+#> 2       hidden_prev_pps_ht   0.097500 1.485044e-02    study_1_hidden_prev
+#> 3       hidden_size_pps_ht 195.000000 2.970089e+01    study_1_hidden_size
+#> 4     hidden_size_pps_nsum 214.594203 1.363877e+01    study_1_hidden_size
+#> 5  degree_average_pps_nsum   5.149254           NA study_1_degree_average
+#> 6    hidden_size_rds_sspse 535.500000 6.421872e+02    study_2_hidden_size
+#> 7       hidden_prev_pps_ht   0.102000 9.575369e-03    study_2_hidden_prev
+#> 8       hidden_size_pps_ht 510.000000 4.787684e+01    study_2_hidden_size
+#> 9     hidden_size_pps_nsum 170.831554 1.403949e+01    study_2_hidden_size
+#> 10 degree_average_pps_nsum   4.185409           NA study_2_degree_average
+
+multi_simulations <- 
+  simulate_design(multi_population +
+                    multi_sampling + 
+                    multi_inquiry + 
+                    multi_estimators, sims = 10)
+
+diagnose_design(simulations_df = multi_simulations, 
+                diagnosands = study_diagnosands)
+#> 
+#> Research design diagnosis based on 10 simulations. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
+#> 
+#>  Design Label                 Inquiry Label         Estimator Label N Sims
+#>      design_1        study_1_degree_average degree_average_pps_nsum     10
+#>                                                                           
+#>      design_1 study_1_degree_hidden_average                    <NA>     10
+#>                                                                           
+#>      design_1           study_1_hidden_prev      hidden_prev_pps_ht     10
+#>                                                                           
+#>      design_1           study_1_hidden_size      hidden_size_pps_ht     10
+#>                                                                           
+#>      design_1           study_1_hidden_size    hidden_size_pps_nsum     10
+#>                                                                           
+#>      design_1           study_1_hidden_size   hidden_size_rds_sspse     10
+#>                                                                           
+#>      design_1        study_2_degree_average degree_average_pps_nsum     10
+#>                                                                           
+#>      design_1 study_2_degree_hidden_average                    <NA>     10
+#>                                                                           
+#>      design_1           study_2_hidden_prev      hidden_prev_pps_ht     10
+#>                                                                           
+#>      design_1           study_2_hidden_size      hidden_size_pps_ht     10
+#>                                                                           
+#>      design_1           study_2_hidden_size    hidden_size_pps_nsum     10
+#>                                                                           
+#>      design_1           study_2_hidden_size   hidden_size_rds_sspse     10
+#>                                                                           
+#>  Mean Estimand Mean Estimate SD Estimate Mean Se     Bias     RMSE
+#>           4.93          4.94        0.19      NA     0.01     0.18
+#>         (0.02)        (0.06)      (0.04)      NA   (0.06)   (0.04)
+#>           0.79            NA          NA      NA       NA       NA
+#>         (0.02)            NA          NA      NA       NA       NA
+#>           0.10          0.10        0.02    0.01    -0.00     0.02
+#>         (0.00)        (0.01)      (0.00)  (0.00)   (0.00)   (0.00)
+#>         200.80        195.00       36.67   29.56    -5.80    30.35
+#>         (1.91)       (10.30)      (9.70)  (0.67)   (9.16)   (6.34)
+#>         200.80        218.59       42.30   13.97    17.79    39.32
+#>         (1.91)       (11.16)      (7.83)  (0.32)  (10.02)   (6.54)
+#>         200.80        173.70       43.82   74.35   -27.10    53.39
+#>         (1.91)       (11.87)      (9.41) (10.95)  (12.93)   (7.43)
+#>           4.22          4.10        0.07      NA    -0.12     0.13
+#>         (0.02)        (0.02)      (0.01)      NA   (0.01)   (0.01)
+#>           0.24            NA          NA      NA       NA       NA
+#>         (0.01)            NA          NA      NA       NA       NA
+#>           0.10          0.10        0.01    0.01     0.00     0.01
+#>         (0.00)        (0.00)      (0.00)  (0.00)   (0.00)   (0.00)
+#>         499.40        505.00       45.34   47.61     5.60    36.25
+#>         (6.53)       (13.16)      (7.39)  (0.56)  (10.99)   (5.83)
+#>         499.40        182.01       35.46   14.56  -317.39   318.31
+#>         (6.53)       (11.03)      (5.31)  (0.47)   (7.89)   (7.93)
+#>         499.40       1761.60      702.87  298.24  1262.20  1430.97
+#>         (6.53)      (221.56)    (197.94) (90.26) (224.41) (140.81)
+```
+
+``` r
+# meta_population <- 
+#   declare_estimand(handler = get_meta_population)
+#   
+# meta_estimands <- 
+#   declare_estimand(handler = get_meta_estimands)
+# 
+# meta_estimators <- 
+#   declare_estimator(handler = get_meta_estimators)
+# 
+
+meta_design <- meta_population + meta_inquiry + meta_estimators
+ 
 ```
