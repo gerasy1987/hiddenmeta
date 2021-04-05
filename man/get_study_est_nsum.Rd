@@ -6,22 +6,23 @@
 \usage{
 get_study_est_nsum(
   data,
-  pps_prefix = "pps",
-  known_pattern = "known",
-  hidden_pattern = "hidden_visible",
+  prefix = "pps",
+  known = c("known", "known_2", "known_3"),
+  hidden = "hidden_visible_out",
   degree_ratio = 1,
   transmission_rate = 1,
+  boot_n = 1000,
   label = "nsum"
 )
 }
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{pps_prefix}{character prefix used for PPS sample variables}
+\item{prefix}{character prefix used for PPS sample variables}
 
-\item{known_pattern}{character prefix for known population variables}
+\item{known}{character vector containing names of known groups}
 
-\item{hidden_pattern}{character prefix for hidden population variable}
+\item{hidden}{character vector containing names of hidden groups}
 
 \item{degree_ratio}{numeric value between 0 and 1 representing degree ratio}
 

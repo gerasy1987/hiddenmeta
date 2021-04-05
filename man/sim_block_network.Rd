@@ -5,12 +5,12 @@
 \title{Handler for Simulation of Network Using Block Model}
 \usage{
 sim_block_network(
-  N = 2000,
-  K = 2,
-  prev_K = c(known = 0.3, hidden = 0.1),
-  rho_K = 0.05,
-  p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
-  p_edge_between = list(known = 0.05, hidden = 0.01),
+  N,
+  K,
+  prev_K,
+  rho_K,
+  p_edge_within,
+  p_edge_between,
   directed = FALSE
 )
 }
@@ -37,22 +37,20 @@ Draw a Simulation of Network Using Block Matrix of Probabilities of Edges Based 
 }
 \examples{
 \dontrun{
-sim_block_network(
-  # total population size for one study
-  N = 1000,
-  # number of groups
-  # (K-th group is hidden population we are interested in)
-  K = 2,
-  # probability of membership in each of the groups (prev_K[K] is the true prevalence)
-  prev_K = c(known = .3, hidden = .1),
-  # correlation matrix of group memberships
-  rho_K = .05,
-  # block edge probabilities depending on group memberships
-  # 1 - list of in- and out-group probability of links for each group
-  # 2 - probability of link between in- and out-group members
-  p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.9)),
-  p_edge_between = list(known = 0.05, hidden = 0.01),
-  directed = FALSE)
+ sim_block_network(N = 2000, K = 3,
+                   prev_K = c(frame = .7,
+                              known = .2,
+                              hidden = .05),
+                   rho_K = c(.05, .01, .01),
+                   p_edge_within =
+                     list(frame = c(.3,.3),
+                          known = c(.3,.3),
+                          hidden = c(.3,.9)),
+                   p_edge_between =
+                     list(frame = 0.3,
+                          known = 0.3,
+                          hidden = 0.05),
+                   directed = FALSE)
 }
 
 }

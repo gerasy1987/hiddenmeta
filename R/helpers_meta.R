@@ -62,7 +62,7 @@ get_multi_samples <- function(data, samples_args) {
         population =
           purrr::map2(.x = study, .y = sample,
                       ~ apply_args(study = .x,
-                                   data = data$population[[which(data$study == .x)]],
+                                   df = data$population[[which(data$study == .x)]],
                                    args = samples_args[[.x]][[.y]]))
       )
   )
@@ -97,7 +97,7 @@ get_multi_estimands <- function(data, inquiries_args) {
           purrr::map2(study, population,
                       ~ apply_args(study = .x,
                                    args = inquiries_args[[.x]],
-                                   data = .y))
+                                   df = .y))
       ) %>%
       tidyr::unnest(estimands) %>%
       # dplyr::mutate(inquiry_label = paste0(study, "_", sample, "_", inquiry_label)) %>%
@@ -141,7 +141,7 @@ get_multi_estimates <- function(data, estimators_args) {
             list(x = study, y = sample, z = estimator),
             function(x, y, z) {
               apply_args(study = x,
-                         data = data$population[[which(data$study == x & data$sample == y)]],
+                         df = data$population[[which(data$study == x & data$sample == y)]],
                          args = estimators_args[[x]][[y]][[z]]) }
           )
       ) %>%
@@ -156,29 +156,29 @@ get_multi_estimates <- function(data, estimators_args) {
 
 
 #'
-apply_args <- function(study, args, data = NULL) {
+apply_args <- function(study, args, df = NULL) {
 
   .handler_pos <- which(names(args) == "handler")
   .handler_arg_pos <- which(names(args) != "handler")
 
-  if (is.null(data) & length(.handler_arg_pos) == 0) {
+  if ("tbl" %in% class(df) & length(.handler_arg_pos) != 0) {
 
-    stop("Either data or handler arguments have to be provided.")
+    return(do.call(what = args[[.handler_pos]],
+                   args = c(data = list(df), args[-c(.handler_pos)])))
 
-  } else if (is.null(data) & length(.handler_arg_pos) != 0) {
+  } else if ("tbl" %in% class(df) & length(.handler_arg_pos) == 0) {
+
+    return(do.call(what = args[[.handler_pos]],
+                   args = c(data = list(df))))
+
+  } else if (is.null(df) & length(.handler_arg_pos) == 0) {
+
+    stop("Either df or handler arguments have to be provided.")
+
+  } else if (is.null(df) & length(.handler_arg_pos) != 0) {
 
     return(do.call(what = args[[.handler_pos]],
                    args = args[-c(.handler_pos)]))
-
-  } else if ("tbl" %in% class(data) & length(.handler_arg_pos) == 0) {
-
-    return(do.call(what = args[[.handler_pos]],
-                   args = c(data = list(data))))
-
-  } else if ("tbl" %in% class(data) & length(.handler_arg_pos) != 0) {
-
-    return(do.call(what = args[[.handler_pos]],
-                   args = c(data = list(data), args[-c(.handler_pos)])))
 
   }
 

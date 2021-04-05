@@ -2,14 +2,18 @@
 % Please edit documentation in R/study_sample_pps.R
 \name{sample_pps}
 \alias{sample_pps}
-\title{Draw proportional sample (PPS) from single study}
+\title{Draw probability sample proportional to size (PPS) from single study}
 \usage{
 sample_pps(
   data,
   sampling_variable = "pps",
   drop_nonsampled = FALSE,
   target_n_pps = 400,
-  group_pattern = "^known"
+  n_clusters = target_n_pps,
+  sampling_frame = NULL,
+  strata = NULL,
+  cluster = NULL,
+  weighs_type = c("absolute", "relative")
 )
 }
 \arguments{
@@ -21,7 +25,15 @@ sample_pps(
 
 \item{target_n_pps}{target size of proportional sample}
 
-\item{group_pattern}{character string containing regular expression to match all groups used for proportional sampling}
+\item{n_clusters}{number of clusters}
+
+\item{sampling_frame}{character vector containing all binary vectors identifying sampling frame}
+
+\item{strata}{character vector containing name(s) of stratifying variables. Currently not implemented}
+
+\item{cluster}{character vector containing name(s) of all cluster variables}
+
+\item{weighs_type}{character string giving the type of weights to compute. Can be one of "absolute" or "relative". Currently only absolute weights are calculated}
 }
 \value{
 Population or sample data frame for single study with PPS sample characteristics added

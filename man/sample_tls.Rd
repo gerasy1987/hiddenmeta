@@ -8,8 +8,9 @@ sample_tls(
   data,
   sampling_variable = "tls",
   drop_nonsampled = FALSE,
-  target_n_tls = 2,
-  loc_pattern = "^loc_[0-9]$"
+  target_n_clusters = 2,
+  target_n_tls = 50,
+  cluster = paste0("loc_", 1:3)
 )
 }
 \arguments{
@@ -19,12 +20,20 @@ sample_tls(
 
 \item{drop_nonsampled}{logical indicating whether to drop units that are not sampled. Default is \code{FALSE}}
 
+\item{target_n_clusters}{target number of clusters (time-locations)}
+
 \item{target_n_tls}{target number of sampled locations}
 
-\item{loc_pattern}{character string containing regular expression to match all locality names in the study population dataset}
+\item{cluster}{character string containing names of all locality names in the study population data frame}
 }
 \value{
 Population or sample data frame for single study with TLS sample characteristics added
+ \describe{
+  \item{[sampling_variable]}{Sampling indicator}
+  \item{[sampling_variable]_loc_sampled}{Location at which subject is enrolled}
+  \item{[sampling_variable]_sampled_locs}{Sampled locations}
+  \item{[sampling_variable]_weight}{Sampling weights}
+ }
 }
 \description{
 Sampling handler for drawing TLS sample with given characteristics from individual study population

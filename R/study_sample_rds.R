@@ -26,7 +26,7 @@
 sample_rds <-
   function(data, sampling_variable = "rds", drop_nonsampled = FALSE,
            n_seed = 10, n_coupons = 3, target_type = c("sample", "waves"),
-           target_n_rds = 40) {
+           target_n_rds = 3) {
 
     target_type <- match.arg(target_type)
 
@@ -37,13 +37,13 @@ sample_rds <-
         sample(
           data$name[data$hidden == 1], # sample out of all people in hidden population
           size = n_seed, # select only prescribed number of subjects
-          data$p_visibility_hidden[data$hidden == 1],
+          data$p_visible_hidden[data$hidden == 1],
           replace = FALSE)
     }
 
     # at t=1 only seeds are sampled
     sampled <-
-      dplyr::tibble(name = seeds, from = NA_integer_, t = 1:length(seeds), wave = 1,
+      dplyr::tibble(name = seeds, from = -999, t = 1:length(seeds), wave = 1,
                     hidden = data$hidden[data$name %in% seeds], own_coupon = as.character(t))
 
     for (j in 1:n_coupons) {
@@ -91,12 +91,12 @@ sample_rds <-
              }) %>%
       dplyr::bind_rows() %>%
       # join in eligible showup rates
-      dplyr::left_join(., data[, c("name", "p_visibility_hidden", "hidden")],
+      dplyr::left_join(., data[, c("name", "p_visible_hidden", "hidden")],
                        by = c(to = "name")) %>%
       # drop those who won't show up and those who were already sampled
       # also record wave - number of links from seed
       dplyr::mutate(
-        showup = rbinom(n = dplyr::n(), size = 1, prob = p_visibility_hidden),
+        showup = rbinom(n = dplyr::n(), size = 1, prob = p_visible_hidden),
         wave = 2) %>%
       dplyr::filter(showup == 1,
                     !(to %in% sampled$name),
@@ -164,11 +164,11 @@ sample_rds <-
                                                       grep("^coupon\\_", x = names(sampled))])),
                             size = min(length(.),n_coupons)))) %>%
           # join in eligible showup rates
-          dplyr::left_join(., data[, c("name", "p_visibility_hidden", "hidden")],
+          dplyr::left_join(., data[, c("name", "p_visible_hidden", "hidden")],
                            by = c(to = "name")) %>%
           # drop those who won't show up and those who were already samples
           dplyr::mutate(showup = rbinom(n = dplyr::n(), size = 1,
-                                        prob = p_visibility_hidden),
+                                        prob = p_visible_hidden),
                         wave = new$wave + 1) %>%
           dplyr::filter(showup == 1,
                         !(to %in% sampled$name),

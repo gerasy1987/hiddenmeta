@@ -199,10 +199,17 @@ gen_marginal_types <- function(K) {
 }
 
 # helper for population simulations
-mutate_visibility <- function(data, p_visibility, beta_sd = 0.05) {
-  for (var in names(data)[names(data) != "type"]) {
-    data[,paste0("p_visibility_", var)] <- rbeta_mod(nrow(data), mu = p_visibility[[var]], sd = beta_sd)
-    data[,paste0(var, "_visible")] <- rbinom(nrow(data), 1, unlist(data[,paste0("p_visibility_", var)])) * data[,var]
+mutate_visibility <- function(data, vars, p_visible, beta_sd = 0.05) {
+  for (var in vars) {
+    if (p_visible[[var]] == 1) {
+      data[,paste0("p_visible_", var)] <- 1
+    } else {
+      data[,paste0("p_visible_", var)] <-
+       rbeta_mod(nrow(data), mu = p_visible[[var]], sd = beta_sd)
+    }
+
+    data[,paste0(var, "_visible")] <-
+      rbinom(nrow(data), 1, unlist(data[,paste0("p_visible_", var)])) * data[,var]
   }
   return(data)
 }

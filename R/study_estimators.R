@@ -1,8 +1,10 @@
 #' SS-PSE population size estimator by Handcock, Gile and Mar
 #'
 #' @param data pass-through population data frame
-#' @param prior_median prior median of hidden population size for SS-PSE estimation
 #' @param rds_prefix character prefix used for RDS sample variables
+#' @param prior_mean the mean of the prior distribution on the population size for SS-PSE estimation
+#' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
+#' @param mcmc_params named list of parameters passed to \code{sspse::posteriorsize} for MCMC sampling
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of SS-PSE estimates for a single study
@@ -13,23 +15,37 @@
 #'
 #' @import dplyr
 #' @importFrom sspse posteriorsize
+#' @importFrom RDS as.rds.data.frame
 #' @importFrom purrr quietly
 get_study_est_sspse <- function(data,
-                                prior_median = 150,
                                 rds_prefix = "rds",
+                                prior_mean = .1 * nrow(data),
+                                n_coupons = 3,
+                                mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
                                 label = "sspse") {
 
   .quiet_sspse <- purrr::quietly(sspse::posteriorsize)
 
   .fit_sspse <-
     data %>%
-    dplyr::filter_at(dplyr::vars(dplyr::all_of(rds_prefix)), ~ . == 1) %>%
+    dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
+    dplyr::select(name, hidden_visible_out, starts_with(rds_prefix), total) %>%
+    RDS::as.rds.data.frame(df = .,
+                           id = "name",
+                           recruiter.id = paste0(rds_prefix, "_from"),
+                           network.size = "hidden_visible_out",
+                           time = paste0(rds_prefix, "_t"),
+                           population.size = unique(.$total),
+                           max.coupons = n_coupons) %>%
     {
-      .quiet_sspse(s = .$hidden_visible[order(.[,paste0(rds_prefix, "_t")])],
-                   interval = 10,
-                   median.prior.size = prior_median,
+      .quiet_sspse(s = .,
+                   interval = mcmc_params$interval,
+                   samplesize = mcmc_params$samplesize,
+                   burnin = mcmc_params$burnin,
+                   mean.prior.size = prior_mean,
                    verbose = FALSE,
-                   max.coupons = 3
+                   # visibility = TRUE,
+                   max.coupons = n_coupons
       )
     }
 
@@ -44,7 +60,7 @@ get_study_est_sspse <- function(data,
 #' Horvitz-Thompson prevalence estimator using weighted regression
 #'
 #' @param data pass-through population data frame
-#' @param pps_prefix character prefix used for RDS sample variables
+#' @param prefix character prefix used for sampling variables (has to include \code{[prefix]_weights})
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of HT estimates for a single study
@@ -53,13 +69,13 @@ get_study_est_sspse <- function(data,
 #' @import dplyr
 #' @importFrom estimatr lm_robust
 get_study_est_ht <- function(data,
-                             pps_prefix = "pps",
+                             prefix = "pps",
                              label = "ht") {
 
   .fit_ht <-
     data %>%
-    dplyr::filter_at(dplyr::vars(dplyr::all_of(pps_prefix)), ~ . == 1) %>%
-    estimatr::lm_robust(hidden ~ 1, weights = 1/get(paste0(pps_prefix, "_share")), data = .) %>%
+    dplyr::filter(dplyr::if_all(dplyr::all_of(prefix), ~ . == 1)) %>%
+    estimatr::lm_robust(hidden ~ 1, weights = get(paste0(prefix, "_weight")), data = .) %>%
     {c(est = unname(.$coefficients), se = unname(.$std.error))}
 
   # quiet_HT <- quietly(sampling::HTestimator)
@@ -67,7 +83,7 @@ get_study_est_ht <- function(data,
   #
   # fit_ht <-
   #   data %>%
-  #   dplyr::filter_at(dplyr::vars(dplyr::all_of(pps_prefix)), ~ . == 1) %>%
+  #   dplyr::filter_at(dplyr::vars(dplyr::all_of(prefix)), ~ . == 1) %>%
   #   {
   #     c(est = quiet_HT(y = .$hidden_visible, pik = unlist(.[,paste0(pps_prefix, "_share")]))$result,
   #       se = sqrt(quiet_varHT(
@@ -77,10 +93,10 @@ get_study_est_ht <- function(data,
   #   }
 
  return(
-   data.frame(estimator_label = paste0("hidden_prev_", label),
-              estimate = .fit_ht["est"],
-              se =  .fit_ht["se"],
-              inquiry_label = "hidden_prev")
+   data.frame(estimator_label = paste0(c("hidden_prev", "hidden_size"), "_", label),
+              estimate = c(1, unique(data$total)) * .fit_ht["est"],
+              se =  c(1, unique(data$total)) * .fit_ht["se"],
+              inquiry_label = c("hidden_prev", "hidden_size"))
  )
 }
 
@@ -156,9 +172,9 @@ get_study_est_chords <- function(data,
 #' NSUM estimatior
 #'
 #' @param data pass-through population data frame
-#' @param pps_prefix character prefix used for PPS sample variables
-#' @param known_pattern character prefix for known population variables
-#' @param hidden_pattern character prefix for hidden population variable
+#' @param prefix character prefix used for PPS sample variables
+#' @param known character vector containing names of known groups
+#' @param hidden character vector containing names of hidden groups
 #' @param degree_ratio numeric value between 0 and 1 representing degree ratio
 #' @param transmission_rate numeric value between 0 and 1 representing information transmission rate
 #' @param label character string describing the estimator
@@ -170,22 +186,27 @@ get_study_est_chords <- function(data,
 #'
 #' @import dplyr
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
-get_study_est_nsum <- function(data, pps_prefix = "pps",
-                               known_pattern = "known", hidden_pattern = "hidden_visible",
-                               degree_ratio = 1, transmission_rate = 1,
+#' @importFrom purrr quietly
+get_study_est_nsum <- function(data,
+                               prefix = "pps",
+                               known = c("known", "known_2", "known_3"),
+                               hidden = "hidden_visible_out",
+                               degree_ratio = 1,
+                               transmission_rate = 1,
+                               boot_n = 1000,
                                label = "nsum") {
 
-  .quiet_nsum <- quietly(networkreporting::nsum.estimator)
-  .quiet_degree_nsum <- quietly(networkreporting::kp.degree.estimator)
+  .quiet_nsum <- purrr::quietly(networkreporting::nsum.estimator)
+  .quiet_degree_nsum <- purrr::quietly(networkreporting::kp.degree.estimator)
 
   .data_mod <-
     data %>%
-    dplyr::filter_at(dplyr::vars(dplyr::all_of(pps_prefix)), ~ . == 1)
+    dplyr::filter(dplyr::if_all(dplyr::all_of(prefix), ~ . == 1))
 
   .known_pops <-
     .data_mod %>%
-    dplyr::select(total, matches(paste0("^total_", known_pattern))) %>%
-    dplyr::rename_at(vars(starts_with("total_")), ~ paste0(gsub("^total\\_", "", .), "_visible")) %>%
+    dplyr::select(total, dplyr::all_of(paste0("total_", known))) %>%
+    dplyr::rename_with(.cols = dplyr::starts_with("total_"), ~ paste0(gsub("^total\\_", "", .), "_visible_out")) %>%
     apply(., MARGIN = 2, unique)
 
   .data_mod$d_est <-
@@ -199,7 +220,7 @@ get_study_est_nsum <- function(data, pps_prefix = "pps",
                 d.hat.vals = "d_est",
                 total.popn.size = .known_pops[1],
                 killworth.se = TRUE,
-                y.vals = hidden_pattern,
+                y.vals = hidden,
                 missing = "ignore",
                 deg.ratio = degree_ratio,
                 tx.rate = transmission_rate)$result
