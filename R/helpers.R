@@ -181,13 +181,16 @@ mutate_visibility <- function(data, vars, p_visible, beta_sd = 0.05) {
 
 # helper for population simulations
 mutate_add_groups <- function(data, add_groups) {
-  for (var in names(add_groups)) {
+  for (var in seq_along(add_groups)) {
     if (class(add_groups[[var]]) == "numeric") {
       data %<>%
-        dplyr::mutate("{ var }" := rbinom(n(), 1, add_groups[[var]]))
-    } else if (class(add_groups[[var]]) == "character") {
+        dplyr::mutate("{ names(add_groups)[var] }" := rbinom(n(), 1, add_groups[[var]]))
+    } else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] != "") {
       data %<>%
-        dplyr::mutate("{ var }" := eval(parse(text = add_groups[[var]])))
+        dplyr::mutate("{ names(add_groups)[var] }" := eval(parse(text = add_groups[[var]])))
+    } else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] == "") {
+      data %<>%
+        dplyr::mutate(eval(parse(text = add_groups[[var]])))
     }
   }
   return(data)
@@ -214,3 +217,9 @@ gen_group_types <- function(K) {
     apply(X = ., MARGIN = 1, FUN = paste0, collapse = "")
 }
 
+# get undirected graph from adjacency list transformed to character vector
+retrieve_graph <- function(adj_vec, split_vec = ";", list_mode = "all") {
+  adj_vec %>%
+    lapply(., function(x) as.numeric(strsplit(x, split = split_vec)[[1]])) %>%
+    igraph::graph.adjlist(mode = list_mode)
+}

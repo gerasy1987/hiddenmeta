@@ -66,10 +66,10 @@ study_1 <-
         
         # probability of service utilization in hidden population
         # for service multiplier
-        add_groups = list(service_use = "rbinom(n(), 1, 0.1 + hidden * 0.2)",
-                          loc_1 = "rbinom(n(), 1, 0.1 + hidden * 0.2)", 
-                          loc_2 = 0.1, loc_3 = 0.2,
-                          known_2 = 0.1, known_3 = 0.2)
+        add_groups = 
+          list(service_use = "rbinom(n(), 1, 0.25 + hidden * 0.05)",
+         "purrr::map_df(hidden, ~ sapply( `names<-`(c(.2, .1, .3, .2), paste0('loc_', 1:4)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
+         known_2 = 0.1, known_3 = 0.2)
       ),
     sample = 
       list(
@@ -83,9 +83,9 @@ study_1 <-
         tls = list(handler = sample_tls,
                    sampling_variable = "tls",
                    # TLS sampling parameters
-                   target_n_clusters = 2,
+                   target_n_clusters = 3,
                    target_n_tls = 100,
-                   cluster = paste0("loc_", 1:3)),
+                   cluster = paste0("loc_", 1:4)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
@@ -109,14 +109,18 @@ study_1 <-
                              seed_condition = "rds_from == -999",
                              n_boot = 100,
                              rds_prefix = "rds")),
-        # tls =
-        #   list(nsum = list(handler = get_study_est_nsum,
-        #                    prefix = "tls",
-        #                    known = c("known", "known_2", "known_3"),
-        #                    hidden = "hidden_visible_out",
-        #                    label = "tls_nsum")),
+        tls =
+          list(ht = list(handler = get_study_est_ht,
+                         prefix = "tls",
+                         label = "tls_ht"),
+               nsum = list(handler = get_study_est_nsum,
+                           prefix = "tls",
+                           known = c("known", "known_2", "known_3"),
+                           hidden = "hidden_visible_out",
+                           label = "tls_nsum")),
         pps = 
-          list(ht = list(handler = get_study_est_ht, 
+          list(ht = list(handler = get_study_est_ht,
+                         prefix = "pps",
                          label = "pps_ht"),
                nsum = list(handler = get_study_est_nsum,
                            known = c("known", "known_2", "known_3"),
@@ -146,8 +150,7 @@ set.seed(19872312)
 
 g <-
   example_pop %$% {
-    igraph::graph_from_adj_list(links,
-                                mode = "all") %>%
+    hiddenmeta:::retrieve_graph(links) %>%
       igraph::set_vertex_attr("name", value = name) %>%
       igraph::set_vertex_attr("type", value = type)
   }
@@ -223,11 +226,14 @@ estimator_sspse <- do.call(what = declare_estimator,
 estimator_chords <- do.call(what = declare_estimator, 
                             args = study_1$estimators$rds$chords)
 
-estimator_ht <- do.call(what = declare_estimator, 
-                        args = study_1$estimators$pps$ht)
-# estimator_nsum_tls <- do.call(what = declare_estimator, 
-#                               args = study_1$estimators$tls$nsum)
-estimator_nsum <- do.call(what = declare_estimator, 
+estimator_ht_pps <- do.call(what = declare_estimator, 
+                            args = study_1$estimators$pps$ht)
+estimator_ht_tls <- do.call(what = declare_estimator, 
+                            args = study_1$estimators$tls$ht)
+
+estimator_nsum_tls <- do.call(what = declare_estimator,
+                              args = study_1$estimators$tls$nsum)
+estimator_nsum_pps <- do.call(what = declare_estimator, 
                           args = study_1$estimators$pps$nsum)
 
 
@@ -235,8 +241,9 @@ set.seed(19872312)
 draw_estimates(study_population +
                  study_sample_rds + study_sample_pps + study_sample_tls +
                  study_estimands +
-                 estimator_sspse + estimator_chords + estimator_ht + #estimator_nsum_tls + 
-                 estimator_nsum)
+                 estimator_sspse + estimator_chords + 
+                 estimator_ht_tls + estimator_ht_pps +
+                 estimator_nsum_tls + estimator_nsum_pps)
 ```
 
 ## Step 6. Diagnose study design
@@ -254,11 +261,12 @@ study_diagnosands <-
 
 study_simulations <- 
   simulate_design(
-    study_population + 
-      study_sample_rds + study_sample_pps + 
-      study_estimands + 
+    study_population +
+      study_sample_rds + study_sample_pps + study_sample_tls +
+      study_estimands +
       estimator_sspse + estimator_chords + 
-      estimator_ht + estimator_nsum, 
+      estimator_ht_tls + estimator_ht_pps +
+      estimator_nsum_tls + estimator_nsum_pps, 
     sims = 10)
 
 diagnose_design(study_simulations, 

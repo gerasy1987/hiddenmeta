@@ -30,6 +30,9 @@ sample_rds <-
 
     target_type <- match.arg(target_type)
 
+    data %<>%
+      dplyr::mutate(links_list = hiddenmeta:::retrieve_graph(links) %>% as_adj_list())
+
     if (length(data$name[data$hidden == 1]) <= n_seed) {
       .seeds <- data$name[data$hidden == 1]
     } else {
@@ -61,7 +64,7 @@ sample_rds <-
                .available_links <-
                  data %>%
                  dplyr::filter(
-                   name %in% unlist(data$links[data$name == x]),
+                   name %in% data$links_list[[which(data$name == x)]],
                    hidden == 1
                  ) %>%
                  .$name
@@ -138,7 +141,7 @@ sample_rds <-
         .new_available_links <-
           data %>%
           dplyr::filter(
-            name %in% unlist(data$links[data$name == .new$to]),
+            name %in% data$links_list[[which(data$name == .new$to)]],
             hidden == 1
           ) %>%
           .$name
@@ -190,7 +193,9 @@ sample_rds <-
     data[,sampling_variable] <- as.integer(data$name %in% .sampled$name)
     names(.sampled) %<>% {c(.[1], paste0(sampling_variable, "_", .[-1]))}
 
-    data %<>% dplyr::left_join(., .sampled, by = "name")
+    data %<>%
+      dplyr::left_join(., .sampled, by = "name") %>%
+      dplyr::select(-links_list)
 
     if (drop_nonsampled) data %<>% dplyr::filter_at(dplyr::vars(sampling_variable), ~ . == 1)
 
