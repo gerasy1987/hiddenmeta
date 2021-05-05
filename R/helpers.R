@@ -137,44 +137,9 @@ rbeta_mod <- function(n, mu, sd) {
   return(rbeta(n = n, shape1 = alpha, shape2 = beta))
 }
 
-merge_vertices <- function(graph_list) {
-  if (!all(c("edges", "vertices") %in% names(graph_list)))
-    stop("Graph list has to have edges and vertices elements.")
-
-  graph_list %>%
-    {
-      left_join(
-        left_join(.$edges, cbind(.$vertices, from = 1:N),  by = "from"),
-        cbind(.$vertices, to = 1:N), by = "to", suffix = c("_from", "_to")
-      )
-    }
-
-}
-
-
 # HIDDEN HELPERS ------------------------------------------------------------------------------
 
-#' Random generation from Beta distribution
-#'
-#' Reparametrization of base R rbeta to take location and scale rather than 2 shape parameters
-#'
-#' @param n number of observations
-#' @param mu location parameter
-#' @param sd scale parameter
-#'
-#' @return vector of draws from Beta distribution
-#'
-#' @examples
-#' \dontrun{
-#' rbeta_mod(4, .5, .1)
-#' }
-#'
-#' @importFrom stats rbeta
-rbeta_mod <- function(n, mu, sd) {
-  alpha <- ((1 - mu) / sd^2 - 1 / mu) * mu ^ 2
-  beta <- alpha * (1 / mu - 1)
-  return(rbeta(n = n, shape1 = alpha, shape2 = beta))
-}
+
 
 merge_vertices <- function(graph_list) {
   if (!all(c("edges", "vertices") %in% names(graph_list)))
@@ -242,3 +207,4 @@ gen_group_types <- function(K) {
     expand.grid() %>%
     apply(X = ., MARGIN = 1, FUN = paste0, collapse = "")
 }
+
