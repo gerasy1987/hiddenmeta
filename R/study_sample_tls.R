@@ -49,7 +49,8 @@ sample_tls <-
     temp_data <- data <- mutate(data, temp_id = 1:n())
 
     temp_data %<>%
-      dplyr::filter(hidden == 1, if_any(.cols = all_of(sampled_locs), ~ . == 1)) %>%
+      dplyr::filter(#hidden == 1,
+                    if_any(.cols = all_of(sampled_locs), ~ . == 1)) %>%
       {
         dplyr::left_join(
           .,
@@ -59,7 +60,7 @@ sample_tls <-
                 dplyr::bind_rows(
                   lapply(sampled_locs, function(x) tibble(.[.[[x]] == 1, c("temp_id", "p_visible_hidden")],
                                                          loc = x))
-                ), n = min(nrow(.), target_n_tls), weight_by = p_visible_hidden
+                ), n = min(nrow(.), target_n_tls)#, weight_by = p_visible_hidden
               ), dat = -temp_id
             ), loc_sampled = purrr::map_chr(dat, ~paste0(.x$loc, collapse = ";"))
           ), by = "temp_id"

@@ -10,7 +10,7 @@
 #' @param sampling_frame character vector containing all binary vectors identifying sampling frame
 #' @param cluster character vector containing name(s) of all cluster variables
 #' @param strata character vector containing name(s) of stratifying variables. Currently not implemented
-#' @param weighs_type character string giving the type of weights to compute. Can be one of "absolute" or "relative". Currently only absolute weights are calculated
+#' @param weights_type character string giving the type of weights to compute. Can be one of "absolute" or "relative". Currently only absolute weights are calculated
 #'
 #' @return Population or sample data frame for single study with PPS sample characteristics added
 #' @export
@@ -26,10 +26,10 @@ sample_pps <-
            sampling_frame = NULL,
            strata = NULL,
            cluster = NULL,
-           weighs_type = c("absolute", "relative")
+           weights_type = c("absolute", "relative")
   ) {
 
-    weighs_type <- match.arg(weighs_type)
+    weights_type <- match.arg(weights_type)
 
     data <- dplyr::mutate(data, temp_id = 1:n())
     temp_data <- data %>% dplyr::select(temp_id, all_of(c(sampling_frame, strata, cluster)))

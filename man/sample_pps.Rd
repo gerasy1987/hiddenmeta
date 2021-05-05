@@ -13,7 +13,7 @@ sample_pps(
   sampling_frame = NULL,
   strata = NULL,
   cluster = NULL,
-  weighs_type = c("absolute", "relative")
+  weights_type = c("absolute", "relative")
 )
 }
 \arguments{
@@ -33,7 +33,7 @@ sample_pps(
 
 \item{cluster}{character vector containing name(s) of all cluster variables}
 
-\item{weighs_type}{character string giving the type of weights to compute. Can be one of "absolute" or "relative". Currently only absolute weights are calculated}
+\item{weights_type}{character string giving the type of weights to compute. Can be one of "absolute" or "relative". Currently only absolute weights are calculated}
 }
 \value{
 Population or sample data frame for single study with PPS sample characteristics added

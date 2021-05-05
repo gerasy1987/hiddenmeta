@@ -101,8 +101,14 @@ study_1 <-
                             label = "rds_sspse",
                             prior_mean = 200,
                             mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
-                            rds_prefix = "rds")),
-        # tls = 
+                            rds_prefix = "rds"),
+               chords = list(handler = get_study_est_chords, 
+                             type = "mle",
+                             label = "chords",
+                             seed_condition = "rds_from == -999",
+                             n_boot = 100,
+                             rds_prefix = "rds")),
+        # tls =
         #   list(nsum = list(handler = get_study_est_nsum,
         #                    prefix = "tls",
         #                    known = c("known", "known_2", "known_3"),
@@ -213,6 +219,9 @@ draw_inquiry(study_population +
 ```{r example_estimators}
 estimator_sspse <- do.call(what = declare_estimator, 
                            args = study_1$estimators$rds$sspse)
+estimator_chords <- do.call(what = declare_estimator, 
+                            args = study_1$estimators$rds$chords)
+
 estimator_ht <- do.call(what = declare_estimator, 
                         args = study_1$estimators$pps$ht)
 # estimator_nsum_tls <- do.call(what = declare_estimator, 
@@ -220,11 +229,12 @@ estimator_ht <- do.call(what = declare_estimator,
 estimator_nsum <- do.call(what = declare_estimator, 
                           args = study_1$estimators$pps$nsum)
 
+
 set.seed(19872312)
 draw_estimates(study_population +
                  study_sample_rds + study_sample_pps + study_sample_tls +
                  study_estimands +
-                 estimator_sspse + estimator_ht + #estimator_nsum_tls + 
+                 estimator_sspse + estimator_chords + estimator_ht + #estimator_nsum_tls + 
                  estimator_nsum)
 ```
 
@@ -246,7 +256,8 @@ study_simulations <-
     study_population + 
       study_sample_rds + study_sample_pps + 
       study_estimands + 
-      estimator_sspse + estimator_ht + estimator_nsum, 
+      estimator_sspse + estimator_chords + 
+      estimator_ht + estimator_nsum, 
     sims = 10)
 
 diagnose_design(study_simulations, 
