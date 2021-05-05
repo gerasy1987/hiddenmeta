@@ -182,7 +182,13 @@ mutate_visibility <- function(data, vars, p_visible, beta_sd = 0.05) {
 # helper for population simulations
 mutate_add_groups <- function(data, add_groups) {
   for (var in names(add_groups)) {
-    data[,var] <- rbinom(nrow(data), 1, add_groups[[var]])
+    if (class(add_groups[[var]]) == "numeric") {
+      data %<>%
+        dplyr::mutate("{ var }" := rbinom(n(), 1, add_groups[[var]]))
+    } else if (class(add_groups[[var]]) == "character") {
+      data %<>%
+        dplyr::mutate("{ var }" := eval(parse(text = add_groups[[var]])))
+    }
   }
   return(data)
 }

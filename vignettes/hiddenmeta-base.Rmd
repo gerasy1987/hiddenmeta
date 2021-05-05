@@ -66,8 +66,9 @@ study_1 <-
         
         # probability of service utilization in hidden population
         # for service multiplier
-        add_groups = list(p_service = 0.3, 
-                          loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2, 
+        add_groups = list(service_use = "rbinom(n(), 1, 0.1 + hidden * 0.2)",
+                          loc_1 = "rbinom(n(), 1, 0.1 + hidden * 0.2)", 
+                          loc_2 = 0.1, loc_3 = 0.2,
                           known_2 = 0.1, known_3 = 0.2)
       ),
     sample = 
