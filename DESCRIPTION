@@ -1,20 +1,20 @@
 Package: hiddenmeta
 Type: Package
 Title: Meta-analysis of hidden population studies
-Version: 0.1.0
-Date: 2021-04-05
+Version: 0.1.5
+Date: 2021-05-06
 Author: 
     c(person(given = "Georgiy", family = "Syunyaev", email = "gs2716@columbia.edu",
              role = c("aut", "cre")),
       person(given = "Macartan", family = "Humphreys", email = "macartan@gmail.com",
              role = c("aut", "cre")))
 Maintainer: Georgiy Syunyaev <gs2716@columbia.edu>
-Description: Helper functions for analysis of individual and multiple studies of 
-    hidden population size and prevalence using RDS, TLS or PPS designs. 
+Description: Package allows analysis of individual and multiple studies of 
+    hidden population size and prevalence using RDS, TLS or PPS samples. 
     The functions are written so that they can be used with DeclareDesign package to 
-    allow for easy declaration of one or more studies with various design features. 
-    In addition, package implements functions for estimation of hidden population size and prevalance based on 
-    RDS, TLS or PPS samples.
+    allow for easy declaration of one or more studies with various sampling and estimation strategies. 
+    Package implements functions for estimation of hidden population size and prevalance based on 
+    RDS, TLS or PPS samples based on existing packages, specifically RDS, chords and networkreporting.
 Depends: 
     R (>= 3.6.0),
     magrittr (>= 2.0.0), 
