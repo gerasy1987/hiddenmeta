@@ -31,6 +31,14 @@ sample_rds(
 }
 \value{
 Population or sample data frame for single study with RDS sample characteristics added
+ \describe{
+  \item{[sampling_variable]}{Sampling indicator}
+  \item{[sampling_variable]_from}{ID of respondent who enrolled current respondent}
+  \item{[sampling_variable]_t}{Time at which respondent was enrolled}
+  \item{[sampling_variable]_wave}{Number of steps respondent is away from the seed (seeds are wave 0)}
+  \item{[sampling_variable]_own_coupon}{ID of the coupon with which respondent was enrolled}
+  \item{[sampling_variable]_coupon_[1-9]}{IDs of the coupons that were given to respondent for enrollment from their network}
+ }
 }
 \description{
 Sampling handler for drawing RDS sample with given characteristics from individual study population

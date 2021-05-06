@@ -11,6 +11,14 @@
 #' @param target_n_rds numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed
 #'
 #' @return Population or sample data frame for single study with RDS sample characteristics added
+#'  \describe{
+#'   \item{[sampling_variable]}{Sampling indicator}
+#'   \item{[sampling_variable]_from}{ID of respondent who enrolled current respondent}
+#'   \item{[sampling_variable]_t}{Time at which respondent was enrolled}
+#'   \item{[sampling_variable]_wave}{Number of steps respondent is away from the seed (seeds are wave 0)}
+#'   \item{[sampling_variable]_own_coupon}{ID of the coupon with which respondent was enrolled}
+#'   \item{[sampling_variable]_coupon_[1-9]}{IDs of the coupons that were given to respondent for enrollment from their network}
+#'  }
 #' @export
 #'
 #' @examples

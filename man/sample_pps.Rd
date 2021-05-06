@@ -37,6 +37,15 @@ sample_pps(
 }
 \value{
 Population or sample data frame for single study with PPS sample characteristics added
+ \describe{
+  \item{[sampling_variable]}{Sampling indicator}
+  \item{[sampling_variable]_frame}{Indicator for sampling frame (respondents with 0 cannot be enrolled)}
+  \item{[sampling_variable]_strata}{ID of respondent's strata}
+  \item{[sampling_variable]_strata_prop}{Proportion of sampling frame in the strata to which respondent belongs}
+  \item{[sampling_variable]_cluster}{ID of respondent's cluster}
+  \item{[sampling_variable]_cluster_prop}{Proportion of strata in the cluster to which respondent belongs}
+  \item{[sampling_variable]_weight}{Sampling weights}
+ }
 }
 \description{
 Sampling handler for drawing proportional sample with given characteristics from individual study population
