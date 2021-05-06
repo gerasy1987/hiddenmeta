@@ -67,11 +67,15 @@ sample_tls <-
           ), by = "temp_id"
         )} %>%
       dplyr::select(temp_id, loc_present) %>%
-      dplyr::mutate(sampled = as.integer(!is.na(loc_present)),
-                    sampled_locs = paste0(sampled_locs, collapse = ";")) %>%
+      dplyr::mutate(
+        sampled = as.integer(!is.na(loc_present)),
+        sampled_locs = paste0(sampled_locs, collapse = ";"),
+        "{ sampling_variable }_cluster" :=
+          ifelse(is.na(loc_present),
+                 yes = NA,
+                 no = sapply(strsplit(x = loc_present, split = ";"), function(x) x[[1]][1]))) %>%
       dplyr::rename("{ sampling_variable }" := sampled,
-                    "{ sampling_variable }_sampled_locs" := sampled_locs,
-                    "{ sampling_variable }_cluster" := strsplit(loc_present, x = ";")[[1]][1],
+                    "{ sampling_variable }_locs_sampled" := sampled_locs,
                     "{ sampling_variable }_loc_present" := loc_present) %>%
       dplyr::select(temp_id, all_of(sampling_variable), everything())
 
