@@ -16,7 +16,7 @@ get_rds_boot(
 )
 }
 \arguments{
-\item{data}{pass-through population data frame}
+\item{data}{sample data frame}
 
 \item{seed_condition}{character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples}
 
@@ -42,5 +42,5 @@ Prepare RDS data for Bootstrap Re-sampling Following Salganik (2006)
 
 }
 \references{
-Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://CRAN.R-project.org/package=surveybootstrap}.
+Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
 }

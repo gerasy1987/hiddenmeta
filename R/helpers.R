@@ -223,3 +223,22 @@ retrieve_graph <- function(adj_vec, split_vec = ";", list_mode = "all") {
     lapply(., function(x) as.numeric(strsplit(x, split = split_vec)[[1]])) %>%
     igraph::graph.adjlist(mode = list_mode)
 }
+
+# extract psu and strata variables from survey design formula
+extract_terms <- function(fmla) {
+  term_labels <- attr(terms(fmla), "term.labels")
+  strata_ids <- grepl("strata\\(", term_labels)
+  psu <- term_labels[!grepl("strata\\(", term_labels)]
+  if (sum(strata_ids) == 1) {
+    strata_text <- gsub(replacement = "", x = term_labels[strata_ids], pattern = "strata\\(|\\)")
+    strata <- attr(terms(as.formula(paste("~ ", strata_text))), "term.labels")
+  } else if (sum(strata_ids) == 0) {
+    strata <- NULL
+  } else if (sum(strata_ids) > 1) {
+    stop("Design formula cannot have more than one strata() specification")
+  }
+
+  return(
+    list(psu = psu, strata = strata)
+  )
+}

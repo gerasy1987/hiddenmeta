@@ -94,7 +94,9 @@ study_1 <-
                    cluster = NULL,
                    target_n_pps = 400)
       ),
-    inquiries = list(handler = get_study_estimands),
+    inquiries = list(handler = get_study_estimands,
+                     known_pattern = "^known", 
+                     hidden_pattern = "^hidden$"),
     estimators = 
       list(
         rds = 
@@ -117,14 +119,19 @@ study_1 <-
                            prefix = "tls",
                            known = c("known", "known_2", "known_3"),
                            hidden = "hidden_visible_out",
+                           survey_design = ~ tls_cluster,
+                           n_boot = 100,
                            label = "tls_nsum")),
         pps = 
           list(ht = list(handler = get_study_est_ht,
                          prefix = "pps",
                          label = "pps_ht"),
                nsum = list(handler = get_study_est_nsum,
+                           prefix = "pps",
                            known = c("known", "known_2", "known_3"),
                            hidden = "hidden_visible_out",
+                           survey_design = ~ pps_cluster + strata(pps_strata),
+                           n_boot = 100,
                            label = "pps_nsum"))
       )
   )
@@ -214,7 +221,7 @@ study_estimands <-
 
 set.seed(19872312)
 draw_inquiry(study_population + 
-                study_sample_rds + study_sample_pps + study_sample_tls + 
+                # study_sample_rds + study_sample_pps + study_sample_tls + 
                 study_estimands)
 ```
 
@@ -437,7 +444,7 @@ study_2 <-
 
 ### Declare multiple studies
 
-```{r meta_study, eval=TRUE, warning = FALSE}
+```{r meta_study, eval=FALSE, warning = FALSE}
 
 multi_population <- 
   declare_population(handler = get_multi_populations, 

@@ -38,7 +38,7 @@ make_chain <- function(seed_id, data, key, is_child_fn = is_child) {
 
 #' Prepare RDS data for Bootstrap Re-sampling Following Salganik (2006)
 #'
-#' @param data pass-through population data frame
+#' @param data sample data frame
 #' @param seed_condition character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples
 #' @param in_coupon character string for variable containing in coupons identifiers. In coupon is coupon used to enroll specific respondent
 #' @param out_coupon character string for variable(s) containing out coupons identifiers. Out coupons are coupons given to respondent to enroll other study participants from their network
@@ -52,7 +52,7 @@ make_chain <- function(seed_id, data, key, is_child_fn = is_child) {
 #'
 #' @examples
 #'
-#' @references Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://CRAN.R-project.org/package=surveybootstrap}.
+#' @references Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
 #'
 #' @import dplyr
 #' @import surveybootstrap
@@ -131,3 +131,113 @@ get_rds_boot <-
     )
 
   }
+
+
+#' Modified Function for Rescaled Bootstrap by Rust and Rao (1996)
+#'
+#' @param data sample data frame
+#' @param survey_design a formula describing the design of the survey
+#' @param n_boot number of bootstrap resamples
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @references
+#' Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
+#' Rust, Keith F., and J. N. K. Rao. "Variance estimation for complex surveys using replication techniques." Statistical methods in medical research 5, no. 3 (1996): 283-310.
+#'
+#' @import surveybootstrap
+get_rescaled_boot <-
+  function(data,
+           survey_design,
+           n_boot = 10) {
+
+    data$.internal_id <- 1:nrow(data)
+
+    design <- extract_terms(survey_design)
+
+    if (length(design$psu) == 1 & design$psu == "1") {
+      design$psu <- as.name(".internal_id")
+    }
+
+    data$.cluster_id <-
+      dplyr::group_indices(dplyr::group_by(data, dplyr::across(dplyr::all_of(design$psu))))
+
+    if (is.null(design$strata)) {
+      strata <- list(data)
+    } else {
+      strata <- dplyr::group_split(dplyr::group_by(data, dplyr::across(dplyr::all_of(design$strata))))
+    }
+
+    boot_weights <- plyr::llply(strata, function(stratum_data) {
+      res <- surveybootstrap:::resample_stratum(stratum_data$.cluster_id, n_boot)
+      colnames(res) <- paste0("rep.", 1:ncol(res))
+      res <- cbind(index = stratum_data$.internal_id, res)
+      return(res)
+    })
+
+    boot_weights <- do.call("rbind", boot_weights)
+
+    res <- plyr::alply(boot_weights[, -1, drop = FALSE], 2, function(this_col) {
+      return(data.frame(index = boot_weights[, 1], weight.scale = this_col))
+    })
+
+    return(res)
+  }
+
+# report.aggregator_ <-
+#   function(resp.data, attribute.names, qoi, weights, qoi.name,
+#            dropmiss = FALSE) {
+#     resp.data <- resp.data
+#     wdat <- select_(resp.data, .dots = weights)
+#     qdat <- select_(resp.data, .dots = qoi)
+#     adat <- select_(resp.data, .dots = attribute.names)
+#     df <- bind_cols(wdat, qdat, adat)
+#     wgt.col <- as.symbol(names(df)[1])
+#     qoi.col <- as.symbol(names(df)[2])
+#     grouping.cols <- names(df)[-1]
+#     dots <- lapply(grouping.cols, as.symbol)
+#     df.summ <-
+#       df %>%
+#       group_by_(.dots = dots) %>%
+#       dplyr::summarise_(mean.qoi = lazyeval::interp(~weighted.mean(a, w = b), a = qoi.col, b = wgt.col),
+#                         sum.qoi = lazyeval::interp(~sum(a * b), a = qoi.col, b = wgt.col),
+#                         wgt.total = lazyeval::interp(~sum(b), b = wgt.col),
+#                         wgt.inv.total = lazyeval::interp(~sum(1/b), b = wgt.col),
+#                         num.obs = lazyeval::interp(~length(a), a = qoi.col))
+#     toren <- list(~mean.qoi, ~sum.qoi, ~wgt.total, ~wgt.inv.total,
+#                   ~num.obs)
+#     newnames <- paste0(c("mean.", "sum.", "wgt.total.", "wgt.inv.total.",
+#                          "num.obs."), qoi.name)
+#     df.summ <- dplyr::rename_(df.summ, .dots = setNames(toren,
+#                                                         newnames))
+#     return(df.summ)
+#   }
+#
+# kp.estimator <-
+#   function(resp.data, known.populations, attribute.names, weights,
+#            total.kp.size = NULL, alter.popn.size = NULL) {
+#     wdat <- select_(resp.data, .dots = weights)
+#     kpdat <- select_(resp.data, .dots = known.populations)
+#     adat <- select_(resp.data, .dots = attribute.names)
+#     alter.popn.size <- ifelse(is.null(alter.popn.size) || is.null(lazyeval::lazy_eval(alter.popn.size)),
+#                               sum(wdat[, 1]), lazyeval::lazy_eval(alter.popn.size))
+#     total.kp.size <- ifelse(is.null(total.kp.size), 1, lazyeval::lazy_eval(total.kp.size))
+#     kptot <- data_frame(kptot = rowSums(kpdat))
+#     df <- bind_cols(kptot, wdat, adat)
+#     atnames <- paste(colnames(adat))
+#     agg <- report.aggregator_(resp.data = df, attribute.names = atnames,
+#                               qoi = "kptot", weights = weights, qoi.name = "y.kp")
+#     tograb <- lapply(c(colnames(adat), "sum.y.kp", "wgt.total.y.kp",
+#                        "num.obs.y.kp"), as.symbol)
+#     sum.y.kp <- NULL
+#     sum.y.kp.over.kptot <- NULL
+#     wgt.total.y.kp <- NULL
+#     res <-
+#       select_(agg, .dots = tograb) %>%
+#       dplyr::mutate(sum.y.kp.over.kptot = sum.y.kp/total.kp.size,
+#                     dbar.Fcell.F = sum.y.kp.over.kptot * (alter.popn.size/wgt.total.y.kp))
+#     return(res)
+#   }

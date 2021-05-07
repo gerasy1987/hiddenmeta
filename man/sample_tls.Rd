@@ -30,7 +30,7 @@ sample_tls(
 Population or sample data frame for single study with TLS sample characteristics added
  \describe{
   \item{[sampling_variable]}{Sampling indicator}
-  \item{[sampling_variable]_loc_sampled}{Time-locations at which subject was encountered first}
+  \item{[sampling_variable]_cluster}{Time-locations at which subject was encountered first}
   \item{[sampling_variable]_loc_present}{Time-locations at which subject is present}
   \item{[sampling_variable]_sampled_locs}{Sampled time-locations}
   \item{[sampling_variable]_weight}{Sampling weights}

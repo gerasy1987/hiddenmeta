@@ -207,27 +207,30 @@ get_study_est_chords <- function(data,
 #' @param hidden character vector containing names of hidden groups
 #' @param degree_ratio numeric value between 0 and 1 representing degree ratio
 #' @param transmission_rate numeric value between 0 and 1 representing information transmission rate
+#' @param n_boot number of bootstrap resamples
+#' @param survey_design a formula describing the design of the survey
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of NSUM estimates for a single study with PPS sample
 #' @export
 #'
-#' @references Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
+#' @references
+#' Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
+#' Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
 #'
 #' @import dplyr
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
+#' @importFrom surveybootstrap bootstrap.estimates rescaled.bootstrap.sample
 #' @importFrom purrr quietly
 get_study_est_nsum <- function(data,
+                               known,
+                               hidden,
+                               survey_design = ~ pps_cluster + strata(pps_stata),
                                prefix = "pps",
-                               known = c("known", "known_2", "known_3"),
-                               hidden = "hidden_visible_out",
                                degree_ratio = 1,
                                transmission_rate = 1,
-                               boot_n = 1000,
+                               n_boot = 1000,
                                label = "nsum") {
-
-  .quiet_nsum <- purrr::quietly(networkreporting::nsum.estimator)
-  .quiet_degree_nsum <- purrr::quietly(networkreporting::kp.degree.estimator)
 
   .data_mod <-
     data %>%
@@ -241,50 +244,53 @@ get_study_est_nsum <- function(data,
     apply(., MARGIN = 2, unique)
 
   .data_mod$d_est <-
-    .quiet_degree_nsum(survey.data = .data_mod,
-                       known.popns = .known_pops[2:length(.known_pops)],
-                       total.popn.size = .known_pops[1],
-                       missing = "ignore")$result
+    purrr::quietly(networkreporting::kp.individual.estimator)(
+      resp.data = .data_mod,
+      alter.popn.size = .known_pops[1],
+      known.populations = names(.known_pops[2:length(.known_pops)]),
+      total.kp.size = sum(.known_pops[2:length(.known_pops)]))$result$dbar.Fcell.F
 
   .fit_nsum <-
-    .quiet_nsum(survey.data = .data_mod,
-                d.hat.vals = "d_est",
-                total.popn.size = .known_pops[1],
-                killworth.se = TRUE,
-                y.vals = hidden,
-                missing = "ignore",
-                deg.ratio = degree_ratio,
-                tx.rate = transmission_rate)$result
+    purrr::quietly(networkreporting::nsum.estimator)(
+      survey.data = .data_mod,
+      d.hat.vals = "d_est",
+      total.popn.size = .known_pops[1],
+      killworth.se = FALSE,
+      y.vals = hidden,
+      weights = NULL,
+      missing = "ignore",
+      deg.ratio = degree_ratio,
+      tx.rate = transmission_rate)$result
 
-  # idu.est <-
-  #   surveybootstrap::bootstrap.estimates(## this describes the sampling design of the
-  #     ## survey; here, the PSUs are given by the
-  #     ## variable cluster, and the strata are given
-  #     ## by the variable region
-  #     survey.design = ~ known + known_2 + known_3,
-  #     ## the number of bootstrap resamples to obtain
-  #     ## (NOTE: in practice, you should use more than 100.
-  #     ##  this keeps building the package relatively fast)
-  #     num.reps = 100,
-  #     ## this is the name of the function
-  #     ## we want to use to produce an estimate
-  #     ## from each bootstrapped dataset
-  #     estimator.fn = "nsum.estimator",
-  #     bootstrap.fn = "rescaled.bootstrap.sample",
-  #     ## our dataset
-  #     survey.data = dat,
-  #     ## other parameters we need to pass
-  #     ## to the nsum.estimator function
-  #     d.hat.vals = dat$d.hat,
-  #     total.popn.size = known_pops[1],
-  #     y.vals = "hidden_visible",
-  #     missing = "complete.obs")
+  .fit_nsum_boot <-
+    get_rescaled_boot(data = .data_mod,
+                      survey_design = survey_design,
+                      n_boot = n_boot) %>%
+    plyr::llply(
+      .data = .,
+      .fun = function(wgt) {
+        .data_mod %>%
+          dplyr::mutate(index = 1:n()) %>%
+          dplyr::left_join(., wgt, by = "index") %>%
+          networkreporting::nsum.estimator(
+            survey.data = .,
+            d.hat.vals = "d_est",
+            total.popn.size = .known_pops[1],
+            killworth.se = FALSE,
+            y.vals = hidden,
+            weights = "weight.scale",
+            missing = "ignore",
+            deg.ratio = degree_ratio,
+            tx.rate = transmission_rate)
+      }
+    ) %>%
+    bind_rows()
 
   return(
-    data.frame(estimator_label = paste0(c("hidden_size_", "degree_average_"), label),
-               estimate = c(unname(.fit_nsum$estimate), mean(.data_mod$d_est, na.rm = TRUE)),
-               se = c(unname(.fit_nsum$killworth.se), NA),
-               inquiry_label = c("hidden_size", "degree_average"))
+    data.frame(estimator_label = paste0(c("hidden_size_", "degree_"), label),
+               estimate = c(unname(.fit_nsum$estimate), unname(.fit_nsum$sum.d.hat/.fit_nsum$estimate)),
+               se = c(sd(.fit_nsum_boot$estimate), sd(.fit_nsum_boot$sum.d.hat/.fit_nsum_boot$estimate)),
+               inquiry_label = c("hidden_prev", "degree_average"))
   )
 }
 
