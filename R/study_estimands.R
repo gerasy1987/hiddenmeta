@@ -14,10 +14,10 @@ get_study_estimands <- function(data, known_pattern = "^known", hidden_pattern =
 
   data %>%
     dplyr::mutate(
-      degree = purrr::map_int(links, ~ length(.x)),
+      degree = purrr::map_int(links, ~ length(strsplit(.x, split = ";")[[1]])),
       degree_hidden =
         purrr::map_int(links,
-                       ~ sum(unlist(data[data$name %in% .x,
+                       ~ sum(unlist(data[data$name %in% strsplit(.x, split = ";")[[1]],
                                          grep(pattern = hidden_pattern, names(data))])))
     ) %>%
     {

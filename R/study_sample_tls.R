@@ -1,4 +1,4 @@
-#' Draw time-loaction (TLS) sample from single study
+#' Draw time-location (TLS) sample from single study
 #'
 #' Sampling handler for drawing TLS sample with given characteristics from individual study population
 #'
@@ -12,8 +12,9 @@
 #' @return Population or sample data frame for single study with TLS sample characteristics added
 #'  \describe{
 #'   \item{[sampling_variable]}{Sampling indicator}
-#'   \item{[sampling_variable]_loc_sampled}{Location at which subject is enrolled}
-#'   \item{[sampling_variable]_sampled_locs}{Sampled locations}
+#'   \item{[sampling_variable]_cluster}{Time-locations at which subject was encountered first}
+#'   \item{[sampling_variable]_loc_present}{Time-locations at which subject is present}
+#'   \item{[sampling_variable]_sampled_locs}{Sampled time-locations}
 #'   \item{[sampling_variable]_weight}{Sampling weights}
 #'  }
 #'
@@ -49,7 +50,8 @@ sample_tls <-
     temp_data <- data <- mutate(data, temp_id = 1:n())
 
     temp_data %<>%
-      dplyr::filter(hidden == 1, if_any(.cols = all_of(sampled_locs), ~ . == 1)) %>%
+      dplyr::filter(#hidden == 1,
+                    if_any(.cols = all_of(sampled_locs), ~ . == 1)) %>%
       {
         dplyr::left_join(
           .,
@@ -59,17 +61,22 @@ sample_tls <-
                 dplyr::bind_rows(
                   lapply(sampled_locs, function(x) tibble(.[.[[x]] == 1, c("temp_id", "p_visible_hidden")],
                                                          loc = x))
-                ), n = min(nrow(.), target_n_tls), weight_by = p_visible_hidden
+                ), n = min(nrow(.), target_n_tls)#, weight_by = p_visible_hidden
               ), dat = -temp_id
-            ), loc_sampled = purrr::map_chr(dat, ~paste0(.x$loc, collapse = ";"))
+            ), loc_present = purrr::map_chr(dat, ~paste0(.x$loc, collapse = ";"))
           ), by = "temp_id"
         )} %>%
-      dplyr::select(temp_id, loc_sampled) %>%
-      dplyr::mutate(sampled = as.integer(!is.na(loc_sampled)),
-                    sampled_locs = paste0(sampled_locs, collapse = ";")) %>%
+      dplyr::select(temp_id, loc_present) %>%
+      dplyr::mutate(
+        sampled = as.integer(!is.na(loc_present)),
+        sampled_locs = paste0(sampled_locs, collapse = ";"),
+        "{ sampling_variable }_cluster" :=
+          ifelse(is.na(loc_present),
+                 yes = NA,
+                 no = sapply(strsplit(x = loc_present, split = ";"), function(x) x[[1]][1]))) %>%
       dplyr::rename("{ sampling_variable }" := sampled,
-                    "{ sampling_variable }_sampled_locs" := sampled_locs,
-                    "{ sampling_variable }_loc_sampled" := loc_sampled) %>%
+                    "{ sampling_variable }_locs_sampled" := sampled_locs,
+                    "{ sampling_variable }_loc_present" := loc_present) %>%
       dplyr::select(temp_id, all_of(sampling_variable), everything())
 
     data %<>%

@@ -6,27 +6,32 @@
 \usage{
 get_study_est_nsum(
   data,
+  known,
+  hidden,
+  survey_design = ~pps_cluster + strata(pps_stata),
   prefix = "pps",
-  known = c("known", "known_2", "known_3"),
-  hidden = "hidden_visible_out",
   degree_ratio = 1,
   transmission_rate = 1,
-  boot_n = 1000,
+  n_boot = 1000,
   label = "nsum"
 )
 }
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{prefix}{character prefix used for PPS sample variables}
-
 \item{known}{character vector containing names of known groups}
 
 \item{hidden}{character vector containing names of hidden groups}
 
+\item{survey_design}{a formula describing the design of the survey}
+
+\item{prefix}{character prefix used for PPS sample variables}
+
 \item{degree_ratio}{numeric value between 0 and 1 representing degree ratio}
 
 \item{transmission_rate}{numeric value between 0 and 1 representing information transmission rate}
+
+\item{n_boot}{number of bootstrap resamples}
 
 \item{label}{character string describing the estimator}
 }
@@ -38,4 +43,5 @@ NSUM estimatior
 }
 \references{
 Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
+Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_sample_tls.R
 \name{sample_tls}
 \alias{sample_tls}
-\title{Draw time-loaction (TLS) sample from single study}
+\title{Draw time-location (TLS) sample from single study}
 \usage{
 sample_tls(
   data,
@@ -30,8 +30,9 @@ sample_tls(
 Population or sample data frame for single study with TLS sample characteristics added
  \describe{
   \item{[sampling_variable]}{Sampling indicator}
-  \item{[sampling_variable]_loc_sampled}{Location at which subject is enrolled}
-  \item{[sampling_variable]_sampled_locs}{Sampled locations}
+  \item{[sampling_variable]_cluster}{Time-locations at which subject was encountered first}
+  \item{[sampling_variable]_loc_present}{Time-locations at which subject is present}
+  \item{[sampling_variable]_sampled_locs}{Sampled time-locations}
   \item{[sampling_variable]_weight}{Sampling weights}
  }
 }

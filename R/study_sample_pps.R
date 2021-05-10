@@ -10,9 +10,18 @@
 #' @param sampling_frame character vector containing all binary vectors identifying sampling frame
 #' @param cluster character vector containing name(s) of all cluster variables
 #' @param strata character vector containing name(s) of stratifying variables. Currently not implemented
-#' @param weighs_type character string giving the type of weights to compute. Can be one of "absolute" or "relative". Currently only absolute weights are calculated
+#' @param weights_type character string giving the type of weights to compute. Can be one of "absolute" or "relative". Currently only absolute weights are calculated
 #'
 #' @return Population or sample data frame for single study with PPS sample characteristics added
+#'  \describe{
+#'   \item{[sampling_variable]}{Sampling indicator}
+#'   \item{[sampling_variable]_frame}{Indicator for sampling frame (respondents with 0 cannot be enrolled)}
+#'   \item{[sampling_variable]_strata}{ID of respondent's strata}
+#'   \item{[sampling_variable]_strata_prop}{Proportion of sampling frame in the strata to which respondent belongs}
+#'   \item{[sampling_variable]_cluster}{ID of respondent's cluster}
+#'   \item{[sampling_variable]_cluster_prop}{Proportion of strata in the cluster to which respondent belongs}
+#'   \item{[sampling_variable]_weight}{Sampling weights}
+#'  }
 #' @export
 #'
 #' @import dplyr
@@ -26,14 +35,14 @@ sample_pps <-
            sampling_frame = NULL,
            strata = NULL,
            cluster = NULL,
-           weighs_type = c("absolute", "relative")
+           weights_type = c("absolute", "relative")
   ) {
 
-    weighs_type <- match.arg(weighs_type)
+    weights_type <- match.arg(weights_type)
 
     data <- dplyr::mutate(data, temp_id = 1:n())
     temp_data <- data %>% dplyr::select(temp_id, all_of(c(sampling_frame, strata, cluster)))
-    nmax_per_cluster <- target_n_pps/n_clusters
+    nmax_per_cluster <- ceiling(target_n_pps/n_clusters)
 
 
     if (!is.null(sampling_frame)) {
@@ -47,67 +56,81 @@ sample_pps <-
     if (target_n_pps >= sum(temp_data$frame))
       stop("Requested PPS sample size is larger than population (or sampling frame) size")
 
-    # if (!is.null(strata)) {
-    #   temp_data <-
-    #     temp_data %>%
-    #     dplyr::group_by(dplyr::across(dplyr::all_of(strata)))
-    # }
-
-    if (!is.null(cluster)) {
+    if (!is.null(strata)) {
       temp_data %<>%
-        tidyr::nest(dat = -dplyr::all_of(cluster)) %>%
-        dplyr::mutate(cluster_id = 1:n(),
-                      cluster_prop = purrr::map_int(dat, ~ nrow(.x)),
-                      cluster_prop = cluster_prop/sum(cluster_prop)) %>%
+        tidyr::nest(dat = -dplyr::all_of(strata)) %>%
+        dplyr::mutate(strata_id = 1:n(),
+                      strata_prop = purrr::map_int(dat, ~ nrow(.x)),
+                      strata_prop = strata_prop/sum(strata_prop)) %>%
         tidyr::unnest(cols = c(dat))
-
-      temp_data %<>%
-        dplyr::filter(frame == 1) %>%
-        tidyr::nest(dat = -c(cluster_id, cluster_prop)) %>%
-        dplyr::mutate(
-          sampled_cluster =
-            ifelse(cluster_id %in% sample(x = cluster_id,
-                                          size = n_clusters,
-                                          prob = cluster_prop), 1, 0),
-          dat =
-            purrr::map(
-              dat,
-              ~ dplyr::mutate(.x,
-                              sampled = sample(c(rep(1,min(n(), nmax_per_cluster)),
-                                                 rep(0,max(0, n() - nmax_per_cluster))))))
-        ) %>%
-        tidyr::unnest(cols = c(dat)) %>%
-        dplyr::bind_rows(dplyr::filter(temp_data, frame != 1),
-                         .) %>%
-        dplyr::mutate(
-          across(c(sampled_cluster, sampled), ~ ifelse(is.na(.), 0, 1)),
-          weight = sum(frame)/nmax_per_cluster) %>%
-        dplyr::rename_with(.cols = c(frame, cluster_id, cluster_prop, sampled_cluster, weight),
-                           ~ paste0(sampling_variable, "_", gsub("^sampled$", "", x = .))) %>%
-        dplyr::rename("{ sampling_variable }" := sampled)
     } else {
       temp_data %<>%
-        dplyr::mutate(cluster_id = 1:n(),
-                      cluster_prop = 1/n(),
-                      weight = 1/sum(frame)) %>%
-        dplyr::filter(frame == 1) %>%
-        dplyr::mutate(sampled =
-                        sample(c(rep(1,min(n(), target_n_pps)),
-                                 rep(0,max(0, n() - target_n_pps)))),
-                      sampled_cluster = sampled) %>%
-        dplyr::bind_rows(dplyr::filter(temp_data, frame != 1),
-                         .) %>%
-        dplyr::mutate(across(c(sampled_cluster, sampled), ~ ifelse(is.na(.), 0, .))) %>%
-        dplyr::rename_with(.cols = c(frame, cluster_id, cluster_prop, sampled_cluster, weight),
-                           ~ paste0(sampling_variable, "_", gsub("^sampled$", "", x = .))) %>%
-        dplyr::rename("{ sampling_variable }" := sampled)
+        dplyr::mutate(strata_id = 1,
+                      strata_prop = 1)
     }
+
+    nclustmax_per_strat <- ceiling(n_clusters/length(unique(temp_data$strata_id)))
+
+    temp_data %<>%
+      split(., .$strata_id) %>%
+      plyr::ldply(
+        .data = .,
+        .fun = function(strat_df) {
+          if (!is.null(cluster)) {
+            strat_df %<>%
+              tidyr::nest(dat = -dplyr::all_of(cluster)) %>%
+              dplyr::mutate(cluster_id = 1:n(),
+                            cluster_prop = purrr::map_int(dat, ~ nrow(.x)),
+                            cluster_prop = cluster_prop/sum(cluster_prop)) %>%
+              tidyr::unnest(cols = c(dat))
+
+            strat_df %>%
+              dplyr::filter(frame == 1) %>%
+              tidyr::nest(dat = -c(cluster_id, cluster_prop)) %>%
+              dplyr::mutate(
+                sampled_cluster =
+                  ifelse(cluster_id %in% sample(x = cluster_id,
+                                                size = min(n(), nclustmax_per_strat),
+                                                prob = cluster_prop), 1, 0),
+                dat =
+                  purrr::map(
+                    dat,
+                    ~ dplyr::mutate(.x,
+                                    sampled = sample(c(rep(1,min(n(), nmax_per_cluster)),
+                                                       rep(0,max(0, n() - nmax_per_cluster)))),
+                                    weight = sum(sampled)/n()))
+              ) %>%
+              tidyr::unnest(cols = c(dat)) %>%
+              dplyr::bind_rows(dplyr::filter(strat_df, frame != 1), .) %>%
+              dplyr::mutate(
+                across(c(sampled_cluster, sampled), ~ ifelse(is.na(.), 0, 1)),
+                weight = cluster_prop * weight)
+          } else {
+            strat_df %>%
+              dplyr::mutate(cluster_id = 1:n(),
+                            cluster_prop = 1/n(),
+                            weight = frame / sum(frame)) %>%
+              dplyr::filter(frame == 1) %>%
+              dplyr::mutate(sampled =
+                              sample(c(rep(1,min(n(), target_n_pps)),
+                                       rep(0,max(0, n() - target_n_pps)))),
+                            sampled_cluster = sampled) %>%
+              dplyr::bind_rows(dplyr::filter(strat_df, frame != 1), .) %>%
+              dplyr::mutate(across(c(sampled_cluster, sampled), ~ ifelse(is.na(.), 0, .)))
+          }
+        }
+      )
 
     data <-
       suppressMessages(
         temp_data %>%
-          dplyr::select(temp_id, all_of(sampling_variable), starts_with(sampling_variable)) %>%
-          dplyr::left_join(data, .) %>%
+          dplyr::rename_with(.cols = c(frame, cluster_prop, strata_prop, sampled_cluster, weight),
+                             ~ paste0(sampling_variable, "_", gsub("^sampled$", "", x = .))) %>%
+          dplyr::rename("{ sampling_variable }" := sampled,
+                        "{ sampling_variable }_cluster" := cluster_id,
+                        "{ sampling_variable }_strata" := strata_id) %>%
+          dplyr::select(temp_id, starts_with(sampling_variable)) %>%
+          dplyr::left_join(data, ., by = "temp_id") %>%
           dplyr::select(-temp_id)
       )
 

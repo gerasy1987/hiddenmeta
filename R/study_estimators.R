@@ -104,66 +104,96 @@ get_study_est_ht <- function(data,
 #' Chords population size estimatior by Berchenko, Rosenblatt and Frost
 #'
 #' @param data pass-through population data frame
-#' @param type a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, \code{jeffreys} or \code{leave-d-out}. See \code{?chords::Estimate.b.k} and the original paper from the references for details
+#' @param type a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, or \code{jeffreys}. See \code{?chords::Estimate.b.k} and the original paper from the references for details
 #' @param rds_prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
+#' @param seed_condition character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples
+#' @param n_boot number of bootstrap resamples
 #'
 #' @return Data frame of Chords estimates for a single study with RDS sample
 #'
-#' @references Berchenko, Yakir, Jonathan D. Rosenblatt, and Simon D. W. Frost. “Modeling and Analyzing Respondent-Driven Sampling as a Counting Process.” Biometrics 73, no. 4 (2017): 1189–98. \url{https://doi.org/10.1111/biom.12678}.
+#' @references
+#' Berchenko, Yakir, Jonathan D. Rosenblatt, and Simon D. W. Frost. “Modeling and Analyzing Respondent-Driven Sampling as a Counting Process.” Biometrics 73, no. 4 (2017): 1189–98. \url{https://doi.org/10.1111/biom.12678}.
+#' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 #'
 #' @export
 #'
 #' @import dplyr
 #' @importFrom chords initializeRdsObject Estimate.b.k makeJackControl
+#' @importFrom purrr quietly
 get_study_est_chords <- function(data,
-                                 type = c("mle", "integrated", "jeffreys", "leave-d-out"),
+                                 type = c("mle", "integrated", "jeffreys"),
                                  rds_prefix = "rds",
-                                 label = "chords") {
+                                 label = "chords",
+                                 seed_condition = "rds_from == -999",
+                                 n_boot = 100) {
+
 
   type <- match.arg(type)
-  .K <- log2(length(grep(pattern = "^type_visible_", names(data))))
-  .pattern <- paste0("^type_visible_", paste0(rep("[0-9]", .K - 1), collapse = ""), "1$")
+  .K <- log2(length(grep(pattern = "^type_.*_out$", names(data))))
+  .pattern <- paste0("^type_", paste0(rep("[0-9]", .K - 1), collapse = ""), "1_visible_out$")
 
   .data_mod <-
     data %>%
-    dplyr::filter_at(dplyr::vars(dplyr::all_of(rds_prefix)), ~ . == 1) %>%
+    dplyr::filter(dplyr::across(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
     dplyr::mutate(
       NS1 = apply(.[,grep(pattern = .pattern, x = names(data))], 1, sum),
       refCoupNum = get(paste0(rds_prefix, "_own_coupon")),
       interviewDt = get(paste0(rds_prefix, "_t"))) %>%
-    dplyr::rename_at(vars(starts_with(paste0(rds_prefix, "_coupon_"))),
-                     ~ gsub(pattern = paste0(rds_prefix, "\\_coupon\\_"), replacement = "coup", .))
+    dplyr::rename_with(
+        .cols = dplyr::starts_with(paste0(rds_prefix, "_coupon_")),
+        ~ gsub(pattern = paste0(rds_prefix, "\\_coupon\\_"), replacement = "coup", .))
 
-  if (type == "leave-d-out") {
-    .jack_control <- chords::makeJackControl(1, 1e2)
+  # if (type == "leave-d-out") {
+  #   .jack_control <- chords::makeJackControl(1, 1e2)
+  #
+  #   .fit_chords <-
+  #     chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
+  #                          type = type,
+  #                          jack.control = .jack_control) %>%
+  #     {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
+  #        degree_hidden =
+  #          stats::weighted.mean(
+  #            x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
+  #            w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+  #
+  # } else {
 
-    .fit_chords <-
-      chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
-                           type = type,
-                           jack.control = .jack_control) %>%
-      {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
-         degree_hidden =
-           stats::weighted.mean(
-             x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
-             w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+  .fit_chords <-
+    chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
+                         type = type) %>%
+    {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
+       degree_hidden =
+         stats::weighted.mean(
+           x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
+           w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
 
-  } else {
+  # }
 
-    .fit_chords <-
-      chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
-                           type = type) %>%
-      {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
-         degree_hidden =
-           stats::weighted.mean(
-             x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
-             w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
-
-  }
+  .fit_chords_boot <-
+    get_rds_boot(data = .data_mod,
+                 seed_condition = "rds_from == -999",
+                 in_coupon = "refCoupNum",
+                 out_coupon = "coup",
+                 trait_var = "NS1",
+                 other_vars = c("NS1", "interviewDt", "hidden_visible_out", "name"),
+                 n_boot = n_boot) %>%
+    plyr::laply(., function(samp) {
+      suppressMessages(
+        chords::Estimate.b.k(rds.object = chords::initializeRdsObject(samp),
+                             type = type) %>%
+          {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
+             degree_hidden =
+               stats::weighted.mean(
+                 x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
+                 w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+      )
+    })
 
   return(
     data.frame(estimator_label = paste0(c("hidden_size_", "degree_hidden_"), label),
                estimate = c(.fit_chords["est"], .fit_chords["degree_hidden"]),
+               se =  apply(.fit_chords_boot, 2, sd, na.rm = TRUE),
                inquiry_label = c("hidden_size", "degree_hidden_average"))
   )
 }
@@ -177,27 +207,30 @@ get_study_est_chords <- function(data,
 #' @param hidden character vector containing names of hidden groups
 #' @param degree_ratio numeric value between 0 and 1 representing degree ratio
 #' @param transmission_rate numeric value between 0 and 1 representing information transmission rate
+#' @param n_boot number of bootstrap resamples
+#' @param survey_design a formula describing the design of the survey
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of NSUM estimates for a single study with PPS sample
 #' @export
 #'
-#' @references Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
+#' @references
+#' Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
+#' Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
 #'
 #' @import dplyr
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
+#' @importFrom surveybootstrap bootstrap.estimates rescaled.bootstrap.sample
 #' @importFrom purrr quietly
 get_study_est_nsum <- function(data,
+                               known,
+                               hidden,
+                               survey_design = ~ pps_cluster + strata(pps_stata),
                                prefix = "pps",
-                               known = c("known", "known_2", "known_3"),
-                               hidden = "hidden_visible_out",
                                degree_ratio = 1,
                                transmission_rate = 1,
-                               boot_n = 1000,
+                               n_boot = 1000,
                                label = "nsum") {
-
-  .quiet_nsum <- purrr::quietly(networkreporting::nsum.estimator)
-  .quiet_degree_nsum <- purrr::quietly(networkreporting::kp.degree.estimator)
 
   .data_mod <-
     data %>%
@@ -206,53 +239,57 @@ get_study_est_nsum <- function(data,
   .known_pops <-
     .data_mod %>%
     dplyr::select(total, dplyr::all_of(paste0("total_", known))) %>%
-    dplyr::rename_with(.cols = dplyr::starts_with("total_"), ~ paste0(gsub("^total\\_", "", .), "_visible_out")) %>%
+    dplyr::rename_with(
+      .cols = dplyr::starts_with("total_"), ~ paste0(gsub("^total\\_", "", .), "_visible_out")) %>%
     apply(., MARGIN = 2, unique)
 
   .data_mod$d_est <-
-    .quiet_degree_nsum(survey.data = .data_mod,
-                       known.popns = .known_pops[2:length(.known_pops)],
-                       total.popn.size = .known_pops[1],
-                       missing = "ignore")$result
+    purrr::quietly(networkreporting::kp.individual.estimator)(
+      resp.data = .data_mod,
+      alter.popn.size = .known_pops[1],
+      known.populations = names(.known_pops[2:length(.known_pops)]),
+      total.kp.size = sum(.known_pops[2:length(.known_pops)]))$result$dbar.Fcell.F
 
   .fit_nsum <-
-    .quiet_nsum(survey.data = .data_mod,
-                d.hat.vals = "d_est",
-                total.popn.size = .known_pops[1],
-                killworth.se = TRUE,
-                y.vals = hidden,
-                missing = "ignore",
-                deg.ratio = degree_ratio,
-                tx.rate = transmission_rate)$result
+    purrr::quietly(networkreporting::nsum.estimator)(
+      survey.data = .data_mod,
+      d.hat.vals = "d_est",
+      total.popn.size = .known_pops[1],
+      killworth.se = FALSE,
+      y.vals = hidden,
+      weights = NULL,
+      missing = "ignore",
+      deg.ratio = degree_ratio,
+      tx.rate = transmission_rate)$result
 
-  # idu.est <-
-  #   surveybootstrap::bootstrap.estimates(## this describes the sampling design of the
-  #     ## survey; here, the PSUs are given by the
-  #     ## variable cluster, and the strata are given
-  #     ## by the variable region
-  #     survey.design = ~ known + known_2 + known_3,
-  #     ## the number of bootstrap resamples to obtain
-  #     ## (NOTE: in practice, you should use more than 100.
-  #     ##  this keeps building the package relatively fast)
-  #     num.reps = 100,
-  #     ## this is the name of the function
-  #     ## we want to use to produce an estimate
-  #     ## from each bootstrapped dataset
-  #     estimator.fn = "nsum.estimator",
-  #     bootstrap.fn = "rescaled.bootstrap.sample",
-  #     ## our dataset
-  #     survey.data = dat,
-  #     ## other parameters we need to pass
-  #     ## to the nsum.estimator function
-  #     d.hat.vals = dat$d.hat,
-  #     total.popn.size = known_pops[1],
-  #     y.vals = "hidden_visible",
-  #     missing = "complete.obs")
+  .fit_nsum_boot <-
+    get_rescaled_boot(data = .data_mod,
+                      survey_design = survey_design,
+                      n_boot = n_boot) %>%
+    plyr::llply(
+      .data = .,
+      .fun = function(wgt) {
+        .data_mod %>%
+          dplyr::mutate(index = 1:n()) %>%
+          dplyr::left_join(., wgt, by = "index") %>%
+          networkreporting::nsum.estimator(
+            survey.data = .,
+            d.hat.vals = "d_est",
+            total.popn.size = .known_pops[1],
+            killworth.se = FALSE,
+            y.vals = hidden,
+            weights = "weight.scale",
+            missing = "ignore",
+            deg.ratio = degree_ratio,
+            tx.rate = transmission_rate)
+      }
+    ) %>%
+    bind_rows()
 
   return(
-    data.frame(estimator_label = paste0(c("hidden_size_", "degree_average_"), label),
-               estimate = c(unname(.fit_nsum$estimate), mean(.data_mod$d_est, na.rm = TRUE)),
-               se = c(unname(.fit_nsum$killworth.se), NA),
+    data.frame(estimator_label = paste0(c("hidden_size_", "degree_"), label),
+               estimate = c(unname(.fit_nsum$estimate), unname(.fit_nsum$sum.d.hat/.fit_nsum$estimate)),
+               se = c(sd(.fit_nsum_boot$estimate), sd(.fit_nsum_boot$sum.d.hat/.fit_nsum_boot$estimate)),
                inquiry_label = c("hidden_size", "degree_average"))
   )
 }
@@ -298,3 +335,6 @@ get_study_est_service <- function(data, label = "service") {
                inquiry_label = "hidden_prev")
   )
 }
+
+
+

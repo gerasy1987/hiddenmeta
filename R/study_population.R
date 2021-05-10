@@ -58,16 +58,27 @@ get_study_population <-
 
     g <- do.call(what = network_handler, args = network_handler_args)
 
+    .g_adj <- igraph::as_adj(g)
+    .g_attr <- igraph::vertex_attr(g)
+
     if (!("igraph" %in% class(g)))
       stop("network_handler should produce an igraph object")
 
-    igraph::vertex_attr(g)$type %>%
+    .base_df <-
+      .g_attr$type %>%
       stringr::str_split(., pattern = "", simplify = TRUE) %>%
       dplyr::as_tibble(.name_repair = function(names) group_names) %>%
       dplyr::mutate(
         across(all_of(group_names), as.integer),
-        type = igraph::vertex_attr(g)$type) %>%
-      mutate_add_groups(., add_groups = add_groups) %>%
+        type = .g_attr$type)
+
+    .out_df <-
+      .base_df %>%
+      mutate_add_groups(., add_groups = add_groups)
+
+    .add_groups_names <- setdiff(names(.out_df), names(.base_df))
+
+    .out_df %>%
       mutate_visibility(., vars = names(p_visible), p_visible = p_visible) %>%
       dplyr::mutate(
         type_visible =
@@ -83,37 +94,37 @@ get_study_population <-
           `names<-`(
             as.data.frame(
               as.matrix(
-                igraph::as_adj(g) %*% as.matrix(.[,names(.)[grepl("_visible$", names(.))]]))),
+                .g_adj %*% as.matrix(.[,names(.)[grepl("_visible$", names(.))]]))),
           paste0(names(.)[grepl("_visible$", names(.))], "_out")),
           `names<-`(
             as.data.frame(
               as.matrix(
-                igraph::as_adj(g) %*% as.matrix(.[,names(add_groups)]))),
-            paste0(names(add_groups), "_visible_out")),
+                .g_adj %*% as.matrix(.[,.add_groups_names]))),
+            paste0(.add_groups_names, "_visible_out")),
           # in-reports given subject's visibility
           `names<-`(
             as.data.frame(
               as.matrix(
-                Matrix::rowSums(igraph::as_adj(g)) * as.matrix(.[,names(.)[grepl("_visible$", names(.))]]))),
+                Matrix::rowSums(.g_adj) * as.matrix(.[,names(.)[grepl("_visible$", names(.))]]))),
             paste0(names(.)[grepl("_visible$", names(.))], "_in")),
           `names<-`(
             as.data.frame(
               as.matrix(
-                Matrix::rowSums(igraph::as_adj(g)) * as.matrix(.[,names(add_groups)]))),
-            paste0(names(add_groups), "_visible_in"))
+                Matrix::rowSums(.g_adj) * as.matrix(.[,.add_groups_names]))),
+            paste0(.add_groups_names, "_visible_in"))
         )
       } %>%
       dplyr::mutate(
         n_visible_out = apply(X = .[,grep("^type_.*_out$", names(.))], MARGIN = 1, FUN = sum),
         name = 1:n(),
-        links = igraph::as_adj_list(g),
+        links = sapply(igraph::as_adj_list(g), paste0, collapse = ";"),
         total = n(),
-        across(all_of(c(group_names, names(add_groups))),
+        across(all_of(c(group_names, .add_groups_names)),
                list(total = sum), .names = "{.fn}_{.col}")) %>%
       dplyr::bind_cols(.,
-                       igraph::vertex_attr(g)[-which(names(igraph::vertex_attr(g)) == "type")]) %>%
+                       .g_attr[-which(names(.g_attr) == "type")]) %>%
       dplyr::select(name, type, all_of(group_names), links, # main parameters
-                    names(add_groups), # additional group memberships
+                    .add_groups_names, # additional group memberships
                     n_visible_out,
                     ends_with("_visible_out"), # out-reports
                     ends_with("_visible_in"), # in-reports

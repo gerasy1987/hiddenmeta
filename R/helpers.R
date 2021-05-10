@@ -137,44 +137,9 @@ rbeta_mod <- function(n, mu, sd) {
   return(rbeta(n = n, shape1 = alpha, shape2 = beta))
 }
 
-merge_vertices <- function(graph_list) {
-  if (!all(c("edges", "vertices") %in% names(graph_list)))
-    stop("Graph list has to have edges and vertices elements.")
-
-  graph_list %>%
-    {
-      left_join(
-        left_join(.$edges, cbind(.$vertices, from = 1:N),  by = "from"),
-        cbind(.$vertices, to = 1:N), by = "to", suffix = c("_from", "_to")
-      )
-    }
-
-}
-
-
 # HIDDEN HELPERS ------------------------------------------------------------------------------
 
-#' Random generation from Beta distribution
-#'
-#' Reparametrization of base R rbeta to take location and scale rather than 2 shape parameters
-#'
-#' @param n number of observations
-#' @param mu location parameter
-#' @param sd scale parameter
-#'
-#' @return vector of draws from Beta distribution
-#'
-#' @examples
-#' \dontrun{
-#' rbeta_mod(4, .5, .1)
-#' }
-#'
-#' @importFrom stats rbeta
-rbeta_mod <- function(n, mu, sd) {
-  alpha <- ((1 - mu) / sd^2 - 1 / mu) * mu ^ 2
-  beta <- alpha * (1 / mu - 1)
-  return(rbeta(n = n, shape1 = alpha, shape2 = beta))
-}
+
 
 merge_vertices <- function(graph_list) {
   if (!all(c("edges", "vertices") %in% names(graph_list)))
@@ -216,8 +181,17 @@ mutate_visibility <- function(data, vars, p_visible, beta_sd = 0.05) {
 
 # helper for population simulations
 mutate_add_groups <- function(data, add_groups) {
-  for (var in names(add_groups)) {
-    data[,var] <- rbinom(nrow(data), 1, add_groups[[var]])
+  for (var in seq_along(add_groups)) {
+    if (class(add_groups[[var]]) == "numeric") {
+      data %<>%
+        dplyr::mutate("{ names(add_groups)[var] }" := rbinom(n(), 1, add_groups[[var]]))
+    } else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] != "") {
+      data %<>%
+        dplyr::mutate("{ names(add_groups)[var] }" := eval(parse(text = add_groups[[var]])))
+    } else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] == "") {
+      data %<>%
+        dplyr::mutate(eval(parse(text = add_groups[[var]])))
+    }
   }
   return(data)
 }
@@ -241,4 +215,30 @@ gen_group_types <- function(K) {
   lapply(1:K, function(x) 0:1) %>%
     expand.grid() %>%
     apply(X = ., MARGIN = 1, FUN = paste0, collapse = "")
+}
+
+# get undirected graph from adjacency list transformed to character vector
+retrieve_graph <- function(adj_vec, split_vec = ";", list_mode = "all") {
+  adj_vec %>%
+    lapply(., function(x) as.numeric(strsplit(x, split = split_vec)[[1]])) %>%
+    igraph::graph.adjlist(mode = list_mode)
+}
+
+# extract psu and strata variables from survey design formula
+extract_terms <- function(fmla) {
+  term_labels <- attr(terms(fmla), "term.labels")
+  strata_ids <- grepl("strata\\(", term_labels)
+  psu <- term_labels[!grepl("strata\\(", term_labels)]
+  if (sum(strata_ids) == 1) {
+    strata_text <- gsub(replacement = "", x = term_labels[strata_ids], pattern = "strata\\(|\\)")
+    strata <- attr(terms(as.formula(paste("~ ", strata_text))), "term.labels")
+  } else if (sum(strata_ids) == 0) {
+    strata <- NULL
+  } else if (sum(strata_ids) > 1) {
+    stop("Design formula cannot have more than one strata() specification")
+  }
+
+  return(
+    list(psu = psu, strata = strata)
+  )
 }

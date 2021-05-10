@@ -6,19 +6,25 @@
 \usage{
 get_study_est_chords(
   data,
-  type = c("mle", "integrated", "jeffreys", "leave-d-out"),
+  type = c("mle", "integrated", "jeffreys"),
   rds_prefix = "rds",
-  label = "chords"
+  label = "chords",
+  seed_condition = "rds_from == -999",
+  n_boot = 100
 )
 }
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{type}{a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, \code{jeffreys} or \code{leave-d-out}. See \code{?chords::Estimate.b.k} and the original paper from the references for details}
+\item{type}{a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, or \code{jeffreys}. See \code{?chords::Estimate.b.k} and the original paper from the references for details}
 
 \item{rds_prefix}{character prefix used for RDS sample variables}
 
 \item{label}{character string describing the estimator}
+
+\item{seed_condition}{character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples}
+
+\item{n_boot}{number of bootstrap resamples}
 }
 \value{
 Data frame of Chords estimates for a single study with RDS sample
@@ -28,4 +34,5 @@ Chords population size estimatior by Berchenko, Rosenblatt and Frost
 }
 \references{
 Berchenko, Yakir, Jonathan D. Rosenblatt, and Simon D. W. Frost. “Modeling and Analyzing Respondent-Driven Sampling as a Counting Process.” Biometrics 73, no. 4 (2017): 1189–98. \url{https://doi.org/10.1111/biom.12678}.
+Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 }
