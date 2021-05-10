@@ -290,7 +290,7 @@ get_study_est_nsum <- function(data,
     data.frame(estimator_label = paste0(c("hidden_size_", "degree_"), label),
                estimate = c(unname(.fit_nsum$estimate), unname(.fit_nsum$sum.d.hat/.fit_nsum$estimate)),
                se = c(sd(.fit_nsum_boot$estimate), sd(.fit_nsum_boot$sum.d.hat/.fit_nsum_boot$estimate)),
-               inquiry_label = c("hidden_prev", "degree_average"))
+               inquiry_label = c("hidden_size", "degree_average"))
   )
 }
 

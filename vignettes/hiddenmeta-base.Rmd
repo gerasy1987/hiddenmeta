@@ -274,7 +274,7 @@ study_simulations <-
       estimator_sspse + estimator_chords + 
       estimator_ht_tls + estimator_ht_pps +
       estimator_nsum_tls + estimator_nsum_pps, 
-    sims = 10)
+    sims = 20)
 
 diagnose_design(study_simulations, 
                 diagnosands = study_diagnosands, sims = 2)
@@ -417,9 +417,14 @@ study_2 <-
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
-                   target_n_pps = 1000)
+                   sampling_frame = "frame",
+                   strata = NULL,
+                   cluster = NULL,
+                   target_n_pps = 800)
       ),
-    inquiries = list(handler = get_study_estimands),
+    inquiries = list(handler = get_study_estimands,
+                     known_pattern = "^known", 
+                     hidden_pattern = "^hidden$"),
     estimators = 
       list(
         rds = 
@@ -427,7 +432,13 @@ study_2 <-
                             label = "rds_sspse",
                             prior_mean = 450,
                             mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
-                            rds_prefix = "rds")),
+                            rds_prefix = "rds"),
+               chords = list(handler = get_study_est_chords, 
+                             type = "mle",
+                             label = "rds_chords",
+                             seed_condition = "rds_from == -999",
+                             n_boot = 100,
+                             rds_prefix = "rds")),
         pps = 
           list(
             ht = list(handler = get_study_est_ht, 
@@ -435,6 +446,8 @@ study_2 <-
             nsum = list(handler = get_study_est_nsum,
                         known = c("frame", "known"),
                         hidden = "hidden_visible_out",
+                        survey_design = ~ pps_cluster + strata(pps_strata),
+                        n_boot = 100,
                         label = "pps_nsum")
           )
       )
@@ -444,7 +457,7 @@ study_2 <-
 
 ### Declare multiple studies
 
-```{r meta_study, eval=FALSE, warning = FALSE}
+```{r meta_study, eval=TRUE, warning = FALSE}
 
 multi_population <- 
   declare_population(handler = get_multi_populations, 
