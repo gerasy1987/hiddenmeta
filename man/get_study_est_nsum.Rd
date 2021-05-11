@@ -9,10 +9,10 @@ get_study_est_nsum(
   known,
   hidden,
   survey_design = ~pps_cluster + strata(pps_stata),
-  prefix = "pps",
   degree_ratio = 1,
   transmission_rate = 1,
   n_boot = 1000,
+  prefix = "pps",
   label = "nsum"
 )
 }
@@ -25,13 +25,13 @@ get_study_est_nsum(
 
 \item{survey_design}{a formula describing the design of the survey}
 
-\item{prefix}{character prefix used for PPS sample variables}
-
 \item{degree_ratio}{numeric value between 0 and 1 representing degree ratio}
 
 \item{transmission_rate}{numeric value between 0 and 1 representing information transmission rate}
 
 \item{n_boot}{number of bootstrap resamples}
+
+\item{prefix}{character prefix used for PPS sample variables}
 
 \item{label}{character string describing the estimator}
 }

@@ -1,10 +1,10 @@
 #' SS-PSE population size estimator by Handcock, Gile and Mar
 #'
 #' @param data pass-through population data frame
-#' @param rds_prefix character prefix used for RDS sample variables
 #' @param prior_mean the mean of the prior distribution on the population size for SS-PSE estimation
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
 #' @param mcmc_params named list of parameters passed to \code{sspse::posteriorsize} for MCMC sampling
+#' @param rds_prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of SS-PSE estimates for a single study
@@ -18,10 +18,10 @@
 #' @importFrom RDS as.rds.data.frame
 #' @importFrom purrr quietly
 get_study_est_sspse <- function(data,
-                                rds_prefix = "rds",
                                 prior_mean = .1 * nrow(data),
                                 n_coupons = 3,
                                 mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+                                rds_prefix = "rds",
                                 label = "sspse") {
 
   .quiet_sspse <- purrr::quietly(sspse::posteriorsize)
@@ -105,10 +105,10 @@ get_study_est_ht <- function(data,
 #'
 #' @param data pass-through population data frame
 #' @param type a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, or \code{jeffreys}. See \code{?chords::Estimate.b.k} and the original paper from the references for details
-#' @param rds_prefix character prefix used for RDS sample variables
-#' @param label character string describing the estimator
 #' @param seed_condition character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples
 #' @param n_boot number of bootstrap resamples
+#' @param rds_prefix character prefix used for RDS sample variables
+#' @param label character string describing the estimator
 #'
 #' @return Data frame of Chords estimates for a single study with RDS sample
 #'
@@ -123,10 +123,10 @@ get_study_est_ht <- function(data,
 #' @importFrom purrr quietly
 get_study_est_chords <- function(data,
                                  type = c("mle", "integrated", "jeffreys"),
-                                 rds_prefix = "rds",
-                                 label = "chords",
                                  seed_condition = "rds_from == -999",
-                                 n_boot = 100) {
+                                 rds_prefix = "rds",
+                                 n_boot = 100,
+                                 label = "chords") {
 
 
   type <- match.arg(type)
@@ -172,7 +172,7 @@ get_study_est_chords <- function(data,
 
   .fit_chords_boot <-
     get_rds_boot(data = .data_mod,
-                 seed_condition = "rds_from == -999",
+                 seed_condition = seed_condition,
                  in_coupon = "refCoupNum",
                  out_coupon = "coup",
                  trait_var = "NS1",
@@ -202,13 +202,13 @@ get_study_est_chords <- function(data,
 #' NSUM estimatior
 #'
 #' @param data pass-through population data frame
-#' @param prefix character prefix used for PPS sample variables
 #' @param known character vector containing names of known groups
 #' @param hidden character vector containing names of hidden groups
+#' @param survey_design a formula describing the design of the survey
 #' @param degree_ratio numeric value between 0 and 1 representing degree ratio
 #' @param transmission_rate numeric value between 0 and 1 representing information transmission rate
 #' @param n_boot number of bootstrap resamples
-#' @param survey_design a formula describing the design of the survey
+#' @param prefix character prefix used for PPS sample variables
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of NSUM estimates for a single study with PPS sample
@@ -226,10 +226,10 @@ get_study_est_nsum <- function(data,
                                known,
                                hidden,
                                survey_design = ~ pps_cluster + strata(pps_stata),
-                               prefix = "pps",
                                degree_ratio = 1,
                                transmission_rate = 1,
                                n_boot = 1000,
+                               prefix = "pps",
                                label = "nsum") {
 
   .data_mod <-
@@ -295,6 +295,58 @@ get_study_est_nsum <- function(data,
 }
 
 
+#' Service/Object multiplier estimator
+#'
+#' @param data pass-through population data frame
+#' @param service_var name of variable that indicates service/object use by respondent
+#' @param total_service numeric value that indicates number of hidden population members who used the service. Defaults to truth from simulated dataset
+#' @param seed_condition character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples
+#' @param n_boot number of bootstrap resamples
+#' @param rds_prefix character prefix used for RDS sample variables
+#' @param label character string describing the estimator
+#'
+#' @details Function currently requires variable "hidden_visible_out" to be present in the data supplied and represent the hidden population out-report
+#'
+#' @return Data frame of service/object multiplier population size estimates for single study
+#' @export
+#'
+#' @import dplyr
+get_study_est_multiplier <- function(data,
+                                     service_var = "service_use",
+                                     total_service = sum(data$service_use[data$hidden == 1]),
+                                     seed_condition = "rds_from == -999",
+                                     n_boot = 100,
+                                     rds_prefix = "rds",
+                                     label = "multiplier") {
+
+  .data_mod <-
+    data %>%
+    dplyr::filter(dplyr::across(dplyr::all_of(rds_prefix), ~ . == 1))
+
+  .est_out <-
+    total_service/mean(.data_mod[[service_var]])
+
+
+  .est_boot <-
+    get_rds_boot(data = .data_mod,
+                 seed_condition = seed_condition,
+                 in_coupon = paste0(rds_prefix, "_own_coupon"),
+                 out_coupon = paste0(rds_prefix, "_coupon_"),
+                 trait_var = "hidden_visible_out",
+                 other_vars = c("hidden_visible_out", service_var, "name"),
+                 n_boot = n_boot) %>%
+    plyr::laply(., function(samp) {
+      total_service/mean(samp[[service_var]])
+    })
+
+  return(
+    data.frame(estimator_label = paste0("hidden_size_", label),
+               estimate = .est_out,
+               se =  sd(.est_boot),
+               inquiry_label = "hidden_size")
+  )
+}
+
 #' Generalized NSUM estimatior
 #'
 #' @param data pass-through population data frame
@@ -307,6 +359,38 @@ get_study_est_nsum <- function(data,
 #' @importFrom estimatr lm_robust
 get_study_est_gnsum <- function(data, label = "gnsum") {
 
+  # res$sample.y.F.H <- with(frame.df,
+  #                          sum((y.FH + y.notFH)*
+  #                                sampling.weight))
+  #
+  # res$sample.dbar.F.U <- with(frame.df,
+  #                             sum(d.degree*sampling.weight)/
+  #                               sum(sampling.weight))
+  #
+  # res$sample.d.F.U <- with(frame.df,
+  #                          sum(d.degree*sampling.weight))
+  #
+  # res$sample.dbar.F.F <- with(frame.df,
+  #                             sum((d.FH + d.FnotH)*
+  #                                   sampling.weight)/
+  #                               sum(sampling.weight))
+  #
+  # res$sample.vbar.H.F <- with(hidden.df,
+  #                             sum((v.FnotH + v.FH)*
+  #                                   sampling.weight)/
+  #                               sum(sampling.weight))
+  #
+  # res$sample.basic <- with(res,
+  #                          (sample.y.F.H / sample.d.F.U)*
+  #                            this.N)
+  #
+  # res$sample.adapted <- with(res,
+  #                            sample.y.F.H / sample.dbar.F.F)
+  #
+  # res$sample.generalized <- with(res,
+  #                                sample.y.F.H / sample.vbar.H.F)
+
+
   return(
     data.frame(estimator_label = paste0("hidden_prev_", label),
                estimate = fit_ht["est"],
@@ -316,7 +400,8 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 }
 
 
-#' Service multiplier estimator
+
+#' Mark-recapture estimator
 #'
 #' @param data pass-through population data frame
 #' @param label character string describing the estimator
@@ -326,7 +411,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 #'
 #' @import dplyr
 #' @importFrom estimatr lm_robust
-get_study_est_service <- function(data, label = "service") {
+get_study_est_recapture <- function(data, label = "service") {
 
   return(
     data.frame(estimator_label = paste0("hidden_prev_", label),

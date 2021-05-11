@@ -100,38 +100,44 @@ study_1 <-
     estimators = 
       list(
         rds = 
-          list(sspse = list(handler = get_study_est_sspse, 
-                            label = "rds_sspse",
+          list(sspse = list(handler = get_study_est_sspse,
                             prior_mean = 200,
                             mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
-                            rds_prefix = "rds"),
+                            rds_prefix = "rds", 
+                            label = "rds_sspse"),
                chords = list(handler = get_study_est_chords, 
                              type = "mle",
-                             label = "chords",
                              seed_condition = "rds_from == -999",
                              n_boot = 100,
-                             rds_prefix = "rds")),
+                             rds_prefix = "rds",
+                             label = "chords"),
+               multiplier = list(handler = get_study_est_multiplier, 
+                                 service_var = "service_use",
+                                 seed_condition = "rds_from == -999",
+                                 n_boot = 100,
+                                 rds_prefix = "rds",
+                                 label = "rds_multi")),
         tls =
           list(ht = list(handler = get_study_est_ht,
                          prefix = "tls",
                          label = "tls_ht"),
                nsum = list(handler = get_study_est_nsum,
-                           prefix = "tls",
                            known = c("known", "known_2", "known_3"),
                            hidden = "hidden_visible_out",
                            survey_design = ~ tls_cluster,
                            n_boot = 100,
+                           prefix = "tls",
                            label = "tls_nsum")),
         pps = 
           list(ht = list(handler = get_study_est_ht,
                          prefix = "pps",
                          label = "pps_ht"),
                nsum = list(handler = get_study_est_nsum,
-                           prefix = "pps",
                            known = c("known", "known_2", "known_3"),
                            hidden = "hidden_visible_out",
                            survey_design = ~ pps_cluster + strata(pps_strata),
                            n_boot = 100,
+                           prefix = "pps",
                            label = "pps_nsum"))
       )
   )
@@ -228,19 +234,21 @@ draw_inquiry(study_population +
 ## Step 5. Declare estimators used in the study
 
 ```{r example_estimators}
-estimator_sspse <- do.call(what = declare_estimator, 
+est_sspse <- do.call(what = declare_estimator, 
                            args = study_1$estimators$rds$sspse)
-estimator_chords <- do.call(what = declare_estimator, 
+est_chords <- do.call(what = declare_estimator, 
                             args = study_1$estimators$rds$chords)
+est_multi <- do.call(what = declare_estimator, 
+                            args = study_1$estimators$rds$multiplier)
 
-estimator_ht_pps <- do.call(what = declare_estimator, 
+est_ht_pps <- do.call(what = declare_estimator, 
                             args = study_1$estimators$pps$ht)
-estimator_ht_tls <- do.call(what = declare_estimator, 
+est_ht_tls <- do.call(what = declare_estimator, 
                             args = study_1$estimators$tls$ht)
 
-estimator_nsum_tls <- do.call(what = declare_estimator,
+est_nsum_tls <- do.call(what = declare_estimator,
                               args = study_1$estimators$tls$nsum)
-estimator_nsum_pps <- do.call(what = declare_estimator, 
+est_nsum_pps <- do.call(what = declare_estimator, 
                           args = study_1$estimators$pps$nsum)
 
 
@@ -248,9 +256,9 @@ set.seed(19872312)
 draw_estimates(study_population +
                  study_sample_rds + study_sample_pps + study_sample_tls +
                  study_estimands +
-                 estimator_sspse + estimator_chords + 
-                 estimator_ht_tls + estimator_ht_pps +
-                 estimator_nsum_tls + estimator_nsum_pps)
+                 est_sspse + est_chords + est_multi +
+                 est_ht_tls + est_ht_pps +
+                 est_nsum_tls + est_nsum_pps)
 ```
 
 ## Step 6. Diagnose study design
@@ -271,9 +279,9 @@ study_simulations <-
     study_population +
       study_sample_rds + study_sample_pps + study_sample_tls +
       study_estimands +
-      estimator_sspse + estimator_chords + 
-      estimator_ht_tls + estimator_ht_pps +
-      estimator_nsum_tls + estimator_nsum_pps, 
+      est_sspse + est_chords + est_multi +
+      est_ht_tls + est_ht_pps +
+      est_nsum_tls + est_nsum_pps, 
     sims = 20)
 
 diagnose_design(study_simulations, 

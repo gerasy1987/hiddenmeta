@@ -7,10 +7,10 @@
 get_study_est_chords(
   data,
   type = c("mle", "integrated", "jeffreys"),
-  rds_prefix = "rds",
-  label = "chords",
   seed_condition = "rds_from == -999",
-  n_boot = 100
+  rds_prefix = "rds",
+  n_boot = 100,
+  label = "chords"
 )
 }
 \arguments{
@@ -18,13 +18,13 @@ get_study_est_chords(
 
 \item{type}{a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, or \code{jeffreys}. See \code{?chords::Estimate.b.k} and the original paper from the references for details}
 
-\item{rds_prefix}{character prefix used for RDS sample variables}
-
-\item{label}{character string describing the estimator}
-
 \item{seed_condition}{character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples}
 
+\item{rds_prefix}{character prefix used for RDS sample variables}
+
 \item{n_boot}{number of bootstrap resamples}
+
+\item{label}{character string describing the estimator}
 }
 \value{
 Data frame of Chords estimates for a single study with RDS sample
