@@ -138,7 +138,18 @@ study_1 <-
                            survey_design = ~ pps_cluster + strata(pps_strata),
                            n_boot = 100,
                            prefix = "pps",
-                           label = "pps_nsum"))
+                           label = "pps_nsum")),
+        all = 
+          list(recap = list(handler = get_study_est_recapture,
+                            capture_vars = paste0("loc_", 1:4),
+                            model = "Mt",
+                            hidden_condition = "hidden == 1",
+                            label = "all_recap"),
+               recap2 = list(handler = get_study_est_recapture,
+                             capture_vars = c("rds", "pps"),
+                             model = "Mt",
+                             hidden_condition = "hidden == 1",
+                             label = "samp_recap"))
       )
   )
 
@@ -235,22 +246,27 @@ draw_inquiry(study_population +
 
 ```{r example_estimators}
 est_sspse <- do.call(what = declare_estimator, 
-                           args = study_1$estimators$rds$sspse)
+                     args = study_1$estimators$rds$sspse)
 est_chords <- do.call(what = declare_estimator, 
-                            args = study_1$estimators$rds$chords)
+                      args = study_1$estimators$rds$chords)
 est_multi <- do.call(what = declare_estimator, 
-                            args = study_1$estimators$rds$multiplier)
+                     args = study_1$estimators$rds$multiplier)
 
 est_ht_pps <- do.call(what = declare_estimator, 
-                            args = study_1$estimators$pps$ht)
+                      args = study_1$estimators$pps$ht)
 est_ht_tls <- do.call(what = declare_estimator, 
-                            args = study_1$estimators$tls$ht)
+                      args = study_1$estimators$tls$ht)
 
 est_nsum_tls <- do.call(what = declare_estimator,
-                              args = study_1$estimators$tls$nsum)
+                        args = study_1$estimators$tls$nsum)
 est_nsum_pps <- do.call(what = declare_estimator, 
-                          args = study_1$estimators$pps$nsum)
+                        args = study_1$estimators$pps$nsum)
 
+est_recap <- do.call(what = declare_estimator, 
+                     args = study_1$estimators$all$recap)
+
+est_recap2 <- do.call(what = declare_estimator, 
+                      args = study_1$estimators$all$recap2)
 
 set.seed(19872312)
 draw_estimates(study_population +
@@ -258,7 +274,8 @@ draw_estimates(study_population +
                  study_estimands +
                  est_sspse + est_chords + est_multi +
                  est_ht_tls + est_ht_pps +
-                 est_nsum_tls + est_nsum_pps)
+                 est_nsum_tls + est_nsum_pps +
+                 est_recap + est_recap2)
 ```
 
 ## Step 6. Diagnose study design
@@ -281,7 +298,8 @@ study_simulations <-
       study_estimands +
       est_sspse + est_chords + est_multi +
       est_ht_tls + est_ht_pps +
-      est_nsum_tls + est_nsum_pps, 
+      est_nsum_tls + est_nsum_pps +
+      est_recap + est_recap2, 
     sims = 20)
 
 diagnose_design(study_simulations, 
@@ -456,8 +474,18 @@ study_2 <-
                         hidden = "hidden_visible_out",
                         survey_design = ~ pps_cluster + strata(pps_strata),
                         n_boot = 100,
-                        label = "pps_nsum")
-          )
+                        label = "pps_nsum")),
+        all = 
+          list(recap = list(handler = get_study_est_recapture,
+                            capture_vars = paste0("loc_", 1:2),
+                            model = "Mt",
+                            hidden_condition = "hidden == 1",
+                            label = "all_recap"),
+               recap2 = list(handler = get_study_est_recapture,
+                             capture_vars = c("rds", "pps"),
+                             model = "Mt",
+                             hidden_condition = "hidden == 1",
+                             label = "samp_recap"))
       )
   )
 

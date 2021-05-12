@@ -2,12 +2,24 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_recapture}
 \alias{get_study_est_recapture}
-\title{Mark-recapture estimator}
+\title{Capture-recapture estimator}
 \usage{
-get_study_est_recapture(data, label = "service")
+get_study_est_recapture(
+  data,
+  capture_vars = paste0("loc_", 1:4),
+  model = "Mt",
+  hidden_condition = "hidden == 1",
+  label = "recapture"
+)
 }
 \arguments{
-\item{data}{pass-through population data frame}
+\item{data}{pass-through population data frame that contains capture indicators}
+
+\item{capture_vars}{character vector giving names of variables with capture indicators}
+
+\item{model}{character string giving capture-recapture Log-Linear model to estimate}
+
+\item{hidden_condition}{character string giving condition to identify members of hidden population}
 
 \item{label}{character string describing the estimator}
 }
@@ -15,5 +27,8 @@ get_study_est_recapture(data, label = "service")
 Data frame of HT estimates for single study
 }
 \description{
-Mark-recapture estimator
+Capture-recapture estimator
+}
+\references{
+Louis-Paul Rivest, Sophie Baillargeon. “The Rcapture package.” (2019). \url{https://cran.r-project.org/package=Rcapture}.
 }

@@ -401,23 +401,43 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 
 
 
-#' Mark-recapture estimator
+#' Capture-recapture estimator
 #'
-#' @param data pass-through population data frame
+#' @param data pass-through population data frame that contains capture indicators
+#' @param capture_vars character vector giving names of variables with capture indicators
+#' @param model character string giving capture-recapture Log-Linear model to estimate
+#' @param hidden_condition character string giving condition to identify members of hidden population
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of HT estimates for single study
 #' @export
 #'
+#' @references
+#' Louis-Paul Rivest, Sophie Baillargeon. “The Rcapture package.” (2019). \url{https://cran.r-project.org/package=Rcapture}.
+#'
 #' @import dplyr
-#' @importFrom estimatr lm_robust
-get_study_est_recapture <- function(data, label = "service") {
+#' @importFrom Rcapture closedp.bc
+get_study_est_recapture <- function(data,
+                                    capture_vars = paste0("loc_", 1:4),
+                                    model = "Mt",
+                                    hidden_condition = "hidden == 1",
+                                    label = "recapture") {
+
+  .est_out <-
+    data %>%
+    dplyr::filter(if_any(all_of(capture_vars), ~ . == 1), eval(parse(text = hidden_condition))) %>%
+    dplyr::select(all_of(capture_vars)) %>%
+    Rcapture::closedp.bc(X = .,
+                         dfreq = FALSE,
+                         dtype = "hist",
+                         t = length(capture_vars),
+                         m = model)
 
   return(
-    data.frame(estimator_label = paste0("hidden_prev_", label),
-               estimate = fit_ht["est"],
-               se =  fit_ht["se"],
-               inquiry_label = "hidden_prev")
+    data.frame(estimator_label = paste0("hidden_size_", label),
+               estimate = .est_out$results[1],
+               se =  .est_out$results[2],
+               inquiry_label = "hidden_size")
   )
 }
 
