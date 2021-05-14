@@ -2,12 +2,31 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_ht}
 \alias{get_study_est_ht}
-\title{Horvitz-Thompson prevalence estimator using weighted regression}
+\title{Horvitz-Thompson prevalence estimator using}
 \usage{
-get_study_est_ht(data, prefix = "pps", label = "ht")
+get_study_est_ht(
+  data,
+  hidden_var = "hidden",
+  weight_var = "pps_weight",
+  survey_design = ~pps_cluster + strata(pps_strata),
+  n_boot = 100,
+  parallel_boot = TRUE,
+  prefix = "pps",
+  label = "ht"
+)
 }
 \arguments{
 \item{data}{pass-through population data frame}
+
+\item{hidden_var}{variable containing hidden group membership indicator}
+
+\item{weight_var}{variable containing sampling weights}
+
+\item{survey_design}{a formula describing the design of the survey (for bootstrap)}
+
+\item{n_boot}{number of bootstrap resamples}
+
+\item{parallel_boot}{logical, whether to compute bootstrap samples in parallel using \code{foreach} package}
 
 \item{prefix}{character prefix used for sampling variables (has to include \code{[prefix]_weights})}
 
@@ -17,5 +36,8 @@ get_study_est_ht(data, prefix = "pps", label = "ht")
 Data frame of HT estimates for a single study
 }
 \description{
-Horvitz-Thompson prevalence estimator using weighted regression
+Horvitz-Thompson prevalence estimator using
+}
+\references{
+Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 }

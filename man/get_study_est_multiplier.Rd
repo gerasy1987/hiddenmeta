@@ -10,6 +10,7 @@ get_study_est_multiplier(
   total_service = sum(data$service_use[data$hidden == 1]),
   seed_condition = "rds_from == -999",
   n_boot = 100,
+  parallel_boot = TRUE,
   rds_prefix = "rds",
   label = "multiplier"
 )
@@ -25,6 +26,8 @@ get_study_est_multiplier(
 
 \item{n_boot}{number of bootstrap resamples}
 
+\item{parallel_boot}{logical, whether to compute bootstrap samples in parallel using \code{foreach} package}
+
 \item{rds_prefix}{character prefix used for RDS sample variables}
 
 \item{label}{character string describing the estimator}
@@ -37,4 +40,7 @@ Service/Object multiplier estimator
 }
 \details{
 Function currently requires variable "hidden_visible_out" to be present in the data supplied and represent the hidden population out-report
+}
+\references{
+Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 }

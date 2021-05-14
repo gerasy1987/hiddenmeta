@@ -57,46 +57,76 @@ get_study_est_sspse <- function(data,
   )
 }
 
-#' Horvitz-Thompson prevalence estimator using weighted regression
+#' Horvitz-Thompson prevalence estimator using
 #'
 #' @param data pass-through population data frame
+#' @param hidden_var variable containing hidden group membership indicator
+#' @param weight_var variable containing sampling weights
+#' @param survey_design a formula describing the design of the survey (for bootstrap)
+#' @param n_boot number of bootstrap resamples
+#' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
 #' @param prefix character prefix used for sampling variables (has to include \code{[prefix]_weights})
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of HT estimates for a single study
 #' @export
 #'
+#' @references
+#' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
+#'
 #' @import dplyr
-#' @importFrom estimatr lm_robust
 get_study_est_ht <- function(data,
+                             hidden_var = "hidden",
+                             weight_var = "pps_weight",
+                             survey_design = ~ pps_cluster + strata(pps_strata),
+                             n_boot = 100,
+                             parallel_boot = TRUE,
                              prefix = "pps",
                              label = "ht") {
 
-  .fit_ht <-
-    data %>%
-    dplyr::filter(dplyr::if_all(dplyr::all_of(prefix), ~ . == 1)) %>%
-    estimatr::lm_robust(hidden ~ 1, weights = get(paste0(prefix, "_weight")), data = .) %>%
-    {c(est = unname(.$coefficients), se = unname(.$std.error))}
+  if (parallel_boot) {
+    requireNamespace(c("doParallel", "parallel"))
+    doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
+  }
 
-  # quiet_HT <- quietly(sampling::HTestimator)
-  # quiet_varHT <- quietly(sampling::varHT)
-  #
-  # fit_ht <-
+  .data_mod <-
+    data %>%
+    dplyr::filter(dplyr::if_all(dplyr::all_of(prefix), ~ . == 1))
+
+  if (any(is.na(.data_mod[[weight_var]])))
+    stop("there are missing values in sampling weights provided")
+  if (any(is.na(.data_mod[[hidden_var]])))
+    stop("there are missing values in hidden population indicator provided")
+
+  .est_ht <-
+    crossprod(.data_mod[[hidden_var]],
+              .data_mod[[weight_var]])
+
+  .est_ht_boot <-
+    get_rescaled_boot(data = .data_mod,
+                      survey_design = survey_design,
+                      n_boot = n_boot) %>%
+    plyr::laply(., function(samp) {
+      .data_mod %>%
+        dplyr::mutate(rescale_wgt = samp$weight.scale) %>%
+        dplyr::filter(rescale_wgt != 0) %>%
+        {
+          crossprod(.[[hidden_var]],
+                    .$rescale_wgt * .[[weight_var]])
+        }
+    }, .parallel = parallel_boot)
+
+  # .fit_ht <-
   #   data %>%
-  #   dplyr::filter_at(dplyr::vars(dplyr::all_of(prefix)), ~ . == 1) %>%
-  #   {
-  #     c(est = quiet_HT(y = .$hidden_visible, pik = unlist(.[,paste0(pps_prefix, "_share")]))$result,
-  #       se = sqrt(quiet_varHT(
-  #         y = .$hidden_visible,
-  #         pikl = sampling::UPmidzunopi2(unlist(.[,paste0(pps_prefix, "_prob")])), method = 1)$result))
-  #
-  #   }
+  #   dplyr::filter(dplyr::if_all(dplyr::all_of(prefix), ~ . == 1)) %>%
+  #   estimatr::horvitz_thompson(hidden ~ 1, weights = get(paste0(prefix, "_weight")), data = .) %>%
+  #   {c(est = unname(.$coefficients), se = unname(.$std.error))}
 
  return(
-   data.frame(estimator_label = paste0(c("hidden_prev", "hidden_size"), "_", label),
-              estimate = c(1, unique(data$total)) * .fit_ht["est"],
-              se =  c(1, unique(data$total)) * .fit_ht["se"],
-              inquiry_label = c("hidden_prev", "hidden_size"))
+   data.frame(estimator_label = paste0(c("hidden_size"), "_", label),
+              estimate = .est_ht,
+              se =  sd(.est_ht_boot),
+              inquiry_label = c("hidden_size"))
  )
 }
 
@@ -107,6 +137,7 @@ get_study_est_ht <- function(data,
 #' @param type a character vector with the type of estimation. Can be one of \code{mle}, \code{integrated}, or \code{jeffreys}. See \code{?chords::Estimate.b.k} and the original paper from the references for details
 #' @param seed_condition character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples
 #' @param n_boot number of bootstrap resamples
+#' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
 #' @param rds_prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
@@ -126,8 +157,13 @@ get_study_est_chords <- function(data,
                                  seed_condition = "rds_from == -999",
                                  rds_prefix = "rds",
                                  n_boot = 100,
+                                 parallel_boot = TRUE,
                                  label = "chords") {
 
+  if (parallel_boot) {
+    requireNamespace(c("doParallel", "parallel"))
+    doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
+  }
 
   type <- match.arg(type)
   .K <- log2(length(grep(pattern = "^type_.*_out$", names(data))))
@@ -188,7 +224,8 @@ get_study_est_chords <- function(data,
                  x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
                  w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
       )
-    })
+    },
+    .parallel = parallel_boot)
 
   return(
     data.frame(estimator_label = paste0(c("hidden_size_", "degree_hidden_"), label),
@@ -208,6 +245,7 @@ get_study_est_chords <- function(data,
 #' @param degree_ratio numeric value between 0 and 1 representing degree ratio
 #' @param transmission_rate numeric value between 0 and 1 representing information transmission rate
 #' @param n_boot number of bootstrap resamples
+#' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
 #' @param prefix character prefix used for PPS sample variables
 #' @param label character string describing the estimator
 #'
@@ -217,6 +255,7 @@ get_study_est_chords <- function(data,
 #' @references
 #' Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
 #' Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
+#' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 #'
 #' @import dplyr
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
@@ -225,12 +264,18 @@ get_study_est_chords <- function(data,
 get_study_est_nsum <- function(data,
                                known,
                                hidden,
-                               survey_design = ~ pps_cluster + strata(pps_stata),
+                               survey_design = ~ pps_cluster + strata(pps_strata),
                                degree_ratio = 1,
                                transmission_rate = 1,
                                n_boot = 1000,
+                               parallel_boot = TRUE,
                                prefix = "pps",
                                label = "nsum") {
+
+  if (parallel_boot) {
+    requireNamespace(c("doParallel", "parallel"))
+    doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
+  }
 
   .data_mod <-
     data %>%
@@ -257,7 +302,7 @@ get_study_est_nsum <- function(data,
       total.popn.size = .known_pops[1],
       killworth.se = FALSE,
       y.vals = hidden,
-      weights = NULL,
+      weights = paste0(prefix, "_weight"),
       missing = "ignore",
       deg.ratio = degree_ratio,
       tx.rate = transmission_rate)$result
@@ -272,18 +317,19 @@ get_study_est_nsum <- function(data,
         .data_mod %>%
           dplyr::mutate(index = 1:n()) %>%
           dplyr::left_join(., wgt, by = "index") %>%
+          dplyr::mutate(rescaled_weight = weight.scale * get(paste0(prefix, "_weight"))) %>%
           networkreporting::nsum.estimator(
             survey.data = .,
             d.hat.vals = "d_est",
             total.popn.size = .known_pops[1],
             killworth.se = FALSE,
             y.vals = hidden,
-            weights = "weight.scale",
+            weights = "rescaled_weight",
             missing = "ignore",
             deg.ratio = degree_ratio,
             tx.rate = transmission_rate)
-      }
-    ) %>%
+      },
+      .parallel = parallel_boot) %>%
     bind_rows()
 
   return(
@@ -302,6 +348,7 @@ get_study_est_nsum <- function(data,
 #' @param total_service numeric value that indicates number of hidden population members who used the service. Defaults to truth from simulated dataset
 #' @param seed_condition character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples
 #' @param n_boot number of bootstrap resamples
+#' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
 #' @param rds_prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
@@ -310,14 +357,23 @@ get_study_est_nsum <- function(data,
 #' @return Data frame of service/object multiplier population size estimates for single study
 #' @export
 #'
+#' @references
+#' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
+#'
 #' @import dplyr
 get_study_est_multiplier <- function(data,
                                      service_var = "service_use",
                                      total_service = sum(data$service_use[data$hidden == 1]),
                                      seed_condition = "rds_from == -999",
                                      n_boot = 100,
+                                     parallel_boot = TRUE,
                                      rds_prefix = "rds",
                                      label = "multiplier") {
+
+  if (parallel_boot) {
+    requireNamespace(c("doParallel", "parallel"))
+    doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
+  }
 
   .data_mod <-
     data %>%
@@ -401,7 +457,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 
 
 
-#' Capture-recapture estimator
+#' Capture-recapture estimator for closed population
 #'
 #' @param data pass-through population data frame that contains capture indicators
 #' @param capture_vars character vector giving names of variables with capture indicators

@@ -8,10 +8,11 @@ get_study_est_nsum(
   data,
   known,
   hidden,
-  survey_design = ~pps_cluster + strata(pps_stata),
+  survey_design = ~pps_cluster + strata(pps_strata),
   degree_ratio = 1,
   transmission_rate = 1,
   n_boot = 1000,
+  parallel_boot = TRUE,
   prefix = "pps",
   label = "nsum"
 )
@@ -31,6 +32,8 @@ get_study_est_nsum(
 
 \item{n_boot}{number of bootstrap resamples}
 
+\item{parallel_boot}{logical, whether to compute bootstrap samples in parallel using \code{foreach} package}
+
 \item{prefix}{character prefix used for PPS sample variables}
 
 \item{label}{character string describing the estimator}
@@ -44,4 +47,5 @@ NSUM estimatior
 \references{
 Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
 Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
+Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 }

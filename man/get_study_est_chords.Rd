@@ -10,6 +10,7 @@ get_study_est_chords(
   seed_condition = "rds_from == -999",
   rds_prefix = "rds",
   n_boot = 100,
+  parallel_boot = TRUE,
   label = "chords"
 )
 }
@@ -23,6 +24,8 @@ get_study_est_chords(
 \item{rds_prefix}{character prefix used for RDS sample variables}
 
 \item{n_boot}{number of bootstrap resamples}
+
+\item{parallel_boot}{logical, whether to compute bootstrap samples in parallel using \code{foreach} package}
 
 \item{label}{character string describing the estimator}
 }

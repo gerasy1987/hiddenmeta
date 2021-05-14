@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_recapture}
 \alias{get_study_est_recapture}
-\title{Capture-recapture estimator}
+\title{Capture-recapture estimator for closed population}
 \usage{
 get_study_est_recapture(
   data,
@@ -27,7 +27,7 @@ get_study_est_recapture(
 Data frame of HT estimates for single study
 }
 \description{
-Capture-recapture estimator
+Capture-recapture estimator for closed population
 }
 \references{
 Louis-Paul Rivest, Sophie Baillargeon. “The Rcapture package.” (2019). \url{https://cran.r-project.org/package=Rcapture}.
