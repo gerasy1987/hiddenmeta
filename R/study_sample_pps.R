@@ -93,12 +93,12 @@ sample_pps <-
                                                 size = min(n(), nclustmax_per_strat),
                                                 prob = cluster_prop), 1, 0),
                 dat =
-                  purrr::map(
-                    dat,
+                  purrr::map2(
+                    dat, cluster_prop,
                     ~ dplyr::mutate(.x,
                                     sampled = sample(c(rep(1,min(n(), nmax_per_cluster)),
                                                        rep(0,max(0, n() - nmax_per_cluster)))),
-                                    weight = sum(sampled)/n()))
+                                    weight = n()/(sum(sampled) * cluster_prop)))
               ) %>%
               tidyr::unnest(cols = c(dat)) %>%
               dplyr::bind_rows(dplyr::filter(strat_df, frame != 1), .) %>%
@@ -108,13 +108,13 @@ sample_pps <-
           } else {
             strat_df %>%
               dplyr::mutate(cluster_id = 1:n(),
-                            cluster_prop = 1/n(),
-                            weight = frame / sum(frame)) %>%
+                            cluster_prop = 1/n()) %>%
               dplyr::filter(frame == 1) %>%
               dplyr::mutate(sampled =
                               sample(c(rep(1,min(n(), target_n_pps)),
                                        rep(0,max(0, n() - target_n_pps)))),
-                            sampled_cluster = sampled) %>%
+                            sampled_cluster = sampled,
+                            weight = sum(frame)/sum(sampled)) %>%
               dplyr::bind_rows(dplyr::filter(strat_df, frame != 1), .) %>%
               dplyr::mutate(across(c(sampled_cluster, sampled), ~ ifelse(is.na(.), 0, .)))
           }

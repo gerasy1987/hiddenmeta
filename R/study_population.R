@@ -95,7 +95,7 @@ get_study_population <-
             as.data.frame(
               as.matrix(
                 .g_adj %*% as.matrix(.[,names(.)[grepl("_visible$", names(.))]]))),
-          paste0(names(.)[grepl("_visible$", names(.))], "_out")),
+            paste0(names(.)[grepl("_visible$", names(.))], "_out")),
           `names<-`(
             as.data.frame(
               as.matrix(
