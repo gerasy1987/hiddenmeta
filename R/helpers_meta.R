@@ -134,10 +134,11 @@ get_multi_estimates <- function(data, estimators_args) {
         # cat(st, ",", samp, ",", est, "\n")
 
         .est_out <-
-          dplyr::bind_rows(.est_out,
-                           apply_args(study = st,
-                                      df = data$population[[which(data$study == st)]],
-                                      args = estimators_args[[st]][[samp]][[est]]))
+          apply_args(study = st,
+                     df = data$population[[which(data$study == st)]],
+                     args = estimators_args[[st]][[samp]][[est]]) %>%
+          dplyr::mutate(inquiry_label = paste0(st, "_", inquiry_label)) %>%
+          dplyr::bind_rows(.est_out, .)
       }
     }
   }

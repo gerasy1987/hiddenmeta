@@ -8,6 +8,7 @@ get_study_est_ht(
   data,
   hidden_var = "hidden",
   weight_var = "pps_weight",
+  total_var = "total",
   survey_design = ~pps_cluster + strata(pps_strata),
   n_boot = 100,
   parallel_boot = TRUE,
@@ -21,6 +22,8 @@ get_study_est_ht(
 \item{hidden_var}{variable containing hidden group membership indicator}
 
 \item{weight_var}{variable containing sampling weights}
+
+\item{total_var}{variable containing size of population for prevalence estimation}
 
 \item{survey_design}{a formula describing the design of the survey (for bootstrap)}
 

@@ -300,7 +300,7 @@ study_simulations <-
       est_ht_tls + est_ht_pps +
       est_nsum_tls + est_nsum_pps +
       est_recap + est_recap2, 
-    sims = 20)
+    sims = 10)
 
 diagnose_design(study_simulations, 
                 diagnosands = study_diagnosands, sims = 2)
@@ -527,7 +527,8 @@ multi_simulations <-
   simulate_design(multi_population +
                     multi_sampling + 
                     multi_inquiry + 
-                    multi_estimators, sims = 10)
+                    multi_estimators, 
+                  sims = 10)
 
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands)

@@ -62,6 +62,7 @@ get_study_est_sspse <- function(data,
 #' @param data pass-through population data frame
 #' @param hidden_var variable containing hidden group membership indicator
 #' @param weight_var variable containing sampling weights
+#' @param total_var variable containing size of population for prevalence estimation
 #' @param survey_design a formula describing the design of the survey (for bootstrap)
 #' @param n_boot number of bootstrap resamples
 #' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
@@ -78,6 +79,7 @@ get_study_est_sspse <- function(data,
 get_study_est_ht <- function(data,
                              hidden_var = "hidden",
                              weight_var = "pps_weight",
+                             total_var = "total",
                              survey_design = ~ pps_cluster + strata(pps_strata),
                              n_boot = 100,
                              parallel_boot = TRUE,
@@ -123,10 +125,10 @@ get_study_est_ht <- function(data,
   #   {c(est = unname(.$coefficients), se = unname(.$std.error))}
 
  return(
-   data.frame(estimator_label = paste0(c("hidden_size"), "_", label),
-              estimate = .est_ht,
-              se =  sd(.est_ht_boot),
-              inquiry_label = c("hidden_size"))
+   data.frame(estimator_label = paste0(c("hidden_size", "hidden_prev"), "_", label),
+              estimate = c(.est_ht, .est_ht/unique(.data_mod[[total_var]])),
+              se =  c(sd(.est_ht_boot), sd(.est_ht_boot/unique(.data_mod[[total_var]]))),
+              inquiry_label = c("hidden_size", "hidden_prev"))
  )
 }
 

@@ -1,7 +1,7 @@
 Package: hiddenmeta
 Type: Package
 Title: Meta-analysis of hidden population studies
-Version: 0.1.5
+Version: 0.1.7
 Date: 2021-05-06
 Author: 
     c(person(given = "Georgiy", family = "Syunyaev", email = "gs2716@columbia.edu",
@@ -36,7 +36,8 @@ Imports:
     networkreporting (>= 0.1.0),
     surveybootstrap (>= 0.0.1),
     fastDummies, 
-    MultiRNG, 
+    MultiRNG,
+    doParallel,
     testthat, 
     methods
 Suggests: 
