@@ -82,7 +82,7 @@ get_study_est_ht <- function(data,
                              total_var = "total",
                              survey_design = ~ pps_cluster + strata(pps_strata),
                              n_boot = 100,
-                             parallel_boot = TRUE,
+                             parallel_boot = FALSE,
                              prefix = "pps",
                              label = "ht") {
 
@@ -159,7 +159,7 @@ get_study_est_chords <- function(data,
                                  seed_condition = "rds_from == -999",
                                  rds_prefix = "rds",
                                  n_boot = 100,
-                                 parallel_boot = TRUE,
+                                 parallel_boot = FALSE,
                                  label = "chords") {
 
   if (parallel_boot) {
@@ -270,7 +270,7 @@ get_study_est_nsum <- function(data,
                                degree_ratio = 1,
                                transmission_rate = 1,
                                n_boot = 1000,
-                               parallel_boot = TRUE,
+                               parallel_boot = FALSE,
                                prefix = "pps",
                                label = "nsum") {
 
@@ -368,7 +368,7 @@ get_study_est_multiplier <- function(data,
                                      total_service = sum(data$service_use[data$hidden == 1]),
                                      seed_condition = "rds_from == -999",
                                      n_boot = 100,
-                                     parallel_boot = TRUE,
+                                     parallel_boot = FALSE,
                                      rds_prefix = "rds",
                                      label = "multiplier") {
 
