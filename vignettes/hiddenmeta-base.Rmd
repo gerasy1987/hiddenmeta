@@ -36,7 +36,7 @@ devtools::install_github("gerasy1987/hiddenmeta", build_vignettes = TRUE)
 library(hiddenmeta)
 library(DeclareDesign)
 library(igraph)
-
+library(knitr)
 ```
 
 ## Step 1. Provide study design features
@@ -164,7 +164,9 @@ study_population <-
           args = study_1$pop)
 
 set.seed(19872312)
-( example_pop <- study_population() )
+example_pop <- study_population()
+
+example_pop %>%  head() %>% DT::datatable(options = list(dom = 'tp')) 
 
 ```
 
@@ -207,7 +209,9 @@ study_sample_rds <-
           args = study_1$sample$rds)
 
 set.seed(19872312)
-draw_data(study_population + study_sample_rds)
+draw_data(study_population + study_sample_rds) %>%  
+  head() %>% 
+  DT::datatable(options = list(dom = 'tp')) 
 ```
 
 ```{r example_pps}
@@ -216,7 +220,8 @@ study_sample_pps <-
           args = study_1$sample$pps)
 
 set.seed(19872312)
-draw_data(study_population + study_sample_rds + study_sample_pps)
+draw_data(study_population + study_sample_rds + study_sample_pps) %>% head() %>% 
+  DT::datatable(options = list(dom = 'tp')) 
 ```
 
 ```{r example_tls}
@@ -226,7 +231,8 @@ study_sample_tls <-
 
 set.seed(19872312)
 draw_data(study_population + 
-            study_sample_rds + study_sample_pps + study_sample_tls)
+            study_sample_rds + study_sample_pps + study_sample_tls) %>% head() %>% 
+  DT::datatable(options = list(dom = 'tp')) 
 ```
 
 ## Step 4. Declare study level estimands
@@ -239,7 +245,8 @@ study_estimands <-
 set.seed(19872312)
 draw_inquiry(study_population + 
                 # study_sample_rds + study_sample_pps + study_sample_tls + 
-                study_estimands)
+                study_estimands) %>% 
+  kable(digits = 2)
 ```
 
 ## Step 5. Declare estimators used in the study
@@ -275,7 +282,8 @@ draw_estimates(study_population +
                  est_sspse + est_chords + est_multi +
                  est_ht_tls + est_ht_pps +
                  est_nsum_tls + est_nsum_pps +
-                 est_recap + est_recap2)
+                 est_recap + est_recap2) %>%
+  kable()
 ```
 
 ## Step 6. Diagnose study design
@@ -303,7 +311,10 @@ study_simulations <-
     sims = 10)
 
 diagnose_design(study_simulations, 
-                diagnosands = study_diagnosands, sims = 2)
+                diagnosands = study_diagnosands, sims = 2) %>% 
+  reshape_diagnosis %>% select(-'Design Label') %>%
+  kable()
+
 ```
 
 ## Meta-analysis Draft structure
@@ -519,9 +530,15 @@ multi_design <- multi_population + multi_sampling + multi_inquiry + multi_estima
 
 
 set.seed(19872312)
-draw_data(multi_design)
-draw_inquiry(multi_design)
-draw_estimates(multi_design)
+draw_data(multi_design) %>% 
+  kable()
+
+draw_inquiry(multi_design) %>% 
+  kable()
+
+draw_estimates(multi_design)%>% 
+  kable()
+
 
 multi_simulations <- 
   simulate_design(multi_population +
@@ -531,7 +548,9 @@ multi_simulations <-
                   sims = 10)
 
 diagnose_design(simulations_df = multi_simulations, 
-                diagnosands = study_diagnosands)
+                diagnosands = study_diagnosands)%>% 
+  reshape_diagnosis %>% select(-'Design Label') %>%
+  kable()
 
 ```
 
