@@ -86,7 +86,7 @@ study_1 <-
                              seed_condition = "rds_from == -999",
                              n_boot = 100,
                              rds_prefix = "rds",
-                             label = "chords"),
+                             label = "rds_chords"),
                multiplier = list(handler = get_study_est_multiplier, 
                                  service_var = "service_use",
                                  seed_condition = "rds_from == -999",
@@ -134,8 +134,7 @@ study_1 <-
 
 ``` r
 study_population <-
-  do.call(what = declare_population,
-          args = study_1$pop)
+  eval(as.call(c(list(declare_population), study_1$pop)))
 
 set.seed(19872312)
 ( example_pop <- study_population() )
@@ -209,8 +208,7 @@ study population data frame (unless you specify
 
 ``` r
 study_sample_rds <- 
-  do.call(what = declare_sampling, 
-          args = study_1$sample$rds)
+  eval(as.call(c(list(declare_sampling), study_1$sample$rds)))
 
 set.seed(19872312)
 draw_data(study_population + study_sample_rds)
@@ -249,8 +247,7 @@ draw_data(study_population + study_sample_rds)
 
 ``` r
 study_sample_pps <- 
-  do.call(what = declare_sampling, 
-          args = study_1$sample$pps)
+  eval(as.call(c(list(declare_sampling), study_1$sample$pps)))
 
 set.seed(19872312)
 draw_data(study_population + study_sample_rds + study_sample_pps)
@@ -292,8 +289,7 @@ draw_data(study_population + study_sample_rds + study_sample_pps)
 
 ``` r
 study_sample_tls <- 
-  do.call(what = declare_sampling, 
-          args = study_1$sample$tls)
+  eval(as.call(c(list(declare_sampling), study_1$sample$tls)))
 
 set.seed(19872312)
 draw_data(study_population + 
@@ -340,8 +336,7 @@ draw_data(study_population +
 
 ``` r
 study_estimands <- 
-  do.call(what = declare_inquiry, 
-          args = study_1$inquiries)
+  eval(as.call(c(list(declare_inquiry), study_1$inquiries)))
 
 set.seed(19872312)
 draw_inquiry(study_population + 
@@ -357,28 +352,27 @@ draw_inquiry(study_population +
 ## Step 5. Declare estimators used in the study
 
 ``` r
-est_sspse <- do.call(what = declare_estimator, 
-                     args = study_1$estimators$rds$sspse)
-est_chords <- do.call(what = declare_estimator, 
-                      args = study_1$estimators$rds$chords)
-est_multi <- do.call(what = declare_estimator, 
-                     args = study_1$estimators$rds$multiplier)
+est_sspse <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$sspse)))
+est_chords <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$chords)))
+est_multi <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$multiplier)))
 
-est_ht_pps <- do.call(what = declare_estimator, 
-                      args = study_1$estimators$pps$ht)
-est_ht_tls <- do.call(what = declare_estimator, 
-                      args = study_1$estimators$tls$ht)
+est_ht_pps <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$pps$ht)))
+est_nsum_pps <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$pps$nsum)))
 
-est_nsum_tls <- do.call(what = declare_estimator,
-                        args = study_1$estimators$tls$nsum)
-est_nsum_pps <- do.call(what = declare_estimator, 
-                        args = study_1$estimators$pps$nsum)
+est_ht_tls <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$ht)))
+est_nsum_tls <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$nsum)))
 
-est_recap <- do.call(what = declare_estimator, 
-                     args = study_1$estimators$all$recap)
-
-est_recap2 <- do.call(what = declare_estimator, 
-                      args = study_1$estimators$all$recap2)
+est_recap <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap)))
+est_recap2 <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap2)))
 
 set.seed(19872312)
 draw_estimates(study_population +
@@ -388,24 +382,94 @@ draw_estimates(study_population +
                  est_ht_tls + est_ht_pps +
                  est_nsum_tls + est_nsum_pps +
                  est_recap + est_recap2)
-#>           estimator_label    estimate           se         inquiry_label
-#> 1   hidden_size_rds_sspse 141.0000000 39.602863401           hidden_size
-#> 2      hidden_size_chords 158.0000000 59.380276799           hidden_size
-#> 3    degree_hidden_chords   4.9240506  0.807132243 degree_hidden_average
-#> 4   hidden_size_rds_multi 180.5555556 25.649056775           hidden_size
-#> 5      hidden_size_tls_ht  80.0000000 17.059572100           hidden_size
-#> 6      hidden_prev_tls_ht   0.0400000  0.008529786           hidden_prev
-#> 7      hidden_size_pps_ht 155.0000000 27.265348311           hidden_size
-#> 8      hidden_prev_pps_ht   0.0775000  0.013632674           hidden_prev
-#> 9    hidden_size_tls_nsum 433.3825108 55.589475936           hidden_size
-#> 10        degree_tls_nsum   0.4857944  0.132946002        degree_average
-#> 11   hidden_size_pps_nsum 170.1373183 28.171363409           hidden_size
-#> 12        degree_pps_nsum  58.7286145 10.473314912        degree_average
-#> 13  hidden_size_all_recap 198.1868365 11.900941786           hidden_size
-#> 14 hidden_size_samp_recap 201.0000000 31.780497164           hidden_size
+#>             estimator_label    estimate           se         inquiry_label
+#> 1     hidden_size_rds_sspse 141.0000000 39.602863401           hidden_size
+#> 2    hidden_size_rds_chords 158.0000000 59.380276799           hidden_size
+#> 3  degree_hidden_rds_chords   4.9240506  0.807132243 degree_hidden_average
+#> 4     hidden_size_rds_multi 180.5555556 25.649056775           hidden_size
+#> 5        hidden_size_tls_ht  80.0000000 17.059572100           hidden_size
+#> 6        hidden_prev_tls_ht   0.0400000  0.008529786           hidden_prev
+#> 7        hidden_size_pps_ht 155.0000000 27.265348311           hidden_size
+#> 8        hidden_prev_pps_ht   0.0775000  0.013632674           hidden_prev
+#> 9      hidden_size_tls_nsum 433.3825108 55.589475936           hidden_size
+#> 10          degree_tls_nsum   0.4857944  0.132946002        degree_average
+#> 11     hidden_size_pps_nsum 170.1373183 28.171363409           hidden_size
+#> 12          degree_pps_nsum  58.7286145 10.473314912        degree_average
+#> 13    hidden_size_all_recap 198.1868365 11.900941786           hidden_size
+#> 14   hidden_size_samp_recap 201.0000000 31.780497164           hidden_size
 ```
 
-## Step 6. Diagnose study design
+## Step 6. Declare full study
+
+``` r
+study1 <- 
+  study_population +
+  study_sample_rds + study_sample_pps + study_sample_tls +
+  study_estimands +
+  est_sspse + est_chords + est_multi +
+  est_ht_tls + est_ht_pps +
+  est_nsum_tls + est_nsum_pps +
+  est_recap + est_recap2
+
+# can draw one of the samples
+study1$study_sample_rds(study1$study_population())
+#> # A tibble: 2,000 x 60
+#>     name type  known hidden links    service_use loc_1 loc_2 loc_3 loc_4 known_2
+#>    <int> <chr> <int>  <int> <chr>          <int> <int> <int> <int> <int>   <int>
+#>  1     1 00        0      0 276;765…           0     0     0     0     0       1
+#>  2     2 00        0      0 496;891…           1     0     0     0     0       0
+#>  3     3 00        0      0 691;1458           0     0     0     0     0       0
+#>  4     4 00        0      0 69;1068…           0     0     0     0     0       0
+#>  5     5 00        0      0 713;914…           1     0     0     0     0       0
+#>  6     6 00        0      0 313                0     0     0     0     0       1
+#>  7     7 00        0      0 253;379…           0     0     0     0     0       0
+#>  8     8 00        0      0 795;1021           0     0     0     0     0       0
+#>  9     9 00        0      0 286;417…           0     0     0     1     0       0
+#> 10    10 00        0      0 42;232;…           0     0     0     0     0       0
+#> # … with 1,990 more rows, and 49 more variables: known_3 <int>,
+#> #   n_visible_out <dbl>, known_visible_out <dbl>, hidden_visible_out <dbl>,
+#> #   type_00_visible_out <dbl>, type_01_visible_out <dbl>,
+#> #   type_10_visible_out <dbl>, type_11_visible_out <dbl>,
+#> #   service_use_visible_out <dbl>, loc_1_visible_out <dbl>,
+#> #   loc_2_visible_out <dbl>, loc_3_visible_out <dbl>, loc_4_visible_out <dbl>,
+#> #   known_2_visible_out <dbl>, known_3_visible_out <dbl>,
+#> #   known_visible_in <dbl>, hidden_visible_in <dbl>, type_00_visible_in <dbl>,
+#> #   type_01_visible_in <dbl>, type_10_visible_in <dbl>,
+#> #   type_11_visible_in <dbl>, service_use_visible_in <dbl>,
+#> #   loc_1_visible_in <dbl>, loc_2_visible_in <dbl>, loc_3_visible_in <dbl>,
+#> #   loc_4_visible_in <dbl>, known_2_visible_in <dbl>, known_3_visible_in <dbl>,
+#> #   p_visible_known <dbl>, p_visible_hidden <dbl>, total <int>,
+#> #   total_known <int>, total_hidden <int>, total_service_use <int>,
+#> #   total_loc_1 <int>, total_loc_2 <int>, total_loc_3 <int>, total_loc_4 <int>,
+#> #   total_known_2 <int>, total_known_3 <int>, rds <int>, rds_from <dbl>,
+#> #   rds_t <dbl>, rds_wave <dbl>, rds_hidden <int>, rds_own_coupon <chr>,
+#> #   rds_coupon_1 <chr>, rds_coupon_2 <chr>, rds_coupon_3 <chr>
+
+# can draw full data
+study1_data <- draw_data(study1)
+
+# can draw estimands
+study1$inquiry(study1_data)
+#>            inquiry_label estimand
+#> 4            hidden_size  208.000
+#> 8            hidden_prev    0.104
+#> 9         degree_average    4.960
+#> 10 degree_hidden_average    0.835
+
+# can draw any of the estimators
+study1$rds_sspse(study1_data)
+#>         estimator_label estimate       se inquiry_label
+#> 1 hidden_size_rds_sspse      168 84.34912   hidden_size
+study1$pps_ht(study1_data)
+#>      estimator_label estimate          se inquiry_label
+#> 1 hidden_size_pps_ht  170.000 26.50391276   hidden_size
+#> 2 hidden_prev_pps_ht    0.085  0.01325196   hidden_prev
+study1$samp_recap(study1_data)
+#>          estimator_label estimate       se inquiry_label
+#> 1 hidden_size_samp_recap 167.3333 20.20101   hidden_size
+```
+
+## Step 7. Diagnose study design
 
 ``` r
 study_diagnosands <-
@@ -418,80 +482,71 @@ study_diagnosands <-
     rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
 
-study_simulations <- 
-  simulate_design(
-    study_population +
-      study_sample_rds + study_sample_pps + study_sample_tls +
-      study_estimands +
-      est_sspse + est_chords + est_multi +
-      est_ht_tls + est_ht_pps +
-      est_nsum_tls + est_nsum_pps +
-      est_recap + est_recap2, 
-    sims = 10)
+study1_simulations <- simulate_design(study1, sims = 10)
 
-diagnose_design(study_simulations, 
+diagnose_design(study1_simulations, 
                 diagnosands = study_diagnosands, sims = 2)
 #> 
 #> Research design diagnosis based on 10 simulations. Diagnosand estimates with bootstrapped standard errors in parentheses (100 replicates).
 #> 
-#>  Design Label         Inquiry Label        Estimator Label N Sims Mean Estimand
-#>      design_1        degree_average        degree_pps_nsum     10          4.94
-#>                                                                          (0.03)
-#>      design_1        degree_average        degree_tls_nsum     10          4.94
-#>                                                                          (0.03)
-#>      design_1 degree_hidden_average   degree_hidden_chords     10          0.82
-#>                                                                          (0.03)
-#>      design_1           hidden_prev     hidden_prev_pps_ht     10          0.10
-#>                                                                          (0.00)
-#>      design_1           hidden_prev     hidden_prev_tls_ht     10          0.10
-#>                                                                          (0.00)
-#>      design_1           hidden_size  hidden_size_all_recap     10        203.50
-#>                                                                          (3.32)
-#>      design_1           hidden_size     hidden_size_chords     10        203.50
-#>                                                                          (3.32)
-#>      design_1           hidden_size     hidden_size_pps_ht     10        203.50
-#>                                                                          (3.32)
-#>      design_1           hidden_size   hidden_size_pps_nsum     10        203.50
-#>                                                                          (3.32)
-#>      design_1           hidden_size  hidden_size_rds_multi     10        203.50
-#>                                                                          (3.32)
-#>      design_1           hidden_size  hidden_size_rds_sspse     10        203.50
-#>                                                                          (3.32)
-#>      design_1           hidden_size hidden_size_samp_recap     10        203.50
-#>                                                                          (3.32)
-#>      design_1           hidden_size     hidden_size_tls_ht     10        203.50
-#>                                                                          (3.32)
-#>      design_1           hidden_size   hidden_size_tls_nsum     10        203.50
-#>                                                                          (3.32)
-#>  Mean Estimate SD Estimate Mean Se    Bias    RMSE
-#>          44.70        7.49    6.21   39.77   40.41
-#>         (2.32)      (1.06)  (0.50)  (2.34)  (2.31)
-#>           0.46        0.07    0.11   -4.47    4.48
-#>         (0.02)      (0.02)  (0.02)  (0.04)  (0.04)
-#>           5.11        0.65    0.76    4.29    4.32
-#>         (0.21)      (0.17)  (0.02)  (0.19)  (0.20)
-#>           0.10        0.02    0.02    0.00    0.01
-#>         (0.00)      (0.00)  (0.00)  (0.00)  (0.00)
-#>           0.06        0.01    0.01   -0.04    0.04
-#>         (0.00)      (0.00)  (0.00)  (0.00)  (0.01)
-#>         199.21       16.21   11.48   -4.29   15.96
-#>         (4.44)      (2.79)  (0.77)  (4.70)  (2.22)
-#>         181.20       68.54   58.22  -22.30   67.80
-#>        (18.86)     (16.49)  (2.27) (18.85) (18.05)
-#>         208.00       30.48   31.04    4.50   23.73
-#>         (9.49)      (4.40)  (0.80)  (7.59)  (2.72)
-#>         234.51       45.74   30.81   31.01   47.22
-#>        (14.31)      (9.23)  (1.18) (11.72) (11.33)
-#>         204.39       15.86   36.45    0.89   11.04
-#>         (5.06)      (2.89)  (1.53)  (3.59)  (2.54)
-#>         161.85       20.94   64.25  -41.65   49.75
-#>         (6.91)      (3.05)  (5.12)  (9.17)  (7.72)
-#>         190.16       17.44   24.18  -13.34   20.67
-#>         (4.43)      (2.79)  (1.42)  (4.50)  (4.28)
-#>         124.00       23.07   20.96  -79.50   84.84
-#>         (7.19)      (5.68)  (0.39)  (9.73) (10.18)
-#>         562.51       84.41   63.66  359.01  367.78
-#>        (23.19)     (22.14) (11.44) (22.75) (19.97)
+#>  Design Label         Inquiry Label          Estimator Label N Sims
+#>        study1        degree_average          degree_pps_nsum     10
+#>                                                                    
+#>        study1        degree_average          degree_tls_nsum     10
+#>                                                                    
+#>        study1 degree_hidden_average degree_hidden_rds_chords     10
+#>                                                                    
+#>        study1           hidden_prev       hidden_prev_pps_ht     10
+#>                                                                    
+#>        study1           hidden_prev       hidden_prev_tls_ht     10
+#>                                                                    
+#>        study1           hidden_size    hidden_size_all_recap     10
+#>                                                                    
+#>        study1           hidden_size       hidden_size_pps_ht     10
+#>                                                                    
+#>        study1           hidden_size     hidden_size_pps_nsum     10
+#>                                                                    
+#>        study1           hidden_size   hidden_size_rds_chords     10
+#>                                                                    
+#>        study1           hidden_size    hidden_size_rds_multi     10
+#>                                                                    
+#>        study1           hidden_size    hidden_size_rds_sspse     10
+#>                                                                    
+#>        study1           hidden_size   hidden_size_samp_recap     10
+#>                                                                    
+#>        study1           hidden_size       hidden_size_tls_ht     10
+#>                                                                    
+#>        study1           hidden_size     hidden_size_tls_nsum     10
+#>                                                                    
+#>  Mean Estimand Mean Estimate SD Estimate Mean Se    Bias    RMSE
+#>           4.93         50.87        5.42    7.88   45.93   46.23
+#>         (0.03)        (1.76)      (0.84)  (0.35)  (1.77)  (1.78)
+#>           4.93          0.48        0.13    0.15   -4.45    4.46
+#>         (0.03)        (0.05)      (0.03)  (0.06)  (0.06)  (0.06)
+#>           0.76          5.66        0.79    0.76    4.89    4.95
+#>         (0.02)        (0.24)      (0.16)  (0.02)  (0.22)  (0.22)
+#>           0.10          0.09        0.01    0.01   -0.01    0.01
+#>         (0.00)        (0.00)      (0.00)  (0.00)  (0.00)  (0.00)
+#>           0.10          0.06        0.01    0.01   -0.03    0.03
+#>         (0.00)        (0.00)      (0.00)  (0.00)  (0.00)  (0.00)
+#>         196.00        199.12        9.39   11.57    3.12    6.20
+#>         (2.98)        (2.98)      (2.00)  (0.45)  (1.57)  (0.96)
+#>         196.00        179.00       15.24   29.10  -17.00   22.04
+#>         (2.98)        (4.70)      (3.35)  (0.34)  (4.37)  (4.02)
+#>         196.00        197.27       20.73   29.06    1.27   17.67
+#>         (2.98)        (6.68)      (3.92)  (1.08)  (5.93)  (2.77)
+#>         196.00        140.50       67.29   59.34  -55.50   83.71
+#>         (2.98)       (18.28)      (9.42)  (2.84) (17.99) (15.92)
+#>         196.00        208.84       47.49   38.49   12.84   43.76
+#>         (2.98)       (14.07)     (13.95)  (6.28) (12.76) (15.58)
+#>         196.00        183.35       13.74   85.60  -12.65   18.68
+#>         (2.98)        (3.63)      (2.26)  (7.29)  (4.12)  (4.23)
+#>         196.00        188.53       42.79   26.15   -7.47   40.51
+#>         (2.98)       (13.15)     (17.32)  (4.11) (12.58) (13.05)
+#>         196.00        129.00       22.46   21.59  -67.00   68.95
+#>         (2.98)        (7.62)      (5.09)  (0.61)  (5.58)  (5.34)
+#>         196.00        591.17      129.34  108.00  395.17  412.31
+#>         (2.98)       (44.55)     (24.77) (10.50) (42.67) (41.65)
 ```
 
 ## Meta-analysis Draft structure
@@ -712,10 +767,10 @@ multi_design <- multi_population + multi_sampling + multi_inquiry + multi_estima
 set.seed(19872312)
 draw_data(multi_design)
 #> # A tibble: 2 x 2
-#>   study   population                
-#>   <chr>   <list>                    
-#> 1 study_1 <tibble[,73] [2,000 × 73]>
-#> 2 study_2 <tibble[,69] [5,000 × 69]>
+#>   study   population           
+#>   <chr>   <list>               
+#> 1 study_1 <tibble [2,000 × 73]>
+#> 2 study_2 <tibble [5,000 × 69]>
 draw_inquiry(multi_design)
 #>                   inquiry_label estimand
 #> 1           study_1_hidden_size 190.0000
@@ -729,8 +784,8 @@ draw_inquiry(multi_design)
 draw_estimates(multi_design)
 #>             estimator_label    estimate           se
 #> 1     hidden_size_rds_sspse 183.0000000 7.171208e+01
-#> 2        hidden_size_chords 147.0000000 4.814045e+01
-#> 3      degree_hidden_chords   6.1632653 6.233803e-01
+#> 2    hidden_size_rds_chords 147.0000000 4.814045e+01
+#> 3  degree_hidden_rds_chords   6.1632653 6.233803e-01
 #> 4     hidden_size_rds_multi 194.2857143 2.818115e+01
 #> 5        hidden_size_tls_ht 110.0000000 2.296959e+01
 #> 6        hidden_prev_tls_ht   0.0550000 1.148480e-02
@@ -793,7 +848,7 @@ diagnose_design(simulations_df = multi_simulations,
 #>                                                                            
 #>      design_1        study_1_degree_average          degree_tls_nsum     10
 #>                                                                            
-#>      design_1 study_1_degree_hidden_average     degree_hidden_chords     10
+#>      design_1 study_1_degree_hidden_average degree_hidden_rds_chords     10
 #>                                                                            
 #>      design_1           study_1_hidden_prev       hidden_prev_pps_ht     10
 #>                                                                            
@@ -801,11 +856,11 @@ diagnose_design(simulations_df = multi_simulations,
 #>                                                                            
 #>      design_1           study_1_hidden_size    hidden_size_all_recap     10
 #>                                                                            
-#>      design_1           study_1_hidden_size       hidden_size_chords     10
-#>                                                                            
 #>      design_1           study_1_hidden_size       hidden_size_pps_ht     10
 #>                                                                            
 #>      design_1           study_1_hidden_size     hidden_size_pps_nsum     10
+#>                                                                            
+#>      design_1           study_1_hidden_size   hidden_size_rds_chords     10
 #>                                                                            
 #>      design_1           study_1_hidden_size    hidden_size_rds_multi     10
 #>                                                                            
@@ -848,12 +903,12 @@ diagnose_design(simulations_df = multi_simulations,
 #>         (0.00)        (0.00)      (0.00)  (0.00)   (0.00)   (0.00)
 #>         196.30        200.40       14.82   12.79     4.10    15.43
 #>         (3.34)        (4.80)      (2.55)  (0.73)   (4.89)   (3.71)
-#>         196.30        154.00       68.69   59.86   -42.30    74.18
-#>         (3.34)       (20.69)      (9.83)  (3.47)  (19.46)   (9.37)
 #>         196.30        199.00       37.77   29.34     2.70    35.33
 #>         (3.34)       (11.62)      (5.46)  (0.82)  (11.35)   (4.52)
 #>         196.30        219.69       40.04   29.70    23.39    43.29
 #>         (3.34)       (12.48)      (7.38)  (1.38)  (11.97)   (9.76)
+#>         196.30        154.00       68.69   59.86   -42.30    74.18
+#>         (3.34)       (20.69)      (9.83)  (3.47)  (19.46)   (9.37)
 #>         196.30        210.77       31.89   35.46    14.47    30.39
 #>         (3.34)       (10.18)      (4.75)  (3.30)   (9.08)   (8.01)
 #>         196.30        169.35       27.42   61.36   -26.95    40.96

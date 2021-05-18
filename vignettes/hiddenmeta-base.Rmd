@@ -110,7 +110,7 @@ study_1 <-
                              seed_condition = "rds_from == -999",
                              n_boot = 100,
                              rds_prefix = "rds",
-                             label = "chords"),
+                             label = "rds_chords"),
                multiplier = list(handler = get_study_est_multiplier, 
                                  service_var = "service_use",
                                  seed_condition = "rds_from == -999",
@@ -160,8 +160,7 @@ study_1 <-
 ```{r example_pop}
 
 study_population <-
-  do.call(what = declare_population,
-          args = study_1$pop)
+  eval(as.call(c(list(declare_population), study_1$pop)))
 
 set.seed(19872312)
 ( example_pop <- study_population() )
@@ -203,8 +202,7 @@ The sampling procedures are additive in a sense that each procedure appends seve
 
 ```{r example_rds}
 study_sample_rds <- 
-  do.call(what = declare_sampling, 
-          args = study_1$sample$rds)
+  eval(as.call(c(list(declare_sampling), study_1$sample$rds)))
 
 set.seed(19872312)
 draw_data(study_population + study_sample_rds)
@@ -212,8 +210,7 @@ draw_data(study_population + study_sample_rds)
 
 ```{r example_pps}
 study_sample_pps <- 
-  do.call(what = declare_sampling, 
-          args = study_1$sample$pps)
+  eval(as.call(c(list(declare_sampling), study_1$sample$pps)))
 
 set.seed(19872312)
 draw_data(study_population + study_sample_rds + study_sample_pps)
@@ -221,8 +218,7 @@ draw_data(study_population + study_sample_rds + study_sample_pps)
 
 ```{r example_tls}
 study_sample_tls <- 
-  do.call(what = declare_sampling, 
-          args = study_1$sample$tls)
+  eval(as.call(c(list(declare_sampling), study_1$sample$tls)))
 
 set.seed(19872312)
 draw_data(study_population + 
@@ -233,8 +229,7 @@ draw_data(study_population +
 
 ```{r example_estimands}
 study_estimands <- 
-  do.call(what = declare_inquiry, 
-          args = study_1$inquiries)
+  eval(as.call(c(list(declare_inquiry), study_1$inquiries)))
 
 set.seed(19872312)
 draw_inquiry(study_population + 
@@ -245,28 +240,27 @@ draw_inquiry(study_population +
 ## Step 5. Declare estimators used in the study
 
 ```{r example_estimators}
-est_sspse <- do.call(what = declare_estimator, 
-                     args = study_1$estimators$rds$sspse)
-est_chords <- do.call(what = declare_estimator, 
-                      args = study_1$estimators$rds$chords)
-est_multi <- do.call(what = declare_estimator, 
-                     args = study_1$estimators$rds$multiplier)
+est_sspse <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$sspse)))
+est_chords <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$chords)))
+est_multi <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$multiplier)))
 
-est_ht_pps <- do.call(what = declare_estimator, 
-                      args = study_1$estimators$pps$ht)
-est_ht_tls <- do.call(what = declare_estimator, 
-                      args = study_1$estimators$tls$ht)
+est_ht_pps <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$pps$ht)))
+est_nsum_pps <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$pps$nsum)))
 
-est_nsum_tls <- do.call(what = declare_estimator,
-                        args = study_1$estimators$tls$nsum)
-est_nsum_pps <- do.call(what = declare_estimator, 
-                        args = study_1$estimators$pps$nsum)
+est_ht_tls <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$ht)))
+est_nsum_tls <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$nsum)))
 
-est_recap <- do.call(what = declare_estimator, 
-                     args = study_1$estimators$all$recap)
-
-est_recap2 <- do.call(what = declare_estimator, 
-                      args = study_1$estimators$all$recap2)
+est_recap <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap)))
+est_recap2 <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap2)))
 
 set.seed(19872312)
 draw_estimates(study_population +
@@ -278,9 +272,38 @@ draw_estimates(study_population +
                  est_recap + est_recap2)
 ```
 
-## Step 6. Diagnose study design
+## Step 6. Declare full study
+
+```{r example_study, warning = FALSE}
+study1 <- 
+  study_population +
+  study_sample_rds + study_sample_pps + study_sample_tls +
+  study_estimands +
+  est_sspse + est_chords + est_multi +
+  est_ht_tls + est_ht_pps +
+  est_nsum_tls + est_nsum_pps +
+  est_recap + est_recap2
+
+# can draw one of the samples
+study1$study_sample_rds(study1$study_population())
+
+# can draw full data
+study1_data <- draw_data(study1)
+
+# can draw estimands
+study1$inquiry(study1_data)
+
+# can draw any of the estimators
+study1$rds_sspse(study1_data)
+study1$pps_ht(study1_data)
+study1$samp_recap(study1_data)
+```
+
+
+## Step 7. Diagnose study design
 
 ```{r example_diagnose, warning = FALSE}
+
 study_diagnosands <-
  declare_diagnosands(
     mean_estimand = mean(estimand),
@@ -291,18 +314,9 @@ study_diagnosands <-
     rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
 
-study_simulations <- 
-  simulate_design(
-    study_population +
-      study_sample_rds + study_sample_pps + study_sample_tls +
-      study_estimands +
-      est_sspse + est_chords + est_multi +
-      est_ht_tls + est_ht_pps +
-      est_nsum_tls + est_nsum_pps +
-      est_recap + est_recap2, 
-    sims = 10)
+study1_simulations <- simulate_design(study1, sims = 10)
 
-diagnose_design(study_simulations, 
+diagnose_design(study1_simulations, 
                 diagnosands = study_diagnosands, sims = 2)
 ```
 

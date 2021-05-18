@@ -10,7 +10,7 @@ get_study_est_multiplier(
   total_service = sum(data$service_use[data$hidden == 1]),
   seed_condition = "rds_from == -999",
   n_boot = 100,
-  parallel_boot = TRUE,
+  parallel_boot = FALSE,
   rds_prefix = "rds",
   label = "multiplier"
 )

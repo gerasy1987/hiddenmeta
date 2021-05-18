@@ -11,7 +11,7 @@ get_study_est_ht(
   total_var = "total",
   survey_design = ~pps_cluster + strata(pps_strata),
   n_boot = 100,
-  parallel_boot = TRUE,
+  parallel_boot = FALSE,
   prefix = "pps",
   label = "ht"
 )

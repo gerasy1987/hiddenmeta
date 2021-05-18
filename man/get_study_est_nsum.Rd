@@ -12,7 +12,7 @@ get_study_est_nsum(
   degree_ratio = 1,
   transmission_rate = 1,
   n_boot = 1000,
-  parallel_boot = TRUE,
+  parallel_boot = FALSE,
   prefix = "pps",
   label = "nsum"
 )

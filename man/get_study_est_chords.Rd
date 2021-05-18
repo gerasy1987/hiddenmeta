@@ -10,7 +10,7 @@ get_study_est_chords(
   seed_condition = "rds_from == -999",
   rds_prefix = "rds",
   n_boot = 100,
-  parallel_boot = TRUE,
+  parallel_boot = FALSE,
   label = "chords"
 )
 }
