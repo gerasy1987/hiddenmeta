@@ -286,10 +286,14 @@ get_study_est_chords <- function(data,
     .parallel = parallel_boot)
 
   return(
-    data.frame(estimator_label = paste0(c("hidden_size_", "degree_hidden_"), label),
-               estimate = c(.fit_chords["est"], .fit_chords["degree_hidden"]),
-               se =  apply(.fit_chords_boot, 2, sd, na.rm = TRUE),
-               inquiry_label = c("hidden_size", "degree_hidden_average"))
+    # data.frame(estimator_label = paste0(c("hidden_size_", "degree_hidden_"), label),
+    #            estimate = c(.fit_chords["est"], .fit_chords["degree_hidden"]),
+    #            se =  apply(.fit_chords_boot, 2, sd, na.rm = TRUE),
+    #            inquiry_label = c("hidden_size", "degree_hidden"))
+    data.frame(estimator_label = paste0(c("hidden_size_"), label),
+               estimate = c(.fit_chords["est"]),
+               se =  sd(.fit_chords_boot[,1], na.rm = TRUE),
+               inquiry_label = c("hidden_size"))
   )
 }
 
@@ -391,10 +395,18 @@ get_study_est_nsum <- function(data,
     bind_rows()
 
   return(
-    data.frame(estimator_label = paste0(c("hidden_size_", "degree_"), label),
-               estimate = c(unname(.fit_nsum$estimate), unname(.fit_nsum$sum.d.hat/.fit_nsum$estimate)),
-               se = c(sd(.fit_nsum_boot$estimate), sd(.fit_nsum_boot$sum.d.hat/.fit_nsum_boot$estimate)),
-               inquiry_label = c("hidden_size", "degree_average"))
+    # data.frame(
+    #   estimator_label = paste0(c("hidden_size_", "degree_"), label),
+    #   estimate = c(unname(.fit_nsum$estimate),
+    #                unname(.fit_nsum$sum.d.hat/.fit_nsum$estimate)),
+    #   se = c(sd(.fit_nsum_boot$estimate),
+    #          sd(.fit_nsum_boot$sum.d.hat/.fit_nsum_boot$estimate)),
+    #   inquiry_label = c("hidden_size", "degree_all"))
+    data.frame(
+      estimator_label = paste0(c("hidden_size_"), label),
+      estimate = c(unname(.fit_nsum$estimate)),
+      se = c(sd(.fit_nsum_boot$estimate)),
+      inquiry_label = c("hidden_size"))
   )
 }
 

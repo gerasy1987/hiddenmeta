@@ -6,8 +6,8 @@
 \usage{
 get_study_estimands(
   data,
-  known_pattern = "^known",
-  hidden_pattern = "^hidden$"
+  known_pattern = "^known(\\\\_\\\\d|\\\\d)?$",
+  hidden_var = "hidden"
 )
 }
 \arguments{
@@ -15,7 +15,7 @@ get_study_estimands(
 
 \item{known_pattern}{character string containing regular expression to match known group names in the study population dataset}
 
-\item{hidden_pattern}{character string containing regular expression to match hidden group name in the study population dataset}
+\item{hidden_var}{character string containing hidden group name in the study population data frame}
 }
 \value{
 Estimands data frame for single study

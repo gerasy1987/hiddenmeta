@@ -96,8 +96,8 @@ study_1 <-
                    target_n_pps = 400)
       ),
     inquiries = list(handler = get_study_estimands,
-                     known_pattern = "^known", 
-                     hidden_pattern = "^hidden$"),
+                     known_pattern = "^known(\\_\\d|\\d)?$", 
+                     hidden_var = "hidden"),
     estimators = 
       list(
         rds = 
@@ -350,7 +350,7 @@ diagnose_design(study1_simulations,
 
 ```{r stan_meta, eval=FALSE}
 
-stan_model_meta <- " 
+stan_model_prev <- " 
   data {
     int<lower=0> N;   // number of studies 
     int<lower=0> K;   // max number of estimator (estimator-sampling pairs) 
@@ -379,13 +379,26 @@ stan_model_meta <- "
     // need to add Sigma to allow for interdependence of errors across estimators
     // or studies
   }
-
   model
     target += normal_lpmf(est1 | error[1] + alpha[observed1], est1_sd);
     target += normal_lpmf(est2 | error[2] + alpha[observed2], est2_sd);
     target += normal_lpmf(est3 | error[3] + alpha[observed3], est3_sd);
   }
   "
+
+data <- draw_estimates(multi_design)
+
+data %>% 
+  dplyr::mutate(
+    study = stringr::str_extract(data$inquiry_label, "^study\\_(\\d+)"),
+    estimand = stringr::str_remove(pattern = paste0(study, "_"), string = inquiry_label),
+    estimator_label = strsplit(estimator_label, "_"),
+    inquiry_label = strsplit(inquiry_label, "_"),
+    sample = purrr::map2_chr(estimator_label, inquiry_label, 
+                             ~ setdiff(.x, .y)[1]),
+    estimator = purrr::map2_chr(estimator_label, inquiry_label, 
+                                ~ setdiff(.x, .y)[2])
+  )
 
 get_meta_estimands <- function(data) {
   
@@ -400,10 +413,8 @@ get_meta_estimators = function(data) {
                     K = (ncol(data)-1)/2)
   
   for (k in 1:stan_data$K) {
-    stan_data[[ paste0("observed",k) ]] <- 
-      which(!is.na(data[,(2 * k)]))
-    stan_data[[ paste0("N",k) ]] <- 
-      length(stan_data[[paste0("observed",k)]])
+    stan_data[[ paste0("observed",k) ]] <- which(!is.na(data[,(2 * k)]))
+    stan_data[[ paste0("N",k) ]] <- length(stan_data[[paste0("observed",k)]])
     stan_data[[ paste0("est",k) ]] <- 
       data[stan_data[[paste0("observed",k)]],(2 * k)]
     stan_data[[ paste0("est",k,"_sd") ]] <- 
@@ -480,8 +491,8 @@ study_2 <-
                    target_n_pps = 800)
       ),
     inquiries = list(handler = get_study_estimands,
-                     known_pattern = "^known", 
-                     hidden_pattern = "^hidden$"),
+                     known_pattern = "^known(\\_\\d|\\d)?$", 
+                     hidden_var = "hidden"),
     estimators = 
       list(
         rds = 
@@ -551,7 +562,7 @@ multi_design <- multi_population + multi_sampling + multi_inquiry + multi_estima
 
 
 set.seed(19872312)
-draw_data(multi_design) %>% 
+multi_design$multi_sampling(multi_design$multi_population()) %>% 
   kable()
 
 draw_inquiry(multi_design) %>% 
