@@ -53,9 +53,9 @@ study_1 <-
         # network structure setup
         network_handler = sim_block_network,
         network_handler_args = 
-          list(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .05,
-               p_edge_within = list(known = c(0.05, 0.05), hidden = c(0.05, 0.7)),
-               p_edge_between = list(known = 0.05, hidden = 0.01),
+          list(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .3,
+               p_edge_within = list(known = c(0.05, 0.1), hidden = c(0.05, 0.7)),
+               p_edge_between = list(known = 0.05, hidden = 0.05),
                directed = FALSE),
         
         # groups
@@ -76,6 +76,7 @@ study_1 <-
         rds = list(handler = sample_rds,
                    # RDS parameters
                    sampling_variable = "rds",
+                   hidden_var = "hidden", # default
                    n_seed = 20,
                    n_coupons = 3,
                    target_type = "sample",
@@ -103,6 +104,7 @@ study_1 <-
           list(sspse = list(handler = get_study_est_sspse,
                             prior_mean = 200,
                             mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+                            total = 2000,
                             rds_prefix = "rds", 
                             label = "rds_sspse"),
                chords = list(handler = get_study_est_chords, 
@@ -165,8 +167,9 @@ study_population <-
 set.seed(19872312)
 example_pop <- study_population()
 
-example_pop %>%  head() %>% DT::datatable(options = list(dom = 'tp')) 
-
+example_pop %>% 
+  dplyr::sample_n(n()) %>% # shuffle data frame
+  rmarkdown::paged_table(options = list(rows.print = 15))
 ```
 
 ### Show the network
@@ -208,8 +211,8 @@ study_sample_rds <-
 
 set.seed(19872312)
 draw_data(study_population + study_sample_rds) %>%  
-  head() %>% 
-  DT::datatable(options = list(dom = 'tp')) 
+  dplyr::sample_n(n()) %>% # shuffle data frame
+  rmarkdown::paged_table(options = list(rows.print = 15))
 ```
 
 ```{r example_pps}
@@ -217,8 +220,9 @@ study_sample_pps <-
   eval(as.call(c(list(declare_sampling), study_1$sample$pps)))
 
 set.seed(19872312)
-draw_data(study_population + study_sample_rds + study_sample_pps) %>% head() %>% 
-  DT::datatable(options = list(dom = 'tp')) 
+draw_data(study_population + study_sample_rds + study_sample_pps) %>% 
+  dplyr::sample_n(n()) %>% # shuffle data frame
+  rmarkdown::paged_table(options = list(rows.print = 15))
 ```
 
 ```{r example_tls}
@@ -227,8 +231,9 @@ study_sample_tls <-
 
 set.seed(19872312)
 draw_data(study_population + 
-            study_sample_rds + study_sample_pps + study_sample_tls) %>% head() %>% 
-  DT::datatable(options = list(dom = 'tp')) 
+            study_sample_rds + study_sample_pps + study_sample_tls) %>% 
+  dplyr::sample_n(n()) %>% # shuffle data frame
+  rmarkdown::paged_table(options = list(rows.print = 15))
 ```
 
 ## Step 4. Declare study level estimands
@@ -277,7 +282,7 @@ draw_estimates(study_population +
                  est_ht_tls + est_ht_pps +
                  est_nsum_tls + est_nsum_pps +
                  est_recap + est_recap2) %>%
-  kable()
+  kable(digits = 2)
 ```
 
 ## Step 6. Declare full study
@@ -461,6 +466,7 @@ study_2 <-
         rds = list(handler = sample_rds,
                    # RDS parameters
                    sampling_variable = "rds",
+                   hidden_var = "hidden",
                    n_seed = 100,
                    n_coupons = 3,
                    target_type = "waves",
@@ -483,6 +489,7 @@ study_2 <-
                             label = "rds_sspse",
                             prior_mean = 450,
                             mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+                            total = 5000,
                             rds_prefix = "rds"),
                chords = list(handler = get_study_est_chords, 
                              type = "mle",
@@ -550,7 +557,7 @@ draw_data(multi_design) %>%
 draw_inquiry(multi_design) %>% 
   kable()
 
-draw_estimates(multi_design)%>% 
+draw_estimates(multi_design) %>% 
   kable()
 
 

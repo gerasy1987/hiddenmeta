@@ -4,6 +4,7 @@
 #' @param prior_mean the mean of the prior distribution on the population size for SS-PSE estimation
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
 #' @param mcmc_params named list of parameters passed to \code{sspse::posteriorsize} for MCMC sampling
+#' @param total integer giving the total size of population
 #' @param rds_prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
@@ -20,6 +21,7 @@
 get_study_est_sspse <- function(data,
                                 prior_mean = .1 * nrow(data),
                                 n_coupons = 3,
+                                total = 2000,
                                 mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
                                 rds_prefix = "rds",
                                 label = "sspse") {
@@ -35,7 +37,7 @@ get_study_est_sspse <- function(data,
                            recruiter.id = paste0(rds_prefix, "_from"),
                            network.size = "hidden_visible_out",
                            time = paste0(rds_prefix, "_t"),
-                           population.size = unique(.$total),
+                           population.size = total,
                            max.coupons = n_coupons) %>%
     {
       .quiet_sspse(s = .,
@@ -56,6 +58,58 @@ get_study_est_sspse <- function(data,
                inquiry_label = c("hidden_size"))
   )
 }
+
+#' equential Sampling (SS) prevalence estimator by Gile (2011)
+#'
+#' @param data pass-through population data frame
+#' @param hidden_var character string specifying hidden variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "hidden" for the simulations
+#' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
+#' @param total integer giving the total size of known population (denominator for prevalence)
+#' @param rds_prefix character prefix used for RDS sample variables
+#' @param label character string describing the estimator
+#'
+#' @return
+#' @references
+#' Gile, Krista J. 2011 Improved Inference for Respondent-Driven Sampling Data with Application to HIV Prevalence Estimation, Journal of the American Statistical Association, 106, 135-146.
+#' Gile, Krista J., Handcock, Mark S., 2010 Respondent-driven Sampling: An Assessment of Current Methodology, Sociological Methodology, 40, 285-327.
+#' @export
+#'
+#' @import dplyr
+#' @importFrom RDS as.rds.data.frame RDS.SS.estimates
+#' @importFrom purrr quietly
+get_study_est_rds_ss <-
+  function(data,
+           hidden_var = "hidden",
+           n_coupons = 3,
+           total = 2000,
+           rds_prefix = "rds",
+           label = "sspse") {
+
+    .quiet_rds_ss <- purrr::quietly(RDS::RDS.SS.estimates)
+
+    .fit_rds_ss <-
+      data %>%
+      dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
+      dplyr::select(name,
+                    all_of(paste0(hidden_var, c("", "_visible_out"))),
+                    starts_with(rds_prefix)) %>%
+      RDS::as.rds.data.frame(df = .,
+                             id = "name",
+                             recruiter.id = paste0(rds_prefix, "_from"),
+                             network.size = paste0(hidden_var, "_visible_out"),
+                             time = paste0(rds_prefix, "_t"),
+                             max.coupons = n_coupons) %>%
+      .quiet_rds_ss(., outcome.variable = hidden_var, N = total) %>%
+      .$interval %>%
+      .[c(1,5)]
+
+    return(
+      data.frame(estimator_label = paste0("hidden_prev_", label),
+                 estimate = c(unname(.fit_rds_ss[1])),
+                 se =   c(unname(.fit_rds_ss[2])),
+                 inquiry_label = c("hidden_prev"))
+    )
+  }
 
 #' Horvitz-Thompson prevalence estimator using
 #'
@@ -198,13 +252,15 @@ get_study_est_chords <- function(data,
   # } else {
 
   .fit_chords <-
-    chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
-                         type = type) %>%
-    {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
-       degree_hidden =
-         stats::weighted.mean(
-           x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
-           w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+    suppressMessages(
+      chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
+                           type = type) %>%
+        {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
+           degree_hidden =
+             stats::weighted.mean(
+               x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
+               w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+    )
 
   # }
 
