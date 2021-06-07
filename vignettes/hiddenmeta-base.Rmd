@@ -96,7 +96,7 @@ study_1 <-
                    target_n_pps = 400)
       ),
     inquiries = list(handler = get_study_estimands,
-                     known_pattern = "^known(\\_\\d|\\d)?$", 
+                     known_pattern = "^known$", 
                      hidden_var = "hidden"),
     estimators = 
       list(
@@ -491,7 +491,7 @@ study_2 <-
                    target_n_pps = 800)
       ),
     inquiries = list(handler = get_study_estimands,
-                     known_pattern = "^known(\\_\\d|\\d)?$", 
+                     known_pattern = "^known$|^frame$", 
                      hidden_var = "hidden"),
     estimators = 
       list(
