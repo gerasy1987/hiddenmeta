@@ -7,6 +7,7 @@
 get_study_est_recapture(
   data,
   capture_vars = paste0("loc_", 1:4),
+  sample_condition = NULL,
   model = "Mt",
   hidden_condition = "hidden == 1",
   label = "recapture"
@@ -16,6 +17,8 @@ get_study_est_recapture(
 \item{data}{pass-through population data frame that contains capture indicators}
 
 \item{capture_vars}{character vector giving names of variables with capture indicators}
+
+\item{sample_condition}{character string with condition if the capture-recapture conducted on subsample of population (e.g. tls sample only)}
 
 \item{model}{character string giving capture-recapture Log-Linear model to estimate}
 
