@@ -252,14 +252,16 @@ get_study_est_chords <- function(data,
   # } else {
 
   .fit_chords <-
-    suppressMessages(
-      chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
-                           type = type) %>%
-        {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
-           degree_hidden =
-             stats::weighted.mean(
-               x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
-               w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+    suppressWarnings(
+      suppressMessages(
+        chords::Estimate.b.k(rds.object = chords::initializeRdsObject(.data_mod),
+                             type = type) %>%
+          {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
+             degree_hidden =
+               stats::weighted.mean(
+                 x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
+                 w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+      )
     )
 
   # }
@@ -273,14 +275,16 @@ get_study_est_chords <- function(data,
                  other_vars = c("NS1", "interviewDt", "hidden_visible_out", "name"),
                  n_boot = n_boot) %>%
     plyr::laply(., function(samp) {
-      suppressMessages(
-        chords::Estimate.b.k(rds.object = chords::initializeRdsObject(samp),
-                             type = type) %>%
-          {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
-             degree_hidden =
-               stats::weighted.mean(
-                 x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
-                 w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+      suppressWarnings(
+        suppressMessages(
+          chords::Estimate.b.k(rds.object = chords::initializeRdsObject(samp),
+                               type = type) %>%
+            {c(est = sum(.$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]),
+               degree_hidden =
+                 stats::weighted.mean(
+                   x = as.numeric(names(.$estimates$Nk.estimates))[.$estimates$Nk.estimates < Inf],
+                   w = .$estimates$Nk.estimates[.$estimates$Nk.estimates < Inf]))}
+        )
       )
     },
     .parallel = parallel_boot)

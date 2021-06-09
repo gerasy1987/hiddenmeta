@@ -37,6 +37,7 @@ library(hiddenmeta)
 library(DeclareDesign)
 library(igraph)
 library(knitr)
+
 ```
 
 ## Step 1. Provide study design features
@@ -85,7 +86,7 @@ study_1 <-
                    sampling_variable = "tls",
                    # TLS sampling parameters
                    target_n_clusters = 3,
-                   target_n_tls = 100,
+                   target_n_tls = 300,
                    cluster = paste0("loc_", 1:4)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
@@ -121,6 +122,7 @@ study_1 <-
                                  label = "rds_multi")),
         tls =
           list(ht = list(handler = get_study_est_ht,
+                         weight_var = "tls_weight",
                          prefix = "tls",
                          label = "tls_ht"),
                nsum = list(handler = get_study_est_nsum,
@@ -129,7 +131,13 @@ study_1 <-
                            survey_design = ~ tls_cluster,
                            n_boot = 100,
                            prefix = "tls",
-                           label = "tls_nsum")),
+                           label = "tls_nsum"),
+               recap = list(handler = get_study_est_recapture,
+                            capture_vars = paste0("loc_", 1:4),
+                            sample_condition = "tls == 1",
+                            model = "Mt",
+                            hidden_condition = "hidden == 1",
+                            label = "tls_recap")),
         pps = 
           list(ht = list(handler = get_study_est_ht,
                          prefix = "pps",
@@ -142,16 +150,16 @@ study_1 <-
                            prefix = "pps",
                            label = "pps_nsum")),
         all = 
-          list(recap = list(handler = get_study_est_recapture,
-                            capture_vars = paste0("loc_", 1:4),
-                            model = "Mt",
-                            hidden_condition = "hidden == 1",
-                            label = "all_recap"),
-               recap2 = list(handler = get_study_est_recapture,
+          list(recap1 = list(handler = get_study_est_recapture,
                              capture_vars = c("rds", "pps"),
                              model = "Mt",
                              hidden_condition = "hidden == 1",
-                             label = "samp_recap"))
+                             label = "rds_pps_recap"),
+               recap2 = list(handler = get_study_est_recapture,
+                             capture_vars = c("rds", paste0("loc_", 1:4)),
+                             model = "Mt",
+                             hidden_condition = "hidden == 1",
+                             label = "rds_tls_recap"))
       )
   )
 
@@ -170,6 +178,7 @@ example_pop <- study_population()
 example_pop %>% 
   dplyr::sample_n(n()) %>% # shuffle data frame
   rmarkdown::paged_table(options = list(rows.print = 15))
+
 ```
 
 ### Show the network
@@ -206,6 +215,7 @@ legend(x = -1, y = -1.2,
 The sampling procedures are additive in a sense that each procedure appends several columns relevant to the sampling procedure and particular draw based on population simulation, but does not change the study population data frame (unless you specify `drop_nonsampled = TRUE`).
 
 ```{r example_rds}
+
 study_sample_rds <- 
   eval(as.call(c(list(declare_sampling), study_1$sample$rds)))
 
@@ -213,9 +223,11 @@ set.seed(19872312)
 draw_data(study_population + study_sample_rds) %>%  
   dplyr::sample_n(n()) %>% # shuffle data frame
   rmarkdown::paged_table(options = list(rows.print = 15))
+
 ```
 
 ```{r example_pps}
+
 study_sample_pps <- 
   eval(as.call(c(list(declare_sampling), study_1$sample$pps)))
 
@@ -223,9 +235,11 @@ set.seed(19872312)
 draw_data(study_population + study_sample_rds + study_sample_pps) %>% 
   dplyr::sample_n(n()) %>% # shuffle data frame
   rmarkdown::paged_table(options = list(rows.print = 15))
+
 ```
 
 ```{r example_tls}
+
 study_sample_tls <- 
   eval(as.call(c(list(declare_sampling), study_1$sample$tls)))
 
@@ -234,11 +248,13 @@ draw_data(study_population +
             study_sample_rds + study_sample_pps + study_sample_tls) %>% 
   dplyr::sample_n(n()) %>% # shuffle data frame
   rmarkdown::paged_table(options = list(rows.print = 15))
+
 ```
 
 ## Step 4. Declare study level estimands
 
 ```{r example_estimands}
+
 study_estimands <- 
   eval(as.call(c(list(declare_inquiry), study_1$inquiries)))
 
@@ -247,11 +263,13 @@ draw_inquiry(study_population +
                 # study_sample_rds + study_sample_pps + study_sample_tls + 
                 study_estimands) %>% 
   kable(digits = 2)
+
 ```
 
 ## Step 5. Declare estimators used in the study
 
 ```{r example_estimators}
+
 est_sspse <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$rds$sspse)))
 est_chords <- 
@@ -268,10 +286,12 @@ est_ht_tls <-
   eval(as.call(c(list(declare_estimator), study_1$estimators$tls$ht)))
 est_nsum_tls <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$tls$nsum)))
+est_recap_tls <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$recap)))
 
-est_recap <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap)))
-est_recap2 <- 
+est_recap_rds_pps <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap1)))
+est_recap_rds_tls <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap2)))
 
 set.seed(19872312)
@@ -279,23 +299,25 @@ draw_estimates(study_population +
                  study_sample_rds + study_sample_pps + study_sample_tls +
                  study_estimands +
                  est_sspse + est_chords + est_multi +
-                 est_ht_tls + est_ht_pps +
-                 est_nsum_tls + est_nsum_pps +
-                 est_recap + est_recap2) %>%
+                 est_nsum_pps + est_ht_pps +
+                 est_nsum_tls + est_ht_tls + est_recap_tls +
+                 est_recap_rds_pps + est_recap_rds_tls) %>%
   kable(digits = 2)
+
 ```
 
 ## Step 6. Declare full study
 
-```{r example_study, warning = FALSE}
+```{r example_study, warning=FALSE}
+
 study1 <- 
   study_population +
   study_sample_rds + study_sample_pps + study_sample_tls +
   study_estimands +
   est_sspse + est_chords + est_multi +
-  est_ht_tls + est_ht_pps +
-  est_nsum_tls + est_nsum_pps +
-  est_recap + est_recap2
+  est_nsum_pps + est_ht_pps +
+  est_nsum_tls + est_ht_tls + est_recap_tls +
+  est_recap_rds_pps + est_recap_rds_tls
 
 # can draw one of the samples
 study1$study_sample_rds(study1$study_population())
@@ -309,13 +331,14 @@ study1$inquiry(study1_data)
 # can draw any of the estimators
 study1$rds_sspse(study1_data)
 study1$pps_ht(study1_data)
-study1$samp_recap(study1_data)
+study1$rds_pps_recap(study1_data)
+
 ```
 
 
 ## Step 7. Diagnose study design
 
-```{r example_diagnose, warning = FALSE}
+```{r example_diagnose, warning = FALSE, eval=FALSE}
 
 study_diagnosands <-
  declare_diagnosands(
@@ -336,109 +359,7 @@ diagnose_design(study1_simulations,
 
 ```
 
-## Meta-analysis Draft structure
-
-1.  Get all estimates produced for each of the studies (depending on the design) in a single data frame that will include estimator and standard error for each estimator (or potentially for each sampling-estimator pair)
-
-2.  Then we can *feed* this data frame into Stan model akin the one below
-
-    a.  Use the data frame to produce observed estimator vectors for each estimator/sampling-estimator pair, `observed*`
-    b.  Use the data frame produced by study designs to produce arrays of observed estimates and corresponding standard errors (with dummy value where missing), `est*` and `est*_sd`
-    c.  Assume that deviation from true parameter of interest (`error`) is driven by use of estimator
-
-3.  We then declare the relevant estimands and run diagnosis
-
-```{r stan_meta, eval=FALSE}
-
-stan_model_prev <- " 
-  data {
-    int<lower=0> N;   // number of studies 
-    int<lower=0> K;   // max number of estimator (estimator-sampling pairs) 
-    // number of studies with estimator (estimator-sampling pair)
-    int<lower=0,upper=N> N1;
-    int<lower=0,upper=N> N2;
-    int<lower=0,upper=N> N3;
-    // ids of studies with specific estimator (estimator-sampling pair)
-    int<lower=0,upper=N> observed1[N1];   
-    int<lower=0,upper=N> observed2[N2];
-    int<lower=0,upper=N> observed3[N3];
-    // parameter estimates
-    real<lower=0,upper=1> est1[N1];   
-    real<lower=0,upper=1> est2[N2];
-    real<lower=0,upper=1> est3[N3];
-    // estimated standard errors of parameter estimates
-    real<lower=0> est1_sd[N1]; 
-    real<lower=0> est2_sd[N2];
-    real<lower=0> est3_sd[N3];
-  }
-  parameters {
-    // (additive) error factor for each estimator/estimator-sampling pair
-    real<lower=-1,upper=1> error[K]; 
-    // prevalence estimate for each study
-    vector<lower=0,upper=1>[N] alpha;
-    // need to add Sigma to allow for interdependence of errors across estimators
-    // or studies
-  }
-  model
-    target += normal_lpmf(est1 | error[1] + alpha[observed1], est1_sd);
-    target += normal_lpmf(est2 | error[2] + alpha[observed2], est2_sd);
-    target += normal_lpmf(est3 | error[3] + alpha[observed3], est3_sd);
-  }
-  "
-
-data <- draw_estimates(multi_design)
-
-data %>% 
-  dplyr::mutate(
-    study = stringr::str_extract(data$inquiry_label, "^study\\_(\\d+)"),
-    estimand = stringr::str_remove(pattern = paste0(study, "_"), string = inquiry_label),
-    estimator_label = strsplit(estimator_label, "_"),
-    inquiry_label = strsplit(inquiry_label, "_"),
-    sample = purrr::map2_chr(estimator_label, inquiry_label, 
-                             ~ setdiff(.x, .y)[1]),
-    estimator = purrr::map2_chr(estimator_label, inquiry_label, 
-                                ~ setdiff(.x, .y)[2])
-  )
-
-get_meta_estimands <- function(data) {
-  
-  data.frame(inquiry_label = c(paste0("prevalence_", 1:N)),
-             estimand = c(data[,1]),
-             stringsAsFactors = FALSE)
-}
-
-get_meta_estimators = function(data) {
-  
-  stan_data <- list(N = nrow(data),
-                    K = (ncol(data)-1)/2)
-  
-  for (k in 1:stan_data$K) {
-    stan_data[[ paste0("observed",k) ]] <- which(!is.na(data[,(2 * k)]))
-    stan_data[[ paste0("N",k) ]] <- length(stan_data[[paste0("observed",k)]])
-    stan_data[[ paste0("est",k) ]] <- 
-      data[stan_data[[paste0("observed",k)]],(2 * k)]
-    stan_data[[ paste0("est",k,"_sd") ]] <- 
-      data[stan_data[[paste0("observed",k)]],(1 + 2 * k)]
-  }
-  
-  fit <- 
-    rstan::stan(fit = stan_model_meta, 
-                data = stan_data, 
-                iter = 4000) %>% 
-    extract
-  
-  data.frame(estimator_label = c(paste0("prev_", 1:N)),
-             estimate = c(apply(fit$alpha, 2, mean)),
-             sd =   c(apply(fit$alpha, 2, sd)),
-             inquiry_label = c(paste0("hidden_prev", 1:N)),
-             big_Rhat = big_Rhat
-             )
-  
-  }
-
-```
-
-## Meta declaration
+## Multi study declaration
 
 ### Additional study
 
@@ -469,8 +390,11 @@ study_2 <-
         
         # probability of service utilization in hidden population
         # for service multiplier
-        add_groups = list(p_service = 0.3, 
-                          loc_1 = 0.3, loc_2 = 0.1, loc_3 = 0.2)
+        
+        add_groups = 
+          list(service_use = "rbinom(n(), 1, 0.25 + hidden * 0.3)",
+               "purrr::map_df(hidden, ~ sapply( `names<-`(runif(10, 0.05,.3), paste0('loc_', 1:10)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
+               known_2 = 0.1, known_3 = 0.2)
       ),
     sample = 
       list(
@@ -482,6 +406,12 @@ study_2 <-
                    n_coupons = 3,
                    target_type = "waves",
                    target_n_rds = 2),
+        tls = list(handler = sample_tls,
+                   sampling_variable = "tls",
+                   # TLS sampling parameters
+                   target_n_clusters = 4,
+                   target_n_tls = 300,
+                   cluster = paste0("loc_", 1:8)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
@@ -507,7 +437,31 @@ study_2 <-
                              label = "rds_chords",
                              seed_condition = "rds_from == -999",
                              n_boot = 100,
-                             rds_prefix = "rds")),
+                             rds_prefix = "rds"),
+               multiplier = list(handler = get_study_est_multiplier, 
+                                 service_var = "service_use",
+                                 seed_condition = "rds_from == -999",
+                                 n_boot = 100,
+                                 rds_prefix = "rds",
+                                 label = "rds_multi")),
+        tls =
+          list(ht = list(handler = get_study_est_ht,
+                         weight_var = "tls_weight",
+                         prefix = "tls",
+                         label = "tls_ht"),
+               nsum = list(handler = get_study_est_nsum,
+                           known = c("known", "frame"),
+                           hidden = "hidden_visible_out",
+                           survey_design = ~ tls_cluster,
+                           n_boot = 100,
+                           prefix = "tls",
+                           label = "tls_nsum"),
+               recap = list(handler = get_study_est_recapture,
+                            capture_vars = paste0("loc_", 1:8),
+                            sample_condition = "tls == 1",
+                            model = "Mt",
+                            hidden_condition = "hidden == 1",
+                            label = "tls_recap")),
         pps = 
           list(
             ht = list(handler = get_study_est_ht, 
@@ -519,16 +473,16 @@ study_2 <-
                         n_boot = 100,
                         label = "pps_nsum")),
         all = 
-          list(recap = list(handler = get_study_est_recapture,
-                            capture_vars = paste0("loc_", 1:2),
-                            model = "Mt",
-                            hidden_condition = "hidden == 1",
-                            label = "all_recap"),
-               recap2 = list(handler = get_study_est_recapture,
+          list(recap1 = list(handler = get_study_est_recapture,
                              capture_vars = c("rds", "pps"),
                              model = "Mt",
                              hidden_condition = "hidden == 1",
-                             label = "samp_recap"))
+                             label = "rds_pps_recap"),
+               recap2 = list(handler = get_study_est_recapture,
+                             capture_vars = c("rds", paste0("loc_", 1:8)),
+                             model = "Mt",
+                             hidden_condition = "hidden == 1",
+                             label = "rds_tls_recap"))
       )
   )
 
@@ -536,7 +490,7 @@ study_2 <-
 
 ### Declare multiple studies
 
-```{r meta_study, eval=TRUE, warning = FALSE}
+```{r multi_study, eval=TRUE, warning=FALSE}
 
 multi_population <- 
   declare_population(handler = get_multi_populations, 
@@ -558,35 +512,76 @@ multi_estimators <-
                     estimators_args = list(study_1 = study_1$estimators,
                                            study_2 = study_2$estimators))
 
-multi_design <- multi_population + multi_sampling + multi_inquiry + multi_estimators
-
+multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
 set.seed(19872312)
-multi_design$multi_sampling(multi_design$multi_population()) %>% 
+draw_inquiry(multi_study) %>% 
   kable()
 
-draw_inquiry(multi_design) %>% 
+draw_estimates(multi_study) %>% 
   kable()
 
-draw_estimates(multi_design) %>% 
-  kable()
+```
 
+### Diagnose multiple studies
 
-multi_simulations <- 
-  simulate_design(multi_population +
-                    multi_sampling + 
-                    multi_inquiry + 
-                    multi_estimators, 
-                  sims = 10)
+```{r multi_study_diagnose, eval=FALSE}
+
+multi_simulations <- simulate_design(multi_study, sims = 10)
 
 diagnose_design(simulations_df = multi_simulations, 
-                diagnosands = study_diagnosands)%>% 
+                diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design Label') %>%
   kable()
 
 ```
 
-```{r diagnose_meta, eval=FALSE}
+
+## Meta-analysis structure
+
+1. Conduct multi-study design for as many sampling-estimator pairs in each study as possible, then diagnoise the multi-study design. Calculate average (across simulations) estimand and bias of sampling-estimator for each of the studies and estimator sampling strategies. These will serve as population we will be drawing population-sampling-estimator triads
+
+2. Estimands include:
+    - Average estimand by inquiry label (within study)
+    - Average bias of specific sampling-estimator pair (across studies) compared to truth
+    - Average relative bias of sampling-estimator pair (across studies) compared to "gold standard"
+    - Ratio of average bias to costs of sampling-estimator pair 
+
+3. As mentioned before sampling will consist of drawing population-sampling-estimator triads from the population presuming that each study uses at least two sampling strategies at a time
+
+4. Once we draw sample we use Stan model to estimate study-specific estimands and sampling-estimator specific errors (biases)
+
+5. We have all parts to conduct the full cycle of meta-analyses
+
+
+```{r meta_study, eval=FALSE}
+
+meta_population <- 
+  declare_population(multi_design = multi_study, n_sim = 10, parallel = TRUE, 
+                     handler = get_meta_population)
+
+meta_inquiry <- 
+  declare_inquiry(study_estimand = "hidden_size",
+                  samp_est_benchmark = "pps_ht", 
+                  handler = get_meta_estimands)
+
+meta_sample <- 
+  declare_population(sampling_variable = "meta",
+                     selection_variables = c("sample", "estimator"),
+                     samples_per_study = 2, estimator_per_sample = 3, 
+                     handler = get_meta_sample)
+
+set.seed(19872312)
+meta_pop <- meta_population()
+draw_inquiry(meta_population + meta_inquiry)
+draw_data(meta_population + meta_inquiry + meta_sample)
+
+
+
+```
+
+
+```{r meta_study_diagnose, eval=FALSE}
 
 # meta_population <- 
 #   declare_estimand(handler = get_meta_population)

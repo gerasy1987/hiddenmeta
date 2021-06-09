@@ -2,16 +2,24 @@
 % Please edit documentation in R/meta_estimands.R
 \name{get_meta_estimands}
 \alias{get_meta_estimands}
-\title{Get estimands for several studies}
+\title{Get meta-analysis estimands for specific study-level estimand}
 \usage{
-get_meta_estimands(data)
+get_meta_estimands(
+  data,
+  study_estimand = "hidden_size",
+  samp_est_benchmark = "pps_ht"
+)
 }
 \arguments{
-\item{data}{pass-through data frame of several study populations}
+\item{data}{pass-through meta population}
+
+\item{study_estimand}{study-level estimand for meta-analysis estimands}
+
+\item{samp_est_benchmark}{within-study benchmark sampling-estimator strategy}
 }
 \value{
-Data frame of estimands for multiple studies
+
 }
 \description{
-Get estimands for several studies
+Get meta-analysis estimands for specific study-level estimand
 }
