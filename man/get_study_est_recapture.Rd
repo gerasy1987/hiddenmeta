@@ -9,7 +9,7 @@ get_study_est_recapture(
   capture_vars = paste0("loc_", 1:4),
   sample_condition = NULL,
   model = "Mt",
-  hidden_condition = "hidden == 1",
+  hidden_variable = "hidden",
   label = "recapture"
 )
 }
@@ -22,7 +22,7 @@ get_study_est_recapture(
 
 \item{model}{character string giving capture-recapture Log-Linear model to estimate}
 
-\item{hidden_condition}{character string giving condition to identify members of hidden population}
+\item{hidden_variable}{character string giving indicator of hidden population membership}
 
 \item{label}{character string describing the estimator}
 }

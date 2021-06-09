@@ -6,6 +6,7 @@
 #' @param selection_variables length 2 character vector of names of sample and estimator variables in population data frame (in this order). Default is 'sample' and 'estimator'
 #' @param samples_per_study number of sampling strategies per study to draw
 #' @param estimator_per_sample number of estimation strategies to draw per sampling strategy
+#' @param force named list of length two giving the sample and estimator identifiers that are forced to be sampled across studies
 #'
 #' @return
 #' @export
@@ -13,39 +14,45 @@
 #' @import dplyr
 #' @importFrom purrr map2_int
 get_meta_sample <-
-  function(data = meta_pop, drop_nonsampled = FALSE,
+  function(data, drop_nonsampled = FALSE,
            sampling_variable = "meta",
            selection_variables = c("sample", "estimator"),
-           samples_per_study = 2, estimator_per_sample = 3
+           samples_per_study = 2, estimator_per_sample = 3,
+           force = list(sample = "pps", estimator = "ht")
 
   ) {
 
     data <-
       data %>%
-      dplyr::group_by(study) %>%
+      dplyr::mutate(
+        selected_sim = as.integer(sim_ID == sample(unique(sim_ID), size = 1))
+      ) %>%
+      dplyr::group_by(sim_ID, study) %>%
       dplyr::mutate(
         selected_samples =
-          list(base::sample(x = unique(do.call("c", sample)),
-                            size = min(length(unique(do.call("c", sample))),
-                                       samples_per_study))),
+          list(c(force$sample,
+                 base::sample(x = base::setdiff(unique(do.call("c", sample)), force$sample),
+                              size = min(length(unique(do.call("c", sample))) - length(force$sample),
+                                         samples_per_study - length(force$sample))))),
         selected_sample =
           purrr::map2_int(sample, selected_samples, ~ as.integer(all(.x %in% .y)))
       ) %>%
       dplyr::group_by(sample, .add = TRUE) %>%
       dplyr::mutate(
         selected_estimators =
-          list(base::sample(x = estimator,
-                            size = min(length(estimator),
-                                       estimator_per_sample))),
+          list(c(force$estimator,
+                 base::sample(x = unique(estimator),
+                              size = min(length(unique(estimator)),
+                                         estimator_per_sample - 1)))),
         selected_estimator =
           purrr::map2_int(estimator, selected_estimators, ~ as.integer(all(.x %in% .y)))
       ) %>%
       dplyr::ungroup() %>%
       dplyr::mutate(
         !!sampling_variable :=
-          as.integer(selected_sample == 1 & selected_estimator == 1)
+          as.integer(selected_sample == 1 & selected_estimator == 1 & selected_sim == 1)
       ) %>%
-      dplyr::select(study, inquiry, sample, estimator, estimand, estimate, se,
+      dplyr::select(sim_ID, study, inquiry, sample, estimator, estimand, estimate, se,
                     all_of(sampling_variable))
 
     if (drop_nonsampled) {
@@ -54,6 +61,6 @@ get_meta_sample <-
         dplyr::filter(across(all_of(sampling_variable), ~ . == 1))
     }
 
-    return(data)
+    return(data.frame(data, stringsAsFactors = FALSE))
 
   }

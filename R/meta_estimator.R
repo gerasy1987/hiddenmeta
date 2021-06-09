@@ -1,28 +1,73 @@
-get_meta_estimators = function(data, which = "hidden_size") {
+#' Use Stan model to estimate bias and estimands
+#'
+#' @param data pass-through meta population or meta sample data frame
+#' @param sampling_variable name of variable storing meta analysis sampling information
+#' @param which_estimand name of study level estimand for meta analysis
+#'
+#' @return
+#' @export
+#'
+#' @import dplyr
+#' @importFrom purrr map2_int
+get_meta_estimators =
+  function(data,
+           sampling_variable = "meta",
+           which_estimand = "hidden_size") {
 
-  stan_data <- list(N = nrow(data),
-                    K = (ncol(data)-1)/2)
+    stan_data <-
+      data %>%
+      dplyr::filter(across(all_of(sampling_variable), ~ . == 1),
+                    inquiry %in% which_estimand)
 
-  for (k in 1:stan_data$K) {
-    stan_data[[ paste0("observed",k) ]] <- which(!is.na(data[,(2 * k)]))
-    stan_data[[ paste0("N",k) ]] <- length(stan_data[[paste0("observed",k)]])
-    stan_data[[ paste0("est",k) ]] <-
-      data[stan_data[[paste0("observed",k)]],(2 * k)]
-    stan_data[[ paste0("est",k,"_sd") ]] <-
-      data[stan_data[[paste0("observed",k)]],(1 + 2 * k)]
-  }
+    samp_ests <- unique(stan_data[,c("sample", "estimator")])
+    studies <- unique(stan_data$study)
+
+
+    N <- length(studies)
+    K <- nrow(samp_ests)
+
+    # get ids of unique samp-est pairs in observed data
+    samp_est_ids <-
+      mapply(
+        x = samp_ests$sample, y = samp_ests$estimator,
+        function(x,y) {
+          lapply(stan_data$sample, paste0, collapse = "_") ==
+            paste0(x, collapse = "_") & stan_data$estimator == y
+        },
+        SIMPLIFY = FALSE
+      )
+
+    stan_data <-
+      samp_est_ids %>%
+      {
+        c(lapply(X = ., FUN = sum),
+          lapply(X = ., FUN = function(x) which(studies %in% stan_data$study[x])),
+          lapply(X = ., FUN = function(x) stan_data$estimate[x]),
+          lapply(X = ., FUN = function(x) stan_data$se[x]))
+      } %>%
+      `names<-`(
+        .,
+        apply(X = expand.grid(1:K, c("n", "observed", "est", "est_se")),
+              MARGIN = 1,
+              FUN = function(x) paste0(x[c(2,1)], collapse = ""))
+      ) %>%
+      c(N = N, K = K, .)
+
+  # parse_model <- stanc(model_code = get_meta_stan(K), model_name = "meta_stan")
 
   fit <-
-    rstan::stan(fit = stan_model_meta,
-                data = stan_data,
-                iter = 4000) %>%
-    extract
+    rstan::stan(
+      # file = "R/meta.stan",
+      model_code = get_meta_stan(stan_data),
+      data = stan_data,
+      iter = 10, chains = 1,
+      verbose = TRUE)
 
-  data.frame(estimator_label = c(paste0("prev_", 1:N)),
-             estimate = c(apply(fit$alpha, 2, mean)),
-             sd =   c(apply(fit$alpha, 2, sd)),
-             inquiry_label = c(paste0("hidden_prev", 1:N)),
-             big_Rhat = big_Rhat
-  )
+  # data.frame(estimator_label = c(paste0("prev_", 1:N)),
+  #            estimate = c(apply(fit$alpha, 2, mean)),
+  #            sd =   c(apply(fit$alpha, 2, sd)),
+  #            inquiry_label = c(paste0("hidden_prev", 1:N)),
+  #            big_Rhat = big_Rhat
+  # )
 
 }

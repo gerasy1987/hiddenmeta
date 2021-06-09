@@ -537,7 +537,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 #' @param capture_vars character vector giving names of variables with capture indicators
 #' @param sample_condition character string with condition if the capture-recapture conducted on subsample of population (e.g. tls sample only)
 #' @param model character string giving capture-recapture Log-Linear model to estimate
-#' @param hidden_condition character string giving condition to identify members of hidden population
+#' @param hidden_variable character string giving indicator of hidden population membership
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of HT estimates for single study
@@ -552,7 +552,7 @@ get_study_est_recapture <- function(data,
                                     capture_vars = paste0("loc_", 1:4),
                                     sample_condition = NULL,
                                     model = "Mt",
-                                    hidden_condition = "hidden == 1",
+                                    hidden_variable = "hidden",
                                     label = "recapture") {
 
   if (!is.null(sample_condition)) {
@@ -563,7 +563,8 @@ get_study_est_recapture <- function(data,
 
   .est_out <-
     data %>%
-    dplyr::filter(if_any(all_of(capture_vars), ~ . == 1), eval(parse(text = hidden_condition))) %>%
+    dplyr::filter(if_any(all_of(capture_vars), ~ . == 1),
+                  across(all_of(hidden_variable), ~ . == 1)) %>%
     dplyr::select(all_of(capture_vars)) %>%
     Rcapture::closedp.bc(X = .,
                          dfreq = FALSE,

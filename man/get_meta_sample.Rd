@@ -5,12 +5,13 @@
 \title{Sample sampling-estimator strategies across studies for meta-analysis}
 \usage{
 get_meta_sample(
-  data = meta_pop,
+  data,
   drop_nonsampled = FALSE,
   sampling_variable = "meta",
   selection_variables = c("sample", "estimator"),
   samples_per_study = 2,
-  estimator_per_sample = 3
+  estimator_per_sample = 3,
+  force = list(sample = "pps", estimator = "ht")
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ get_meta_sample(
 \item{samples_per_study}{number of sampling strategies per study to draw}
 
 \item{estimator_per_sample}{number of estimation strategies to draw per sampling strategy}
+
+\item{force}{named list of length two giving the sample and estimator identifiers that are forced to be sampled across studies}
 }
 \value{
 
