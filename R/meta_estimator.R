@@ -9,7 +9,7 @@
 #'
 #' @import dplyr
 #' @importFrom purrr map2_int
-get_meta_estimators =
+get_meta_estimators <-
   function(data,
            sampling_variable = "meta",
            which_estimand = "hidden_size") {
