@@ -3,6 +3,7 @@
 #' @param data pass-through meta population or meta sample data frame
 #' @param sampling_variable name of variable storing meta analysis sampling information
 #' @param which_estimand name of study level estimand for meta analysis
+#' @param benchmark named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)
 #'
 #' @return
 #' @export
@@ -12,38 +13,47 @@
 get_meta_estimators <-
   function(data,
            sampling_variable = "meta",
-           which_estimand = "hidden_size") {
+           which_estimand = "hidden_size",
+           benchmark = list(sample = "pps", estimator = "ht")) {
 
-    stan_data <-
+    .stan_data <-
       data %>%
       dplyr::filter(across(all_of(sampling_variable), ~ . == 1),
                     inquiry %in% which_estimand)
 
-    samp_ests <- unique(stan_data[,c("sample", "estimator")])
-    studies <- unique(stan_data$study)
+    .samp_ests <- unique(.stan_data[,c("sample", "estimator")])
+    .samp_est_names <-
+      paste0(sapply(.samp_ests$sample, paste0, collapse = "_"), "_", .samp_ests$estimator)
+    .benchmark_sampe_est <-
+      which(lapply(.samp_ests$sample, paste0, collapse = "_") ==
+              paste0(benchmark$sample, collapse = "_") &
+              .samp_ests$estimator == benchmark$estimator)
+    .samp_ests <-
+      rbind(.samp_ests[benchmark_sampe_est,],
+            .samp_ests[-benchmark_sampe_est,])
+    .studies <- unique(.stan_data$study)
 
-
-    N <- length(studies)
-    K <- nrow(samp_ests)
+    .N <- length(.studies)
+    .K <- nrow(.samp_ests)
 
     # get ids of unique samp-est pairs in observed data
-    samp_est_ids <-
+    .samp_est_ids <-
       mapply(
-        x = samp_ests$sample, y = samp_ests$estimator,
+        x = .samp_ests$sample, y = .samp_ests$estimator,
         function(x,y) {
-          lapply(stan_data$sample, paste0, collapse = "_") ==
-            paste0(x, collapse = "_") & stan_data$estimator == y
+          lapply(.stan_data$sample, paste0, collapse = "_") ==
+            paste0(x, collapse = "_") & .stan_data$estimator == y
         },
         SIMPLIFY = FALSE
       )
 
-    stan_data <-
-      samp_est_ids %>%
+    .stan_data <-
+      .samp_est_ids %>%
       {
         c(lapply(X = ., FUN = sum),
-          lapply(X = ., FUN = function(x) which(studies %in% stan_data$study[x])),
-          lapply(X = ., FUN = function(x) stan_data$estimate[x]),
-          lapply(X = ., FUN = function(x) stan_data$se[x]))
+          lapply(X = ., FUN = function(x) which(.studies %in% .stan_data$study[x])),
+          lapply(X = ., FUN = function(x) .stan_data$estimate[x]),
+          lapply(X = ., FUN = function(x) .stan_data$se[x]))
       } %>%
       `names<-`(
         .,
@@ -51,23 +61,52 @@ get_meta_estimators <-
               MARGIN = 1,
               FUN = function(x) paste0(x[c(2,1)], collapse = ""))
       ) %>%
-      c(N = N, K = K, .)
-
-  # parse_model <- stanc(model_code = get_meta_stan(K), model_name = "meta_stan")
+      c(N = .N, K = .K, .)
 
   fit <-
     rstan::stan(
       # file = "R/meta.stan",
-      model_code = get_meta_stan(stan_data),
-      data = stan_data,
-      iter = 1000, chains = 4, seed = 19871223, cores = parallel::detectCores() - 1,
-      verbose = TRUE)
+      model_code = get_meta_stan(.stan_data),
+      data = .stan_data,
+      iter = 4000, chains = 8, seed = 19871223, cores = parallel::detectCores() - 1,
+      verbose = FALSE) %>%
+    rstan::extract()
 
-  # data.frame(estimator_label = c(paste0("prev_", 1:N)),
-  #            estimate = c(apply(fit$alpha, 2, mean)),
-  #            sd =   c(apply(fit$alpha, 2, sd)),
-  #            inquiry_label = c(paste0("hidden_prev", 1:N)),
-  #            big_Rhat = big_Rhat
-  # )
+  .biases <-
+    fit$rel_bias %>%
+    cbind(1, .) %>%
+    plyr::alply(
+      .margins = 1,
+      .fun = function(x) {
+        c(matrix(x, nrow = .K, ncol = .K, byrow = TRUE) /
+            matrix(x, nrow = .K, ncol = .K, byrow = FALSE))
+      }) %>%
+    do.call(rbind, .) %>%
+    plyr::aaply(.margins = 2,
+                .fun = function(x) c(est = mean(x),
+                                     se = sd(x))) %>%
+    plyr::alply(.margins = 2,
+                function(x) {
+                  matrix(data = x,
+                         nrow = .K, ncol = .K,
+                         byrow = FALSE,
+                         dimnames = list(.samp_est_names,
+                                         .samp_est_names))
+                })
+
+
+  .study_ests <-
+    fit$alpha %>%
+    plyr::aaply(.margins = 2,
+                .fun = function(x) c(est = mean(x),
+                                     se = sd(x)))
+
+  data.frame(estimator_label = c(paste0("rel_bias_", .samp_est_names, "_meta"),
+                                 paste0(.studies, "_meta")),
+             estimate = c(unname(.biases[[1]][1,]), unname(.study_ests[,1])),
+             se =   c(unname(.biases[[2]][1,]), unname(.study_ests[,2])),
+             inquiry_label = c(paste0("rel_bias_", .samp_est_names),
+                               .studies)
+  )
 
 }

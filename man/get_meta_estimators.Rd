@@ -7,7 +7,8 @@
 get_meta_estimators(
   data,
   sampling_variable = "meta",
-  which_estimand = "hidden_size"
+  which_estimand = "hidden_size",
+  benchmark = list(sample = "pps", estimator = "ht")
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ get_meta_estimators(
 \item{sampling_variable}{name of variable storing meta analysis sampling information}
 
 \item{which_estimand}{name of study level estimand for meta analysis}
+
+\item{benchmark}{named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)}
 }
 \value{
 
