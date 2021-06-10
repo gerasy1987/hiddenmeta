@@ -60,7 +60,7 @@ get_meta_estimators <-
       # file = "R/meta.stan",
       model_code = get_meta_stan(stan_data),
       data = stan_data,
-      iter = 10, chains = 1,
+      iter = 1000, chains = 4, seed = 19871223, cores = parallel::detectCores() - 1,
       verbose = TRUE)
 
   # data.frame(estimator_label = c(paste0("prev_", 1:N)),
