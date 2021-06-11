@@ -581,7 +581,7 @@ diagnose_design(simulations_df = multi_simulations,
 ```{r meta_study, eval=TRUE}
 
 meta_population <- 
-  declare_population(multi_design = multi_study, n_sim = 2, parallel = TRUE, 
+  declare_population(multi_design = multi_study, n_sim = 3, parallel = FALSE, 
                      handler = get_meta_population)
 
 meta_inquiry <- 
@@ -600,6 +600,7 @@ meta_estimator <-
   declare_estimator(sampling_variable = "meta",
                     which_estimand = "hidden_size",
                     benchmark = list(sample = "pps", estimator = "ht"),
+                    parallel = FALSE,
                     handler = get_meta_estimates)
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
@@ -615,7 +616,27 @@ draw_estimates(meta_study) %>%
 
 ```{r meta_study_diagnose, eval=FALSE}
 
-meta_simulations <- simulate_design(meta_study, sims = 2)
+meta_simulations <- simulate_design(meta_study, sims = 20)
+
+requireNamespace(c("doParallel", "parallel"))
+doParallel::registerDoParallel(cores = 20)
+
+set.seed(19872312)
+multi_simulations <-
+  plyr::llply(
+    as.list(1:100),
+    .fun = function(x) {
+      base::suppressWarnings(
+        DeclareDesign::simulate_design(meta_study, sims = 1) %>%
+          dplyr::mutate(
+            sim_ID = x
+          )
+      )
+    },
+    .parallel = TRUE
+  ) %>%
+  dplyr::bind_rows()
+
 
 diagnose_design(simulations_df = meta_simulations, 
                 diagnosands = study_diagnosands) %>% 

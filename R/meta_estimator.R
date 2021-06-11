@@ -4,17 +4,20 @@
 #' @param sampling_variable name of variable storing meta analysis sampling information
 #' @param which_estimand name of study level estimand for meta analysis
 #' @param benchmark named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)
+#' @param parallel logical. Whether to parallelize design simulations
 #'
 #' @return
 #' @export
 #'
 #' @import dplyr
 #' @import rstan
+#' @importFrom parallel detectCores
 get_meta_estimates <- function(
   data,
   sampling_variable = "meta",
   which_estimand = "hidden_size",
-  benchmark = list(sample = "pps", estimator = "ht")) {
+  benchmark = list(sample = "pps", estimator = "ht"),
+  parallel = FALSE) {
 
   .stan_data <-
     data %>%
@@ -64,13 +67,14 @@ get_meta_estimates <- function(
     c(N = .N, K = .K, .)
 
   .fit <-
-    suppressMessages(
       rstan::stan(model_code = get_meta_stan(.stan_data),
                   data = .stan_data,
-                  iter = 2000, chains = 8, seed = 19871223, cores = parallel::detectCores() - 1,
-                  verbose = FALSE) %>%
+                  iter = 8000, chains = 8, thin = 10,
+                  seed = 19871223,
+                  cores = ifelse(parallel, min(8, parallel::detectCores() - 1), 1),
+                  verbose = FALSE,
+                  refresh = 0) %>%
         rstan::extract(.)
-    )
 
   .biases <-
     .fit$rel_bias %>%
@@ -107,7 +111,8 @@ get_meta_estimates <- function(
                estimate = c(unname(.biases[[1]][1,]), unname(.study_ests[,1])),
                se =   c(unname(.biases[[2]][1,]), unname(.study_ests[,2])),
                inquiry_label = c(paste0("rel_bias_", .samp_est_names),
-                                 paste0(.studies, "_", which_estimand))
+                                 paste0(.studies, "_", which_estimand)),
+               stringsAsFactors = FALSE
     )
   )
 

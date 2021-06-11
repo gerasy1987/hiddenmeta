@@ -8,7 +8,8 @@ get_meta_estimates(
   data,
   sampling_variable = "meta",
   which_estimand = "hidden_size",
-  benchmark = list(sample = "pps", estimator = "ht")
+  benchmark = list(sample = "pps", estimator = "ht"),
+  parallel = FALSE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ get_meta_estimates(
 \item{which_estimand}{name of study level estimand for meta analysis}
 
 \item{benchmark}{named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)}
+
+\item{parallel}{logical. Whether to parallelize design simulations}
 }
 \value{
 
