@@ -23,7 +23,7 @@ get_meta_estimands <-
           dplyr::group_by(., sim_ID, study) %>%
             dplyr::summarise(.groups = "drop",
                              estimand = unique(estimand)) %>%
-            dplyr::mutate(inquiry = study) %>%
+            dplyr::mutate(inquiry = paste0(study, "_", study_estimand)) %>%
             dplyr::select(sim_ID, inquiry_label = inquiry, estimand),
           # sample-estimator level absolute estimands
           dplyr::group_by(., sim_ID, sample, estimator) %>%

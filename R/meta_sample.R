@@ -53,7 +53,7 @@ get_meta_sample <-
           as.integer(selected_sample == 1 & selected_estimator == 1 & selected_sim == 1)
       ) %>%
       dplyr::select(sim_ID, study, inquiry, sample, estimator, estimand, estimate, se,
-                    all_of(sampling_variable))
+                    all_of(sampling_variable), everything(), -starts_with("selected_"))
 
     if (drop_nonsampled) {
       data <-

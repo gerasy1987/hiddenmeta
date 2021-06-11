@@ -13,7 +13,9 @@
 #' @importFrom plyr llply
 #' @importFrom purrr map map_chr
 get_meta_population <-
-  function(multi_design, n_sim = 2, parallel = FALSE) {
+  function(multi_design,
+           n_sim = 2,
+           parallel = FALSE) {
 
     if (parallel) {
 
@@ -56,13 +58,7 @@ get_meta_population <-
       ) %>%
       dplyr::select(
         sim_ID, study, inquiry, sample, estimator, estimand, estimate, se
-      ) #%>%
-      # dplyr::group_by(study, inquiry, sample, estimator) %>%
-      # dplyr::summarise(
-      #   .groups = "drop",
-      #   dplyr::across(where(is.numeric), mean, na.rm = TRUE)
-      # ) %>%
-      # dplyr::select(-sim_ID)
+      )
 
     return(data)
 

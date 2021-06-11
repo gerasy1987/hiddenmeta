@@ -530,29 +530,28 @@ draw_estimates(multi_study) %>%
 
 ### Diagnose multiple studies
 
-```{r multi_study_diagnose, eval=FALSE}
+```{r multi_study_diagnose, eval=TRUE}
 
-# multi_simulations <- simulate_design(multi_study, sims = 1)
+multi_simulations <- simulate_design(multi_study, sims = 2)
 
-# simulate multi-study design in parallel
-
-requireNamespace(c("doParallel", "parallel"))
-doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
-
-multi_simulations <-
-  plyr::llply(
-    as.list(1:20),
-    .fun = function(x) {
-      base::suppressWarnings(
-        DeclareDesign::simulate_design(multi_design, sims = 1) %>%
-          dplyr::mutate(
-            sim_ID = x
-          )
-      )
-    },
-    .parallel = TRUE
-  ) %>%
-  dplyr::bind_rows()
+# requireNamespace(c("doParallel", "parallel"))
+# doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
+# 
+# set.seed(19872312)
+# multi_simulations <-
+#   plyr::llply(
+#     as.list(1:2),
+#     .fun = function(x) {
+#       base::suppressWarnings(
+#         DeclareDesign::simulate_design(multi_study, sims = 1) %>%
+#           dplyr::mutate(
+#             sim_ID = x
+#           )
+#       )
+#     },
+#     .parallel = TRUE
+#   ) %>%
+#   dplyr::bind_rows()
 
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
@@ -579,10 +578,10 @@ diagnose_design(simulations_df = multi_simulations,
 5. We have all parts to conduct the full cycle of meta-analyses
 
 
-```{r meta_study, eval=FALSE}
+```{r meta_study, eval=TRUE}
 
 meta_population <- 
-  declare_population(multi_design = multi_study, n_sim = 7, parallel = TRUE, 
+  declare_population(multi_design = multi_study, n_sim = 2, parallel = TRUE, 
                      handler = get_meta_population)
 
 meta_inquiry <- 
@@ -591,31 +590,38 @@ meta_inquiry <-
                   handler = get_meta_estimands)
 
 meta_sample <- 
-  declare_population(sampling_variable = "meta",
-                     selection_variables = c("sample", "estimator"),
-                     samples_per_study = 2, estimator_per_sample = 3, 
-                     force = list(sample = "pps", estimator = "ht"),
-                     handler = get_meta_sample)
+  declare_sampling(sampling_variable = "meta",
+                   selection_variables = c("sample", "estimator"),
+                   samples_per_study = 2, estimator_per_sample = 3, 
+                   force = list(sample = "pps", estimator = "ht"),
+                   handler = get_meta_sample)
+
+meta_estimator <- 
+  declare_estimator(sampling_variable = "meta",
+                    which_estimand = "hidden_size",
+                    benchmark = list(sample = "pps", estimator = "ht"),
+                    handler = get_meta_estimates)
+
+meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
 set.seed(19872312)
-# meta_pop <- meta_population()
-estimands <- draw_inquiry(meta_population + meta_inquiry)
-data <- draw_data(meta_population + meta_inquiry + meta_sample)
+draw_inquiry(meta_study) %>% 
+  kable()
+
+draw_estimates(meta_study) %>% 
+  kable()
 
 ```
 
 ```{r meta_study_diagnose, eval=FALSE}
 
-# meta_population <- 
-#   declare_estimand(handler = get_meta_population)
-#   
-# meta_estimands <- 
-#   declare_estimand(handler = get_meta_estimands)
-# 
-# meta_estimators <- 
-#   declare_estimator(handler = get_meta_estimators)
-# 
+meta_simulations <- simulate_design(meta_study, sims = 2)
 
-meta_design <- meta_population + meta_inquiry + meta_estimators
- 
+diagnose_design(simulations_df = meta_simulations, 
+                diagnosands = study_diagnosands) %>% 
+  reshape_diagnosis(digits = 2) %>%
+  dplyr::select(-'Design Label') %>%
+  dplyr::filter(`Mean Estimate` != "NA") %>% 
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+
 ```
