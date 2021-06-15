@@ -532,26 +532,28 @@ draw_estimates(multi_study) %>%
 
 ```{r multi_study_diagnose, eval=FALSE}
 
-multi_simulations <- simulate_design(multi_study, sims = 2)
+# multi_simulations <- simulate_design(multi_study, sims = 2)
 
-# requireNamespace(c("doParallel", "parallel"))
-# doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
-# 
-# set.seed(19872312)
-# multi_simulations <-
-#   plyr::llply(
-#     as.list(1:2),
-#     .fun = function(x) {
-#       base::suppressWarnings(
-#         DeclareDesign::simulate_design(multi_study, sims = 1) %>%
-#           dplyr::mutate(
-#             sim_ID = x
-#           )
-#       )
-#     },
-#     .parallel = TRUE
-#   ) %>%
-#   dplyr::bind_rows()
+requireNamespace(c("doParallel", "parallel"))
+doParallel::registerDoParallel(cores = 20)
+
+set.seed(19872312)
+multi_simulations <-
+  plyr::llply(
+    as.list(1:2),
+    .fun = function(x) {
+      base::suppressWarnings(
+        DeclareDesign::simulate_design(multi_study, sims = 1) %>%
+          dplyr::mutate(
+            sim_ID = x
+          )
+      )
+    },
+    .parallel = TRUE
+  ) %>%
+  dplyr::bind_rows()
+
+saveRDS(multi_simulations, file = "vignettes/multi_sim.rds")
 
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
