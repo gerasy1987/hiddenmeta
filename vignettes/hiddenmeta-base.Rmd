@@ -637,7 +637,7 @@ meta_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-save(meta_simulations, file = "vignettes/meta_sim.rds")
+saveRDS(meta_simulations, file = "vignettes/meta_sim.rds")
 
 diagnose_design(simulations_df = meta_simulations, 
                 diagnosands = study_diagnosands) %>% 
