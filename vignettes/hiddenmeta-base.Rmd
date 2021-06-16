@@ -540,7 +540,7 @@ doParallel::registerDoParallel(cores = 20)
 set.seed(19872312)
 multi_simulations <-
   plyr::llply(
-    as.list(1:2),
+    as.list(1:100),
     .fun = function(x) {
       base::suppressWarnings(
         DeclareDesign::simulate_design(multi_study, sims = 1) %>%
@@ -557,8 +557,10 @@ saveRDS(multi_simulations, file = "vignettes/multi_sim.rds")
 
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design Label') %>%
-  kable()
+  reshape_diagnosis(digits = 2) %>%
+  dplyr::select(-'Design Label') %>%
+  dplyr::filter(`Mean Estimate` != "NA") %>% 
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
 
@@ -621,12 +623,12 @@ draw_estimates(meta_study) %>%
 # meta_simulations <- simulate_design(meta_study, sims = 1)
 
 requireNamespace(c("doParallel", "parallel"))
-doParallel::registerDoParallel(cores = 2)
+doParallel::registerDoParallel(cores = 20)
 
 set.seed(19872312)
 meta_simulations <-
   plyr::llply(
-    as.list(1:2),
+    as.list(1:100),
     .fun = function(x) {
       base::suppressWarnings(
         DeclareDesign::simulate_design(meta_study, sims = 1) %>%
