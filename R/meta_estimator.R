@@ -4,6 +4,7 @@
 #' @param sampling_variable name of variable storing meta analysis sampling information
 #' @param which_estimand name of study level estimand for meta analysis
 #' @param benchmark named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)
+#' @param stan_handler function that takes stan_data as input and produces compilable stan model object
 #' @param parallel logical. Whether to parallelize design simulations
 #'
 #' @return
@@ -17,6 +18,7 @@ get_meta_estimates <- function(
   sampling_variable = "meta",
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
+  stan_handler = get_meta_stan2,
   parallel = FALSE) {
 
   .stan_data <-
@@ -66,15 +68,18 @@ get_meta_estimates <- function(
     ) %>%
     c(N = .N, K = .K, .)
 
+  .stan_model <-
+    rstan::stan_model(model_code = get_meta_stan2(.stan_data))
+
   .fit <-
-      rstan::stan(model_code = get_meta_stan(.stan_data),
-                  data = .stan_data,
-                  iter = 8000, chains = 8, thin = 10,
-                  seed = 19871223,
-                  cores = ifelse(parallel, min(8, parallel::detectCores() - 1), 1),
-                  verbose = FALSE,
-                  refresh = 0) %>%
-        rstan::extract(.)
+    do.call(rstan::sampling, list(object = .stan_model,
+                                  data = .stan_data,
+                                  iter = 8000, chains = 8, thin = 10,
+                                  seed = 19871223,
+                                  cores = ifelse(parallel, min(8, parallel::detectCores() - 1), 1),
+                                  verbose = FALSE,
+                                  refresh = 0)) %>%
+    rstan::extract(.)
 
   .biases <-
     .fit$rel_bias %>%
@@ -106,12 +111,12 @@ get_meta_estimates <- function(
                                      se = sd(x)))
 
   return(
-    data.frame(estimator_label = c(paste0("rel_bias_", .samp_est_names, "_meta"),
+    data.frame(estimator = c(paste0("rel_bias_", .samp_est_names, "_meta"),
                                    paste0(.studies, "_meta")),
                estimate = c(unname(.biases[[1]][1,]), unname(.study_ests[,1])),
                se =   c(unname(.biases[[2]][1,]), unname(.study_ests[,2])),
-               inquiry_label = c(paste0("rel_bias_", .samp_est_names),
-                                 paste0(.studies, "_", which_estimand)),
+               inquiry = c(paste0("rel_bias_", .samp_est_names),
+                           paste0(.studies, "_", which_estimand)),
                stringsAsFactors = FALSE
     )
   )

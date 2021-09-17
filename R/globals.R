@@ -5,4 +5,4 @@ globalVariables(
     "prop_sample", "rds", "sd", "prior_median", "prop_prob", "prop_share",
     "fit_ht", "own_coupon", "pattern", "total", "population",
     "estimands", "estimand", "estimator", "estimates", "estimate", "se",
-    "estimator_label"))
+    "estimator"))

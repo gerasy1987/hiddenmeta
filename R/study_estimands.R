@@ -38,11 +38,11 @@ get_study_estimands <- function(data,
       ) %>%
     {
       data.frame(
-        inquiry_label = names(.),
+        inquiry = names(.),
         estimand = unname(t(.)),
         stringsAsFactors = FALSE)
     }# %>%
-    # {.[!grepl(pattern = known_pattern, .$inquiry_label),]}
+    # {.[!grepl(pattern = known_pattern, .$inquiry),]}
 
   if (length(known_groups) != 0) {
     for (i in seq_along(known_groups)) {
@@ -58,7 +58,7 @@ get_study_estimands <- function(data,
         ) %>%
         {
           data.frame(
-            inquiry_label = paste0(names(.), "_in_", known_groups[i]),
+            inquiry = paste0(names(.), "_in_", known_groups[i]),
             estimand = unname(t(.)),
             stringsAsFactors = FALSE)
         } %>%

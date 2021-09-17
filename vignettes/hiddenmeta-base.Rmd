@@ -260,9 +260,9 @@ study_estimands <-
   eval(as.call(c(list(declare_inquiry), study_1$inquiries)))
 
 set.seed(19872312)
-draw_inquiry(study_population + 
-                # study_sample_rds + study_sample_pps + study_sample_tls + 
-                study_estimands) %>% 
+draw_estimands(study_population + 
+                 # study_sample_rds + study_sample_pps + study_sample_tls + 
+                 study_estimands) %>% 
   kable(digits = 2)
 
 ```
@@ -355,7 +355,7 @@ study1_simulations <- simulate_design(study1, sims = 10)
 
 diagnose_design(simulations_df = study1_simulations, 
                 diagnosands = study_diagnosands, sims = 2) %>% 
-  reshape_diagnosis %>% select(-'Design Label') %>%
+  reshape_diagnosis %>% select(-'Design') %>%
   kable()
 
 ```
@@ -520,7 +520,7 @@ multi_estimators <-
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
 set.seed(19872312)
-draw_inquiry(multi_study) %>% 
+draw_estimands(multi_study) %>% 
   kable()
 
 draw_estimates(multi_study) %>% 
@@ -558,7 +558,7 @@ saveRDS(multi_simulations, file = "vignettes/multi_sim.rds")
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design Label') %>%
+  dplyr::select(-'Design') %>%
   dplyr::filter(`Mean Estimate` != "NA") %>% 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
@@ -641,12 +641,12 @@ meta_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-saveRDS(meta_simulations, file = "vignettes/meta_sim.rds")
+# saveRDS(meta_simulations, file = "vignettes/meta_sim.rds")
 
 diagnose_design(simulations_df = meta_simulations, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design Label') %>%
+  dplyr::select(-'Design') %>%
   dplyr::filter(`Mean Estimate` != "NA") %>% 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 

@@ -48,13 +48,13 @@ get_meta_population <-
       data %>%
       dplyr::filter(!is.na(estimate)) %>%
       dplyr::mutate(
-        study = stringr::str_extract(inquiry_label, "^study\\_(\\d+)"),
-        inquiry = stringr::str_remove(pattern = paste0(study, "_"), string = inquiry_label),
-        estimator_label =
-          strsplit(stringr::str_remove(pattern = paste0(inquiry, "_"), string = estimator_label),
+        study = stringr::str_extract(inquiry, "^study\\_(\\d+)"),
+        inquiry = stringr::str_remove(pattern = paste0(study, "_"), string = inquiry),
+        estimator =
+          strsplit(stringr::str_remove(pattern = paste0(inquiry, "_"), string = estimator),
                    split = "_"),
-        sample = purrr::map(estimator_label, ~ .x[1:(length(.x)-1)]),
-        estimator = purrr::map_chr(estimator_label, ~ .x[length(.x)]),
+        sample = purrr::map(estimator, ~ .x[1:(length(.x)-1)]),
+        estimator = purrr::map_chr(estimator, ~ .x[length(.x)]),
       ) %>%
       dplyr::select(
         sim_ID, study, inquiry, sample, estimator, estimand, estimate, se

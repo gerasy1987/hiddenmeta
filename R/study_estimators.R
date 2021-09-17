@@ -52,10 +52,10 @@ get_study_est_sspse <- function(data,
     }
 
   return(
-    data.frame(estimator_label = paste0("hidden_size_", label),
+    data.frame(estimator = paste0("hidden_size_", label),
                estimate = c(unname(.fit_sspse$result$N["Median AP"])),
                se =   c(sd(.fit_sspse$result$sample[,"N"])),
-               inquiry_label = c("hidden_size"))
+               inquiry = c("hidden_size"))
   )
 }
 
@@ -104,10 +104,10 @@ get_study_est_rds_ss <-
       .[c(1,5)]
 
     return(
-      data.frame(estimator_label = paste0("hidden_prev_", label),
+      data.frame(estimator = paste0("hidden_prev_", label),
                  estimate = c(unname(.fit_rds_ss[1])),
                  se =   c(unname(.fit_rds_ss[2])),
-                 inquiry_label = c("hidden_prev"))
+                 inquiry = c("hidden_prev"))
     )
   }
 
@@ -179,10 +179,10 @@ get_study_est_ht <- function(data,
   #   {c(est = unname(.$coefficients), se = unname(.$std.error))}
 
  return(
-   data.frame(estimator_label = paste0(c("hidden_size", "hidden_prev"), "_", label),
+   data.frame(estimator = paste0(c("hidden_size", "hidden_prev"), "_", label),
               estimate = c(.est_ht, .est_ht/unique(.data_mod[[total_var]])),
               se =  c(sd(.est_ht_boot), sd(.est_ht_boot/unique(.data_mod[[total_var]]))),
-              inquiry_label = c("hidden_size", "hidden_prev"))
+              inquiry = c("hidden_size", "hidden_prev"))
  )
 }
 
@@ -290,14 +290,14 @@ get_study_est_chords <- function(data,
     .parallel = parallel_boot)
 
   return(
-    # data.frame(estimator_label = paste0(c("hidden_size_", "degree_hidden_"), label),
+    # data.frame(estimator = paste0(c("hidden_size_", "degree_hidden_"), label),
     #            estimate = c(.fit_chords["est"], .fit_chords["degree_hidden"]),
     #            se =  apply(.fit_chords_boot, 2, sd, na.rm = TRUE),
-    #            inquiry_label = c("hidden_size", "degree_hidden"))
-    data.frame(estimator_label = paste0(c("hidden_size_"), label),
+    #            inquiry = c("hidden_size", "degree_hidden"))
+    data.frame(estimator = paste0(c("hidden_size_"), label),
                estimate = c(.fit_chords["est"]),
                se =  sd(.fit_chords_boot[,1], na.rm = TRUE),
-               inquiry_label = c("hidden_size"))
+               inquiry = c("hidden_size"))
   )
 }
 
@@ -400,17 +400,17 @@ get_study_est_nsum <- function(data,
 
   return(
     # data.frame(
-    #   estimator_label = paste0(c("hidden_size_", "degree_"), label),
+    #   estimator = paste0(c("hidden_size_", "degree_"), label),
     #   estimate = c(unname(.fit_nsum$estimate),
     #                unname(.fit_nsum$sum.d.hat/.fit_nsum$estimate)),
     #   se = c(sd(.fit_nsum_boot$estimate),
     #          sd(.fit_nsum_boot$sum.d.hat/.fit_nsum_boot$estimate)),
-    #   inquiry_label = c("hidden_size", "degree_all"))
+    #   inquiry = c("hidden_size", "degree_all"))
     data.frame(
-      estimator_label = paste0(c("hidden_size_"), label),
+      estimator = paste0(c("hidden_size_"), label),
       estimate = c(unname(.fit_nsum$estimate)),
       se = c(sd(.fit_nsum_boot$estimate)),
-      inquiry_label = c("hidden_size"))
+      inquiry = c("hidden_size"))
   )
 }
 
@@ -470,10 +470,10 @@ get_study_est_multiplier <- function(data,
     })
 
   return(
-    data.frame(estimator_label = paste0("hidden_size_", label),
+    data.frame(estimator = paste0("hidden_size_", label),
                estimate = .est_out,
                se =  sd(.est_boot),
-               inquiry_label = "hidden_size")
+               inquiry = "hidden_size")
   )
 }
 
@@ -522,10 +522,10 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 
 
   return(
-    data.frame(estimator_label = paste0("hidden_prev_", label),
+    data.frame(estimator = paste0("hidden_prev_", label),
                estimate = fit_ht["est"],
                se =  fit_ht["se"],
-               inquiry_label = "hidden_prev")
+               inquiry = "hidden_prev")
   )
 }
 
@@ -573,10 +573,10 @@ get_study_est_recapture <- function(data,
                          m = model)
 
   return(
-    data.frame(estimator_label = paste0("hidden_size_", label),
+    data.frame(estimator = paste0("hidden_size_", label),
                estimate = .est_out$results[1],
                se =  .est_out$results[2],
-               inquiry_label = "hidden_size")
+               inquiry = "hidden_size")
   )
 }
 

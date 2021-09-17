@@ -368,7 +368,7 @@ stan_model_meta <- "
 
 get_meta_estimands <- function(data) {
   
-  data.frame(inquiry_label = c(paste0("prevalence_", 1:N)),
+  data.frame(inquiry = c(paste0("prevalence_", 1:N)),
              estimand = c(data[,1]),
              stringsAsFactors = FALSE)
 }
@@ -395,10 +395,10 @@ get_meta_estimators = function(data) {
                 iter = 4000) %>% 
     extract
   
-  data.frame(estimator_label = c(paste0("prev_", 1:N)),
+  data.frame(estimator = c(paste0("prev_", 1:N)),
              estimate = c(apply(fit$alpha, 2, mean)),
              sd =   c(apply(fit$alpha, 2, sd)),
-             inquiry_label = c(paste0("hidden_prev", 1:N)),
+             inquiry = c(paste0("hidden_prev", 1:N)),
              big_Rhat = big_Rhat
              )
   

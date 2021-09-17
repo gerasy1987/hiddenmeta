@@ -9,6 +9,7 @@ get_meta_estimates(
   sampling_variable = "meta",
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
+  stan_handler = get_meta_stan2,
   parallel = FALSE
 )
 }
@@ -20,6 +21,8 @@ get_meta_estimates(
 \item{which_estimand}{name of study level estimand for meta analysis}
 
 \item{benchmark}{named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)}
+
+\item{stan_handler}{function that takes stan_data as input and produces compilable stan model object}
 
 \item{parallel}{logical. Whether to parallelize design simulations}
 }

@@ -24,7 +24,7 @@ get_meta_estimands <-
             dplyr::summarise(.groups = "drop",
                              estimand = unique(estimand)) %>%
             dplyr::mutate(inquiry = paste0(study, "_", study_estimand)) %>%
-            dplyr::select(sim_ID, inquiry_label = inquiry, estimand),
+            dplyr::select(sim_ID, inquiry = inquiry, estimand),
           # sample-estimator level absolute estimands
           dplyr::group_by(., sim_ID, sample, estimator) %>%
             dplyr::summarise(.groups = "drop",
@@ -39,7 +39,7 @@ get_meta_estimands <-
                   list(x = sample, y = inquiry, z = estimator),
                   function(x,y,z) paste0(y, "_", paste0(x, collapse = "_"), "_", z)
                 )) %>%
-            dplyr::select(sim_ID, inquiry_label = inquiry, estimand),
+            dplyr::select(sim_ID, inquiry, estimand),
           # sample-estimator level ratio estimands
           dplyr::group_by(., sim_ID, sample, estimator) %>%
             dplyr::summarise(.groups = "drop",
@@ -59,10 +59,10 @@ get_meta_estimands <-
             dplyr::ungroup() %>%
             dplyr::arrange(inquiry) %>%
             dplyr::mutate(inquiry = paste0(inquiry, "_", samp_est)) %>%
-            dplyr::select(sim_ID, inquiry_label = inquiry, estimand)
+            dplyr::select(sim_ID, inquiry, estimand)
         )
       } %>%
-      dplyr::group_by(inquiry_label) %>%
+      dplyr::group_by(inquiry) %>%
       dplyr::summarise(estimand = mean(estimand, na.rm = TRUE)) %>%
       as.data.frame(stringsAsFactors = FALSE)
 
