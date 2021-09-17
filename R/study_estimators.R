@@ -59,7 +59,7 @@ get_study_est_sspse <- function(data,
   )
 }
 
-#' equential Sampling (SS) prevalence estimator by Gile (2011)
+#' Sequential Sampling (SS) prevalence estimator by Gile (2011)
 #'
 #' @param data pass-through population data frame
 #' @param hidden_var character string specifying hidden variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "hidden" for the simulations
