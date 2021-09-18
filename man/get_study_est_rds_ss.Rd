@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_rds_ss}
 \alias{get_study_est_rds_ss}
-\title{equential Sampling (SS) prevalence estimator by Gile (2011)}
+\title{Sequential Sampling (SS) prevalence estimator by Gile (2011)}
 \usage{
 get_study_est_rds_ss(
   data,
@@ -30,7 +30,7 @@ get_study_est_rds_ss(
 
 }
 \description{
-equential Sampling (SS) prevalence estimator by Gile (2011)
+Sequential Sampling (SS) prevalence estimator by Gile (2011)
 }
 \references{
 Gile, Krista J. 2011 Improved Inference for Respondent-Driven Sampling Data with Application to HIV Prevalence Estimation, Journal of the American Statistical Association, 106, 135-146.

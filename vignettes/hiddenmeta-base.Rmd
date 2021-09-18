@@ -55,7 +55,7 @@ study_1 <-
         network_handler = sim_block_network,
         network_handler_args = 
           list(N = 1000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = 0,
-               p_edge_within = list(known = c(0.1, 0.1), hidden = c(0.1, 0.1)),
+               p_edge_within = list(known = c(0.1, 0.3), hidden = c(0.1, 0.3)),
                p_edge_between = list(known = 0.1, hidden = 0.1),
                directed = FALSE),
         
@@ -69,7 +69,7 @@ study_1 <-
         # for service multiplier
         add_groups = 
           list(service_use = "rbinom(n(), 1, 0.25)",
-         "purrr::map_df(hidden, ~ sapply( `names<-`(c(0, 0, 0, 0), paste0('loc_', 1:4)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
+         "purrr::map_df(hidden, ~ sapply( `names<-`(rep(0, times = 20), paste0('loc_', 1:20)), function(add) rbinom(length(.x), 1, 0.05 + .x * add)))",
          known_2 = 0.3, known_3 = 0.3)
       ),
     sample = 
@@ -78,16 +78,17 @@ study_1 <-
                    # RDS parameters
                    sampling_variable = "rds",
                    hidden_var = "hidden", # default
-                   n_seed = 50,
+                   n_seed = 20,
                    n_coupons = 3,
+                   add_seeds = 3,
                    target_type = "sample",
-                   target_n_rds = 150),
+                   target_n_rds = 60),
         tls = list(handler = sample_tls,
                    sampling_variable = "tls",
                    # TLS sampling parameters
-                   target_n_clusters = 3,
+                   target_n_clusters = 5,
                    target_n_tls = 180,
-                   cluster = paste0("loc_", 1:4)),
+                   cluster = paste0("loc_", 1:20)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
@@ -351,10 +352,29 @@ study_diagnosands <-
     rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
 
-study1_simulations <- simulate_design(study1, sims = 10)
+requireNamespace(c("doParallel", "parallel"))
+doParallel::registerDoParallel(cores = 7)
+
+set.seed(19872312)
+study1_simulations <-
+  plyr::llply(
+    as.list(1:100),
+    .fun = function(x) {
+      base::suppressWarnings(
+        DeclareDesign::simulate_design(study1, sims = 1) %>%
+          dplyr::mutate(
+            sim_ID = x
+          )
+      )
+    },
+    .parallel = TRUE
+  ) %>%
+  dplyr::bind_rows()
+
+# study1_simulations <- simulate_design(study1, sims = 10)
 
 diagnose_design(simulations_df = study1_simulations, 
-                diagnosands = study_diagnosands, sims = 2) %>% 
+                diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
   kable()
 
