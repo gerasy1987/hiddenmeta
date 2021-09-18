@@ -7,12 +7,13 @@
 sample_rds(
   data,
   sampling_variable = "rds",
-  hidden_var = "hidden",
-  drop_nonsampled = FALSE,
-  n_seed = 10,
-  n_coupons = 3,
+  hidden_var,
   target_type = c("sample", "waves"),
-  target_n_rds = 3
+  n_seed,
+  n_coupons,
+  target_n_rds,
+  add_seeds = NULL,
+  drop_nonsampled = FALSE
 )
 }
 \arguments{
@@ -22,15 +23,17 @@ sample_rds(
 
 \item{hidden_var}{character string specifying hidden variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "hidden" for the simulations}
 
-\item{drop_nonsampled}{logical indicating whether to drop units that are not sampled. Default is \code{FALSE}}
+\item{target_type}{one of 'sample' or 'waves'}
 
 \item{n_seed}{number of seeds randomly drawn from members of hidden population (group K)}
 
 \item{n_coupons}{number of unique coupons given to each study participant}
 
-\item{target_type}{one of 'sample' or 'waves'}
-
 \item{target_n_rds}{numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed}
+
+\item{add_seeds}{numeric indicating how many seeds to add at a time if target sample size is not reached with initial seeds. Additional seeds are randomly drawn from non-sampled hidden population members. Defaults to \code{NULL} that does not allow adding seeds}
+
+\item{drop_nonsampled}{logical indicating whether to drop units that are not sampled. Default is \code{FALSE}}
 }
 \value{
 Population or sample data frame for single study with RDS sample characteristics added
