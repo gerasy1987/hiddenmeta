@@ -535,6 +535,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 #'
 #' @param data pass-through population data frame that contains capture indicators
 #' @param capture_vars character vector giving names of variables with capture indicators
+#' @param capture_parse character string giving expression to evaluation of which produces character vector giving names of variable with capture indicators. Defaults to \code{NULL}. This is useful when capture variables are stored in one column (e.g. if using TLS sampled locations for recapture indicators)
 #' @param sample_condition character string with condition if the capture-recapture conducted on subsample of population (e.g. tls sample only)
 #' @param model character string giving capture-recapture Log-Linear model to estimate
 #' @param hidden_variable character string giving indicator of hidden population membership
@@ -548,12 +549,16 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 #'
 #' @import dplyr
 #' @importFrom Rcapture closedp.bc
-get_study_est_recapture <- function(data,
-                                    capture_vars = paste0("loc_", 1:4),
-                                    sample_condition = NULL,
-                                    model = "Mt",
-                                    hidden_variable = "hidden",
-                                    label = "recapture") {
+#' @importFrom magrittr `%$%`
+get_study_est_recapture <- function(
+  data,
+  capture_vars = NULL,
+  capture_parse = NULL,
+  sample_condition = NULL,
+  model = "Mt",
+  hidden_variable = "hidden",
+  label = "recapture"
+) {
 
   if (!is.null(sample_condition)) {
     data <-
@@ -561,7 +566,9 @@ get_study_est_recapture <- function(data,
       dplyr::filter(eval(parse(text = sample_condition)))
   }
 
-
+  if (!is.null(capture_parse)) {
+    capture_vars <- data %$% { eval(parse(text = capture_parse)) } %>% c(capture_vars, .)
+  }
 
   .est_out <-
     data %>%

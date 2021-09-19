@@ -6,7 +6,8 @@
 \usage{
 get_study_est_recapture(
   data,
-  capture_vars = paste0("loc_", 1:4),
+  capture_vars = NULL,
+  capture_parse = NULL,
   sample_condition = NULL,
   model = "Mt",
   hidden_variable = "hidden",
@@ -17,6 +18,8 @@ get_study_est_recapture(
 \item{data}{pass-through population data frame that contains capture indicators}
 
 \item{capture_vars}{character vector giving names of variables with capture indicators}
+
+\item{capture_parse}{character string giving expression to evaluation of which produces character vector giving names of variable with capture indicators. Defaults to \code{NULL}. This is useful when capture variables are stored in one column (e.g. if using TLS sampled locations for recapture indicators)}
 
 \item{sample_condition}{character string with condition if the capture-recapture conducted on subsample of population (e.g. tls sample only)}
 
