@@ -561,23 +561,41 @@ get_study_est_recapture <- function(data,
       dplyr::filter(eval(parse(text = sample_condition)))
   }
 
+
+
   .est_out <-
     data %>%
     dplyr::filter(if_any(all_of(capture_vars), ~ . == 1),
-                  across(all_of(hidden_variable), ~ . == 1)) %>%
-    dplyr::select(all_of(capture_vars)) %>%
-    Rcapture::closedp.bc(X = .,
-                         dfreq = FALSE,
-                         dtype = "hist",
-                         t = length(capture_vars),
-                         m = model)
+                  across(all_of(hidden_variable), ~ . == 1))
 
-  return(
-    data.frame(estimator = paste0("hidden_size_", label),
-               estimate = .est_out$results[1],
-               se =  .est_out$results[2],
-               inquiry = "hidden_size")
-  )
+  if (nrow(.est_out) == 0) {
+    warning("There were no hidden population member recaptures in the sample!")
+
+    return(
+      data.frame(estimator = paste0("hidden_size_", label),
+                 estimate = NA_real_,
+                 se =  NA_real_,
+                 inquiry = "hidden_size")
+    )
+
+  } else {
+    .est_out <-
+      .est_out %>%
+      dplyr::select(all_of(capture_vars)) %>%
+      Rcapture::closedp.bc(X = .,
+                           dfreq = FALSE,
+                           dtype = "hist",
+                           t = length(capture_vars),
+                           m = model)
+
+    return(
+      data.frame(estimator = paste0("hidden_size_", label),
+                 estimate = .est_out$results[1],
+                 se =  .est_out$results[2],
+                 inquiry = "hidden_size")
+    )
+
+  }
 }
 
 
