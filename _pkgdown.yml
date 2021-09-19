@@ -1,0 +1,72 @@
+home:
+  title: An R package for diagnosis and meta-analysis of hard-to-reach population measurement studies
+  description: Package provides a number of tools for simulation of population, sampling and estimation of size and pervalence of hard-to-reach populations. It relies on the MIDA approach proposed in DeclareDesign package
+
+navbar:
+  left:
+  - text: Get started
+    href: vignettes/hiddenmeta-base.html
+    # menu:
+    #   - text: randomizr
+    #     href: https://declaredesign.org/r/randomizr/
+    #   - text: fabricatr
+    #     href: https://declaredesign.org/r/fabricatr/
+    #   - text: estimatr
+    #     href: https://declaredesign.org/r/estimatr/
+    #   - text: DesignLibrary
+    #     href: https://declaredesign.org/r/designlibrary/
+  # right:
+  # - text: Our approach
+  #   href: articles/DeclareDesign_101.html
+  - text: Reference
+    href: reference/index.html
+  # - text: DeclareDesign home
+  #   href: https://declaredesign.org/r/declaredesign/
+  # - text: Articles
+  #   menu:
+  #   - text: DeclareDesign 101
+  #     href: articles/DeclareDesign_101.html
+
+reference:
+- title: Study-level functions
+  description: These function allow to simulate population and sampling and conduct estimation of a specific study
+  contents:
+  - get_study_population
+  - sample_rds
+  - sample_tls
+  - sample_pps
+  - get_study_estimands
+  - get_study_est_sspse
+  - get_study_est_chords
+  - get_study_est_ht
+  - get_study_est_rds_ss
+  - get_study_est_nsum
+  - get_study_est_multiplier
+  - get_study_est_recapture
+  - get_study_est_gnsum
+
+- title: Multi-study functions
+  description: These function allow to simulate several study population and sampling strategies and conduct estimation on them at the same time
+  contents:
+  - get_multi_populations
+  - get_multi_samples
+  - get_multi_estimands
+  - get_multi_estimates
+
+- title: Meta-level estimation
+  description: These functions allow to diagnose a set of studies or estimate relative bias of sampling-estimation strategies
+  contents:
+  - get_meta_population
+  - get_meta_sample
+  - get_meta_estimands
+  - get_meta_estimates
+
+- title: Helper functions
+  description: These functions are useful for simulations of networks
+  contents:
+  - sim_block_network
+  - sim_ergm_network
+  - gen_block_matrix
+  - gen_group_sizes
+  - get_rds_boot
+  - get_rescaled_boot
