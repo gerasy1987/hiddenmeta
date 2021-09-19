@@ -69,7 +69,7 @@ study_1 <-
         # for service multiplier
         add_groups = 
           list(service_use = "rbinom(n(), 1, 0.25)",
-         "purrr::map_df(hidden, ~ sapply( `names<-`(rep(0, times = 20), paste0('loc_', 1:20)), function(add) rbinom(length(.x), 1, 0.05 + .x * add)))",
+         "purrr::map_df(hidden, ~ sapply( `names<-`(rep(0, times = 10), paste0('loc_', 1:10)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
          known_2 = 0.3, known_3 = 0.3)
       ),
     sample = 
@@ -86,9 +86,9 @@ study_1 <-
         tls = list(handler = sample_tls,
                    sampling_variable = "tls",
                    # TLS sampling parameters
-                   target_n_clusters = 5,
+                   target_n_clusters = 4,
                    target_n_tls = 180,
-                   cluster = paste0("loc_", 1:20)),
+                   cluster = paste0("loc_", 1:10)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
@@ -134,7 +134,8 @@ study_1 <-
                            prefix = "tls",
                            label = "tls_nsum"),
                recap = list(handler = get_study_est_recapture,
-                            capture_vars = paste0("loc_", 1:4),
+                            capture_parse = 
+                              "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
                             sample_condition = "tls == 1",
                             model = "Mt",
                             hidden_variable = "hidden",
@@ -157,7 +158,9 @@ study_1 <-
                              hidden_variable = "hidden",
                              label = "rds_pps_recap"),
                recap2 = list(handler = get_study_est_recapture,
-                             capture_vars = c("rds", paste0("loc_", 1:4)),
+                             capture_vars = c("rds"),
+                             capture_parse = 
+                              "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
                              model = "Mt",
                              hidden_variable = "hidden",
                              label = "rds_tls_recap"))
@@ -173,7 +176,7 @@ study_1 <-
 study_population <-
   eval(as.call(c(list(declare_population), study_1$pop)))
 
-set.seed(19872312)
+set.seed(872312)
 example_pop <- study_population()
 
 example_pop %>% 
@@ -221,7 +224,7 @@ The sampling procedures are additive in a sense that each procedure appends seve
 study_sample_rds <- 
   eval(as.call(c(list(declare_sampling), study_1$sample$rds)))
 
-set.seed(19872312)
+set.seed(872312)
 draw_data(study_population + study_sample_rds) %>%  
   dplyr::sample_n(n()) %>% # shuffle data frame
   rmarkdown::paged_table(options = list(rows.print = 15))
@@ -233,7 +236,7 @@ draw_data(study_population + study_sample_rds) %>%
 study_sample_pps <- 
   eval(as.call(c(list(declare_sampling), study_1$sample$pps)))
 
-set.seed(19872312)
+set.seed(872312)
 draw_data(study_population + study_sample_rds + study_sample_pps) %>% 
   dplyr::sample_n(n()) %>% # shuffle data frame
   rmarkdown::paged_table(options = list(rows.print = 15))
@@ -245,7 +248,7 @@ draw_data(study_population + study_sample_rds + study_sample_pps) %>%
 study_sample_tls <- 
   eval(as.call(c(list(declare_sampling), study_1$sample$tls)))
 
-set.seed(19872312)
+set.seed(872312)
 draw_data(study_population + 
             study_sample_rds + study_sample_pps + study_sample_tls) %>% 
   dplyr::sample_n(n()) %>% # shuffle data frame
@@ -260,11 +263,11 @@ draw_data(study_population +
 study_estimands <- 
   eval(as.call(c(list(declare_inquiry), study_1$inquiries)))
 
-set.seed(19872312)
+set.seed(872312)
 draw_estimands(study_population + 
                  # study_sample_rds + study_sample_pps + study_sample_tls + 
                  study_estimands) %>% 
-  kable(digits = 2, format = "pipe")
+  kable(digits = 2)
 
 ```
 
@@ -296,7 +299,7 @@ est_recap_rds_pps <-
 est_recap_rds_tls <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap2)))
 
-set.seed(19872312)
+set.seed(872312)
 draw_estimates(study_population +
                  study_sample_rds + study_sample_pps + study_sample_tls +
                  study_estimands +
@@ -304,7 +307,7 @@ draw_estimates(study_population +
                  est_nsum_pps + est_ht_pps +
                  est_nsum_tls + est_ht_tls + est_recap_tls +
                  est_recap_rds_pps + est_recap_rds_tls) %>%
-  kable(digits = 2, format = "pipe")
+  kable(digits = 2)
 
 ```
 
@@ -340,22 +343,12 @@ study1$rds_pps_recap(study1_data)
 
 ## Step 7. Diagnose study design
 
-```{r example_diagnose, warning = FALSE, eval=FALSE}
-
-study_diagnosands <-
- declare_diagnosands(
-    mean_estimand = mean(estimand),
-    mean_estimate = mean(estimate),
-    sd_estimate = sd(estimate),
-    mean_se = mean(se),
-    bias = mean(estimate - estimand),
-    rmse = sqrt(mean((estimate - estimand) ^ 2))
-  )
+```{r study_simulate, warning = FALSE, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
 doParallel::registerDoParallel(cores = 7)
 
-set.seed(19872312)
+set.seed(872312)
 study1_simulations <-
   plyr::llply(
     as.list(1:100),
@@ -371,7 +364,24 @@ study1_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-# study1_simulations <- simulate_design(study1, sims = 10)
+saveRDS(study1_simulations, "vignettes/study1_sim.rds")
+
+```
+
+
+```{r study_diagnose, eval=TRUE}
+
+study_diagnosands <-
+ declare_diagnosands(
+    mean_estimand = mean(estimand),
+    mean_estimate = mean(estimate),
+    sd_estimate = sd(estimate),
+    mean_se = mean(se),
+    bias = mean(estimate - estimand),
+    rmse = sqrt(mean((estimate - estimand) ^ 2))
+  )
+
+study1_simulations <- readRDS(here::here("vignettes/study1_sim.rds"))
 
 diagnose_design(simulations_df = study1_simulations, 
                 diagnosands = study_diagnosands) %>% 
@@ -657,7 +667,7 @@ multi_estimators <-
 
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
-set.seed(19872312)
+set.seed(872312)
 draw_estimands(multi_study) %>% 
   kable()
 
@@ -668,14 +678,14 @@ draw_estimates(multi_study) %>%
 
 ### Diagnose multiple studies
 
-```{r multi_study_diagnose, eval=FALSE}
+```{r multi_study_simulate, eval=FALSE}
 
 # multi_simulations <- simulate_design(multi_study, sims = 2)
 
 requireNamespace(c("doParallel", "parallel"))
 doParallel::registerDoParallel(cores = 20)
 
-set.seed(19872312)
+set.seed(872312)
 multi_simulations <-
   plyr::llply(
     as.list(1:100),
@@ -693,6 +703,12 @@ multi_simulations <-
 
 saveRDS(multi_simulations, file = "vignettes/multi_sim.rds")
 
+```
+
+```{r multi_study_diagnose, eval = TRUE}
+
+multi_simulations <- readRDS(here::here("vignettes/multi_sim.rds"))
+
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis(digits = 2) %>%
@@ -705,7 +721,7 @@ diagnose_design(simulations_df = multi_simulations,
 
 ## Meta-analysis structure
 
-1. Conduct multi-study design for as many sampling-estimator pairs in each study as possible, then diagnoise the multi-study design. Calculate average (across simulations) estimand and bias of sampling-estimator for each of the studies and estimator sampling strategies. These will serve as population we will be drawing population-sampling-estimator triads
+1. Conduct multi-study design for as many sampling-estimator pairs in each study as possible, then diagnose the multi-study design. Calculate average (across simulations) estimand and bias of sampling-estimator for each of the studies and estimator sampling strategies. These will serve as population we will be drawing population-sampling-estimator triads
 
 2. Estimands include:
     - Average estimand by inquiry label (within study)
@@ -743,12 +759,13 @@ meta_estimator <-
                     which_estimand = "hidden_size",
                     benchmark = list(sample = "pps", estimator = "ht"),
                     parallel = FALSE,
+                    stan_handler = get_meta_stan,
                     handler = get_meta_estimates)
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
-set.seed(19872312)
-draw_inquiry(meta_study) %>% 
+set.seed(872312)
+draw_estimands(meta_study) %>% 
   kable()
 
 draw_estimates(meta_study) %>% 
@@ -756,14 +773,12 @@ draw_estimates(meta_study) %>%
 
 ```
 
-```{r meta_study_diagnose, eval=FALSE}
-
-# meta_simulations <- simulate_design(meta_study, sims = 1)
+```{r meta_study_simulate, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
 doParallel::registerDoParallel(cores = 20)
 
-set.seed(19872312)
+set.seed(872312)
 meta_simulations <-
   plyr::llply(
     as.list(1:100),
@@ -779,7 +794,13 @@ meta_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-# saveRDS(meta_simulations, file = "vignettes/meta_sim.rds")
+saveRDS(meta_simulations, file = "vignettes/meta_sim.rds")
+
+```
+
+```{r meta_study_diagnose, eval = TRUE}
+
+meta_simulations <- readRDS(here::here("vignettes/meta_sim.rds"))
 
 diagnose_design(simulations_df = meta_simulations, 
                 diagnosands = study_diagnosands) %>% 
