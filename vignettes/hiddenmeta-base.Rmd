@@ -35,7 +35,6 @@ devtools::install_github("gerasy1987/hiddenmeta", build_vignettes = TRUE)
 
 library(hiddenmeta)
 library(DeclareDesign)
-library(igraph)
 library(knitr)
 
 ```
