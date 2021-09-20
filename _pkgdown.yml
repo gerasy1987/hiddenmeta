@@ -14,6 +14,7 @@ development:
   mode: auto
 
 navbar:
+  home: ~
   left:
   - text: Get started
     href: articles/hiddenmeta-base.html
