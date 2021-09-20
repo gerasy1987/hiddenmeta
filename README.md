@@ -1,7 +1,12 @@
 
-# hiddenmeta ![R](https://github.com/gerasy1987/hiddenmeta/workflows/R/badge.svg) [![codecov](https://codecov.io/gh/gerasy1987/hiddenmeta/branch/main/graph/badge.svg?token=ZG9A64Q0A1)](https://codecov.io/gh/gerasy1987/hiddenmeta) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE)
+# hiddenmeta
 
-## Installation
+![R](https://github.com/gerasy1987/hiddenmeta/workflows/R/badge.svg)
+[![codecov](https://codecov.io/gh/gerasy1987/hiddenmeta/branch/main/graph/badge.svg?token=ZG9A64Q0A1)](https://codecov.io/gh/gerasy1987/hiddenmeta)
+[![License:
+MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE)
+
+### Installation
 
 ``` r
 install.packages("DeclareDesign")
@@ -9,7 +14,7 @@ install.packages("DeclareDesign")
 devtools::install_github("gerasy1987/hiddenmeta", build_vignettes = TRUE)
 ```
 
-## Overview
+### Overview
 
 We rely on [`DeclareDesign`](https://declaredesign.org/) package for the
 simulations. The key idea of the simulation workflow is that we simulate
@@ -32,7 +37,7 @@ Each of these MIDA steps can be defined using “handlers” from the
 `hiddenmeta` package and can be adjusted to reflect details of
 individual study designs.
 
-## Individual designs
+### Individual designs
 
 The individual study design simulation involves:
 
@@ -40,7 +45,7 @@ The individual study design simulation involves:
 2.  Using these to declare a design
 3.  Diagnosing the design
 
-## Meta analysis
+### Meta analysis
 
 Simulated study level results feed into the meta-analysis:
 
@@ -68,10 +73,12 @@ Simulated study level results feed into the meta-analysis:
     estimands and sampling-estimator specific errors (biases, study
     level prevalence or size, cost-effectiveness)
 
-## Getting started
+------------------------------------------------------------------------
 
--   To familiarize yourself with the `hiddenmeta` workflow please first
-    read [this
+### Getting started
+
+-   To familiarize yourself with the `hiddenmeta` workflow please read
+    [this
     vignette](https://gsyunyaev.com/hiddenmeta/articles/hiddenmeta-base.html)
 
 ------------------------------------------------------------------------

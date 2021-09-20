@@ -72,21 +72,21 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="hiddenmeta-r-codecov-license-mit" class="section level1">
+<div id="hiddenmeta" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
-<a href="#hiddenmeta-r-codecov-license-mit" class="anchor"></a>hiddenmeta <img src="https://github.com/gerasy1987/hiddenmeta/workflows/R/badge.svg" alt="R"><a href="https://codecov.io/gh/gerasy1987/hiddenmeta"><img src="https://codecov.io/gh/gerasy1987/hiddenmeta/branch/main/graph/badge.svg?token=ZG9A64Q0A1" alt="codecov"></a> <a href="https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-</h1></div>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
+<a href="#hiddenmeta" class="anchor"></a>hiddenmeta</h1></div>
+
+<div id="installation" class="section level3">
+<h3 class="hasAnchor">
+<a href="#installation" class="anchor"></a>Installation</h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"DeclareDesign"</span><span class="op">)</span>
 
 <span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"gerasy1987/hiddenmeta"</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="overview" class="section level2">
-<h2 class="hasAnchor">
-<a href="#overview" class="anchor"></a>Overview</h2>
+<div id="overview" class="section level3">
+<h3 class="hasAnchor">
+<a href="#overview" class="anchor"></a>Overview</h3>
 <p>We rely on <a href="https://declaredesign.org/"><code>DeclareDesign</code></a> package for the simulations. The key idea of the simulation workflow is that we simulate the design as a set of steps. When concatenated the steps produce an instance of a design. When replicated these instances let us assess the overall performance of a design.</p>
 <p>Fully specified designs include information on:</p>
 <ol>
@@ -101,9 +101,9 @@
 </ol>
 <p>Each of these MIDA steps can be defined using “handlers” from the <code>hiddenmeta</code> package and can be adjusted to reflect details of individual study designs.</p>
 </div>
-<div id="individual-designs" class="section level2">
-<h2 class="hasAnchor">
-<a href="#individual-designs" class="anchor"></a>Individual designs</h2>
+<div id="individual-designs" class="section level3">
+<h3 class="hasAnchor">
+<a href="#individual-designs" class="anchor"></a>Individual designs</h3>
 <p>The individual study design simulation involves:</p>
 <ol>
 <li>Selecting parameters</li>
@@ -111,9 +111,9 @@
 <li>Diagnosing the design</li>
 </ol>
 </div>
-<div id="meta-analysis" class="section level2">
-<h2 class="hasAnchor">
-<a href="#meta-analysis" class="anchor"></a>Meta analysis</h2>
+<div id="meta-analysis" class="section level3">
+<h3 class="hasAnchor">
+<a href="#meta-analysis" class="anchor"></a>Meta analysis</h3>
 <p>Simulated study level results feed into the meta-analysis:</p>
 <ol>
 <li><p>Conduct multi-study design for as many sampling-estimator pairs in each study as possible, then diagnose the multi-study design. Calculate average (across simulations) estimand and bias of sampling-estimator for each of the studies and estimator sampling strategies. These will serve as population we will be drawing population-sampling-estimator triads</p></li>
@@ -129,12 +129,13 @@
 <li><p>Sampling consists of drawing population-sampling-estimator triads presuming that each study uses at least two sampling strategies at a time</p></li>
 <li><p>Once we draw sample we use Stan model to estimate study-specific estimands and sampling-estimator specific errors (biases, study level prevalence or size, cost-effectiveness)</p></li>
 </ol>
+<hr>
 </div>
-<div id="getting-started" class="section level2">
-<h2 class="hasAnchor">
-<a href="#getting-started" class="anchor"></a>Getting started</h2>
+<div id="getting-started" class="section level3">
+<h3 class="hasAnchor">
+<a href="#getting-started" class="anchor"></a>Getting started</h3>
 <ul>
-<li>To familiarize yourself with the <code>hiddenmeta</code> workflow please first read <a href="https://gsyunyaev.com/hiddenmeta/articles/hiddenmeta-base.html">this vignette</a>
+<li>To familiarize yourself with the <code>hiddenmeta</code> workflow please read <a href="https://gsyunyaev.com/hiddenmeta/articles/hiddenmeta-base.html">this vignette</a>
 </li>
 </ul>
 <hr>
@@ -169,7 +170,14 @@
 </ul>
 </div>
 
-  </div>
+  <div class="dev-status">
+<h2>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://codecov.io/gh/gerasy1987/hiddenmeta"><img src="https://codecov.io/gh/gerasy1987/hiddenmeta/branch/main/graph/badge.svg?token=ZG9A64Q0A1" alt="codecov"></a></li>
+<li><a href="https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a></li>
+</ul>
+</div>
+</div>
 </div>
 
 
