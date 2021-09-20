@@ -11,7 +11,7 @@ Description: Package allows analysis of individual and multiple studies of
     Package implements functions for estimation of hidden population size and prevalance based on 
     RDS, TLS or PPS samples based on existing packages, specifically RDS, chords and networkreporting.
 Depends: 
-    R (>= 3.6.0),
+    R (>= 4.1.0),
     magrittr (>= 2.0.0), 
     dplyr (>= 1.0.0)
 Imports: 
@@ -31,6 +31,7 @@ Imports:
     RDS (>= 0.9),
     networkreporting (>= 0.1.0),
     surveybootstrap (>= 0.0.1),
+    rstan (>= 2.0),
     fastDummies, 
     MultiRNG,
     doParallel,
