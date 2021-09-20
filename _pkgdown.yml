@@ -28,7 +28,7 @@ navbar:
     #     href: https://declaredesign.org/r/estimatr/
     #   - text: DesignLibrary
     #     href: https://declaredesign.org/r/designlibrary/
-  # right:
+  right:
   # - text: Our approach
   #   href: articles/DeclareDesign_101.html
   - text: Reference
