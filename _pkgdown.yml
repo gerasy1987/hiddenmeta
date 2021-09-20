@@ -3,8 +3,8 @@ url: https://gsyunyaev.com/hiddenmeta/
 template:
   params:
     bootstrap: 4
-    bootswatch: sandstone
-    ganalytics: 286940636
+    bootswatch: simplex
+    ganalytics: G-WBZEYLFB3F
 
 home:
   title: An R package for diagnosis and meta-analysis of hard-to-reach population measurement studies
@@ -33,6 +33,8 @@ navbar:
   #   href: articles/DeclareDesign_101.html
   - text: Reference
     href: reference/index.html
+  - text: News
+    href: news/index.html
   # - text: DeclareDesign home
   #   href: https://declaredesign.org/r/declaredesign/
   # - text: Articles

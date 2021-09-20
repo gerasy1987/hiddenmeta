@@ -25,7 +25,6 @@ knitr::opts_chunk$set(
 ```{r install, eval=FALSE}
 
 install.packages("DeclareDesign")
-install.packages("igraph")
 
 devtools::install_github("gerasy1987/hiddenmeta", build_vignettes = TRUE)
 
@@ -389,9 +388,9 @@ diagnose_design(simulations_df = study1_simulations,
 
 ```
 
-## Multi study declaration
+## Diagnosis of multiple studies
 
-### Additional study
+### Additional study designs
 
 ```{r example_studies}
 
@@ -718,7 +717,7 @@ diagnose_design(simulations_df = multi_simulations,
 ```
 
 
-## Meta-analysis structure
+## Diagnosis of meta-study
 
 1. Conduct multi-study design for as many sampling-estimator pairs in each study as possible, then diagnose the multi-study design. Calculate average (across simulations) estimand and bias of sampling-estimator for each of the studies and estimator sampling strategies. These will serve as population we will be drawing population-sampling-estimator triads
 

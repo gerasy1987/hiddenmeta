@@ -42,7 +42,8 @@ Suggests:
     DeclareDesign (>= 0.20.0),
     knitr,
     rmarkdown,
-    here
+    here,
+    DT
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
