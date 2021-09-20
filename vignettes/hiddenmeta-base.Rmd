@@ -666,12 +666,12 @@ multi_estimators <-
 
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
-set.seed(872312)
-draw_estimands(multi_study) %>% 
-  kable()
-
-draw_estimates(multi_study) %>% 
-  kable()
+# set.seed(872312)
+# draw_estimands(multi_study) %>% 
+#   kable()
+# 
+# draw_estimates(multi_study) %>% 
+#   kable()
 
 ```
 
@@ -763,12 +763,12 @@ meta_estimator <-
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
-set.seed(872312)
-draw_estimands(meta_study) %>% 
-  kable()
-
-draw_estimates(meta_study) %>% 
-  kable()
+# set.seed(872312)
+# draw_estimands(meta_study) %>% 
+#   kable()
+# 
+# draw_estimates(meta_study) %>% 
+#   kable()
 
 ```
 

@@ -3,6 +3,7 @@
 \.github
 ^codecov\.yml$
 README*
+NEWS*
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$

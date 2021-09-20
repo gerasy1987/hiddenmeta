@@ -1,11 +1,18 @@
+template:
+  params:
+    bootstrap: 4
+
 home:
   title: An R package for diagnosis and meta-analysis of hard-to-reach population measurement studies
   description: Package provides a number of tools for simulation of population, sampling and estimation of size and pervalence of hard-to-reach populations. It relies on the MIDA approach proposed in DeclareDesign package
 
+development:
+  mode: auto
+
 navbar:
   left:
   - text: Get started
-    href: vignettes/hiddenmeta-base.html
+    href: articles/hiddenmeta-base.html
     # menu:
     #   - text: randomizr
     #     href: https://declaredesign.org/r/randomizr/
@@ -64,6 +71,7 @@ reference:
 - title: Helper functions
   description: These functions are useful for simulations of networks
   contents:
+  - rbeta_mod
   - sim_block_network
   - sim_ergm_network
   - gen_block_matrix

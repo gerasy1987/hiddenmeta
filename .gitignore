@@ -2,6 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-.github
 inst/doc
 vignettes/*.R
+vignettes/*.html
