@@ -1,0 +1,97 @@
+---
+title: "Methodological details"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Methodological details}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: hidden_population.bib
+biblio-style: "apalike"
+link-citations: true
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = TRUE,
+  echo = TRUE,
+  fig.path = "vignette-",
+  message = FALSE,
+  warning = FALSE
+)
+
+```
+
+## RDS/RDS+ Methods Summary 
+
+-   Use the coupons, the timing of surveys and the structure of recruitment network to approximate the size of the population
+
+-   Relies on network connectedness, i.e. if the seeds are within a "small world" the method will likely depart significantly from the truth
+
+-   Do not rely on proportional sampling and likely are cheaper
+
+### @crawford2018 {-}
+
+-   Use data from RDS $\mathbf{Y} = (G_{R}, \mathbf{d}, \mathbf{t}, \mathbf{C})$, where:
+
+    -   $G_{R}$ -- Directly observed recrutiment graph with $n$ (out of $N$) vertices (not the same as $G_{S}$ -- full subgraph of graph of hidden population $G$ induced by recruitment)
+
+    -   $\mathbf{d}$ -- vector of number of connections of each recruited respondents in hidden population $G$ from survey
+
+    -   $\mathbf{t}$ -- directly observed vector of recruitment timings
+
+    -   $\mathbf{C}$ -- coupon matrix in which $C_{ij} = 1$ iff subject $i$ has at least one coupon just before the $j$-th subject recruitment event, and zero otherwise
+
+-   Using this data we are trying to estimate $N$ using the likelihood of $N | G_{S}$ marginalizing over all $G_{S}$ consistent with $G_{R}$
+
+-   Assumptions:
+
+    1.  $G$ is finite graph with no self-loops
+    2.  Use Erdos-Renyi Model assumptions for hidden population graph $G$: assume $d_{i} \sim \mathrm{B} (N-1, p)$ (similar to [@killworth1998] and thus to [@maltiel2015])
+    3.  The edges connecting the newly recruited respondent $i$ to other unrecruited respondents do not affect $i$'s probability of being recruited *[this is very strong assumption]*
+    4.  Vertices become recruiters immediately upon entering the study and receiving one or more coupons. They remain recruiters until their coupons or susceptible neighbors are depleted, whichever happens first *[this is very strong assumption]*
+    5.  When a susceptible neighbor $j$ of a recruiter $i$ is recruited by any recruiter, the edge connecting $i$ and $j$ is immediately no longer susceptible *[this is very strong assumption]*
+    6.  The time to recruitment along an edge connecting a recruiter to a susceptible neighbor has exponential distribution with rate $\lambda$, independent of the identity of the recruiter, neighbor, and all other waiting times
+
+-   Assumptions 2 and 3 imply that the "unrecruited degree" of subject recruited in $i$-th order can be represented as $d^{u}_{i} \sim \mathrm{B} (N - i, p)$
+
+-   This in turns allows us to write $\mathcal{L} (N, p \,|\, G_{S}, \mathbf{Y}) = \prod_{i}^{n} {N - i \choose d^{u}_{i}} p^{d^{u}_{i}} (1-p)^{N-i-d^{u}_{i}}$
+
+-   Assumptions 4-6 imply $\mathcal{L} (G_{S}, \lambda \,|\, \mathbf{Y}) = \left( \prod_{j \notin M} \lambda \mathbf{s}_{j} \right) \exp (-\lambda \mathbf{s}' \mathbf{w})$, where $s = \mathrm{lowerTri} (\mathbf{AC})'\mathbb{1} + \mathbf{C}'u$ -- vector of the number of susceptible edges just before each recruitment event
+
+-   Appendix also has very useful ideas on network structure simulation using *block* approach similar to [@feehan2016]
+
+### @handcock2014 {-}
+
+-   Uses the same RDS data (no need for supplementary data from general population)
+
+-   Models degrees of un-sampled vertices as being drawn independently from a pre-specified parametric distribution
+
+-   Does not follow strict topological rules on $G_{S}$ as the ones imposed by [@crawford2018]
+
+-   This lack of graphical constraints in the SS-size model suggests a view of RDS recruitment that is not network-based: subjects' reported degrees might be regarded as surrogate measures of "visibility" in the population which in turn refers to [@maltiel2015] and standard HT estimator
+
+-   The SS-size model also assumes that the degrees of recruited subjects should decrease over time as the sample accrues [@johnston2017]
+
+-   We can basically estimate this approach and the one in [@crawford2018] at the same time: While the models are very different the data used is very similar. It seems that the NSUM methods and specifically [@maltiel2015] model has a better "compatibility" with [@handcock2014]
+
+### @berchenko2017 {-}
+
+-   Current RDS estimators resort to modeling recruitment as a homogeneous random walk, which culminates in the assumption that the sampling probability is proportional to degree, that is, $\pi_{k} \propto k$ which in turns allows for use of HT estimator
+
+-   Uses the same RDS data (no need for supplementary data from general population) in the context of epidemiological model setup in [@andersson2000]
+
+-   Assumptions:
+
+    1.  Sampling is done without replacement, with $n_{k,t}$ being the (right-continuous) counting process representing the number of people with degree $k$ recruited by time $t$.
+
+    2.  Between times $t$ and $t + \Delta t$, an individual with degree $k$ is sampled with probability $$\lambda_{k,t} = \frac{\beta_{k}}{N} I_{t} (N_{k} - n_{k,t}) \Delta t + \mathcal{o} (\Delta t)$$
+
+        where $I_{t}$ is the number of people actively trying to recruit new individuals, and the constant $\beta_{k}$ is a degree-dependent recruitment rate
+
+    3.  The multivariate counting process $n_{t} \equiv (n_{1,t}, \dots, n_{k_{\max}, t})$ has intensity $$\lambda_{t} = N^{-1} \left( \beta_{1} I^{-}_{t} (N_{1} - n^{-}_{1,t} ), \dots, \beta_{k_{\max}} I^{-}_{t} (N_{k_{\max}} - n^{-}_{k_{\max},t} ) \right)$$
+
+        such that $m_{t} \equiv n_{t} - \int_{0}^{t} \lambda_s \mathrm{d} s$ is a multivariate martingale.
+
+-   We are interested in the estimator $\hat{P}_{CP} = \sum_{k \geq 1} \hat{f}_{k} \hat{p}_{k}$ where $\hat{f}_{k}$ is the estimate of proportion of degree $k$ in the population and $\hat{p}_{k}$ is the estimate of prevalence in the degree $k$ group

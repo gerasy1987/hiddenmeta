@@ -1,6 +1,6 @@
 template:
   params:
-    bootstrap: 4
+    bootswatch: cosmo
 
 home:
   title: An R package for diagnosis and meta-analysis of hard-to-reach population measurement studies
@@ -13,6 +13,8 @@ navbar:
   left:
   - text: Get started
     href: articles/hiddenmeta-base.html
+  - text: Background
+    href: articles/background.html
     # menu:
     #   - text: randomizr
     #     href: https://declaredesign.org/r/randomizr/

@@ -1,8 +1,8 @@
 ---
-title: "hiddenmeta workflow"
+title: "Introduction to hiddenmeta"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{hiddenmeta workflow}
+  %\VignetteIndexEntry{Introduction to hiddenmeta}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
