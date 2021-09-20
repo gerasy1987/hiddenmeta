@@ -1,13 +1,8 @@
 Package: hiddenmeta
-Type: Package
-Title: Meta-analysis of hidden population studies
-Version: 0.1.7
-Date: 2021-05-06
-Author: 
-    c(person(given = "Georgiy", family = "Syunyaev", email = "gs2716@columbia.edu",
-             role = c("aut", "cre")),
-      person(given = "Macartan", family = "Humphreys", email = "macartan@gmail.com",
-             role = c("aut", "cre")))
+Title: Diagnosis and meta-analysis of hard-to-reach population studies
+Version: 0.1.8
+Authors@R: c(person("Georgiy", "Syunyaev", email = "gs2716@columbia.edu", role = c("aut", "cre"), , comment = c(ORCID = "0000-0002-4391-6313")),
+             person("Macartan", "Humphreys", email = "macartan@gmail.com", role = c("aut"), comment = c(ORCID = "0000-0001-7029-2326")))
 Maintainer: Georgiy Syunyaev <gs2716@columbia.edu>
 Description: Package allows analysis of individual and multiple studies of 
     hidden population size and prevalence using RDS, TLS or PPS samples. 
