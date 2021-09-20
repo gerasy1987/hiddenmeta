@@ -1,6 +1,9 @@
+url: https://gsyunyaev.com/hiddenmeta/
+
 template:
   params:
     bootswatch: cosmo
+    ganalytics: 286940636
 
 home:
   title: An R package for diagnosis and meta-analysis of hard-to-reach population measurement studies

@@ -23,75 +23,118 @@ knitr::opts_chunk$set(
 
 ```
 
-## RDS/RDS+ Methods Summary 
+## RDS/RDS+ methods
 
--   Use the coupons, the timing of surveys and the structure of recruitment network to approximate the size of the population
+- Use the coupons, the timing of surveys and the structure of recruitment network to approximate the size of the population
 
--   Relies on network connectedness, i.e. if the seeds are within a "small world" the method will likely depart significantly from the truth
+- Relies on network connectedness, i.e. if the seeds are within a "small world" the method will likely depart significantly from the truth
 
--   Do not rely on proportional sampling and likely are cheaper
+- Do not rely on proportional sampling and likely are cheaper
 
-### @crawford2018 {-}
+### @crawford2018
 
--   Use data from RDS $\mathbf{Y} = (G_{R}, \mathbf{d}, \mathbf{t}, \mathbf{C})$, where:
+- Use data from RDS $\mathbf{Y} = (G_{R}, \mathbf{d}, \mathbf{t}, \mathbf{C})$, where:
+    - $G_{R}$ -- Directly observed recrutiment graph with $n$ (out of $N$) vertices (not the same as $G_{S}$ -- full subgraph of graph of hidden population $G$ induced by recruitment)
+    - $\mathbf{d}$ -- vector of number of connections of each recruited respondents in hidden population $G$ from survey
+    - $\mathbf{t}$ -- directly observed vector of recruitment timings
+    - $\mathbf{C}$ -- coupon matrix in which $C_{ij} = 1$ iff subject $i$ has at least one coupon just before the $j$-th subject recruitment event, and zero otherwise
+- Using this data we are trying to estimate $N$ using the likelihood of $N | G_{S}$ marginalizing over all $G_{S}$ consistent with $G_{R}$
+- Assumptions:
+    1. $G$ is finite graph with no self-loops
+    2. Use Erdos-Renyi Model assumptions for hidden population graph $G$: assume $d_{i} \sim \mathrm{B} (N-1, p)$ (similar to [@killworth1998] and thus to [@maltiel2015])
+    3. The edges connecting the newly recruited respondent $i$ to other unrecruited respondents do not affect $i$'s probability of being recruited *[this is very strong assumption]*
+    4. Vertices become recruiters immediately upon entering the study and receiving one or more coupons. They remain recruiters until their coupons or susceptible neighbors are depleted, whichever happens first *[this is very strong assumption]*
+    5. When a susceptible neighbor $j$ of a recruiter $i$ is recruited by any recruiter, the edge connecting $i$ and $j$ is immediately no longer susceptible *[this is very strong assumption]*
+    6. The time to recruitment along an edge connecting a recruiter to a susceptible neighbor has exponential distribution with rate $\lambda$, independent of the identity of the recruiter, neighbor, and all other waiting times
+- Assumptions 2 and 3 imply that the "unrecruited degree" of subject recruited in $i$-th order can be represented as $d^{u}_{i} \sim \mathrm{B} (N - i, p)$
+- This in turns allows us to write $\mathcal{L} (N, p \,|\, G_{S}, \mathbf{Y}) = \prod_{i}^{n} {N - i \choose d^{u}_{i}} p^{d^{u}_{i}} (1-p)^{N-i-d^{u}_{i}}$
+- Assumptions 4-6 imply $\mathcal{L} (G_{S}, \lambda \,|\, \mathbf{Y}) = \left( \prod_{j \notin M} \lambda \mathbf{s}_{j} \right) \exp (-\lambda \mathbf{s}' \mathbf{w})$, where $s = \mathrm{lowerTri} (\mathbf{AC})'\mathbb{1} + \mathbf{C}'u$ -- vector of the number of susceptible edges just before each recruitment event
+- Appendix also has very useful ideas on network structure simulation using *block* approach similar to [@feehan2016]
 
-    -   $G_{R}$ -- Directly observed recrutiment graph with $n$ (out of $N$) vertices (not the same as $G_{S}$ -- full subgraph of graph of hidden population $G$ induced by recruitment)
+### @handcock2014
 
-    -   $\mathbf{d}$ -- vector of number of connections of each recruited respondents in hidden population $G$ from survey
+- Uses the same RDS data (no need for supplementary data from general population)
+- Models degrees of un-sampled vertices as being drawn independently from a pre-specified parametric distribution
+- Does not follow strict topological rules on $G_{S}$ as the ones imposed by [@crawford2018]
+- This lack of graphical constraints in the SS-size model suggests a view of RDS recruitment that is not network-based: subjects' reported degrees might be regarded as surrogate measures of "visibility" in the population which in turn refers to [@maltiel2015] and standard HT estimator
+- The SS-size model also assumes that the degrees of recruited subjects should decrease over time as the sample accrues [@johnston2017]
+- We can basically estimate this approach and the one in [@crawford2018] at the same time: While the models are very different the data used is very similar. It seems that the NSUM methods and specifically [@maltiel2015] model has a better "compatibility" with [@handcock2014]
 
-    -   $\mathbf{t}$ -- directly observed vector of recruitment timings
+### @berchenko2017
 
-    -   $\mathbf{C}$ -- coupon matrix in which $C_{ij} = 1$ iff subject $i$ has at least one coupon just before the $j$-th subject recruitment event, and zero otherwise
+- Current RDS estimators resort to modeling recruitment as a homogeneous random walk, which culminates in the assumption that the sampling probability is proportional to degree, that is, $\pi_{k} \propto k$ which in turns allows for use of HT estimator
+- Uses the same RDS data (no need for supplementary data from general population) in the context of epidemiological model setup in [@andersson2000]
+- Assumptions:
+    1. Sampling is done without replacement, with $n_{k,t}$ being the (right-continuous) counting process representing the number of people with degree $k$ recruited by time $t$.
+    2. Between times $t$ and $t + \Delta t$, an individual with degree $k$ is sampled with probability $$\lambda_{k,t} = \frac{\beta_{k}}{N} I_{t} (N_{k} - n_{k,t}) \Delta t + \mathcal{o} (\Delta t)$$ where $I_{t}$ is the number of people actively trying to recruit new individuals, and the constant $\beta_{k}$ is a degree-dependent recruitment rate
+    3. The multivariate counting process $n_{t} \equiv (n_{1,t}, \dots, n_{k_{\max}, t})$ has intensity $$\lambda_{t} = N^{-1} \left( \beta_{1} I^{-}_{t} (N_{1} - n^{-}_{1,t} ), \dots, \beta_{k_{\max}} I^{-}_{t} (N_{k_{\max}} - n^{-}_{k_{\max},t} ) \right)$$ such that $m_{t} \equiv n_{t} - \int_{0}^{t} \lambda_s \mathrm{d} s$ is a multivariate martingale.
+- We are interested in the estimator $\hat{P}_{CP} = \sum_{k \geq 1} \hat{f}_{k} \hat{p}_{k}$ where $\hat{f}_{k}$ is the estimate of proportion of degree $k$ in the population and $\hat{p}_{k}$ is the estimate of prevalence in the degree $k$ group
 
--   Using this data we are trying to estimate $N$ using the likelihood of $N | G_{S}$ marginalizing over all $G_{S}$ consistent with $G_{R}$
 
--   Assumptions:
+## TLS methods
 
-    1.  $G$ is finite graph with no self-loops
-    2.  Use Erdos-Renyi Model assumptions for hidden population graph $G$: assume $d_{i} \sim \mathrm{B} (N-1, p)$ (similar to [@killworth1998] and thus to [@maltiel2015])
-    3.  The edges connecting the newly recruited respondent $i$ to other unrecruited respondents do not affect $i$'s probability of being recruited *[this is very strong assumption]*
-    4.  Vertices become recruiters immediately upon entering the study and receiving one or more coupons. They remain recruiters until their coupons or susceptible neighbors are depleted, whichever happens first *[this is very strong assumption]*
-    5.  When a susceptible neighbor $j$ of a recruiter $i$ is recruited by any recruiter, the edge connecting $i$ and $j$ is immediately no longer susceptible *[this is very strong assumption]*
-    6.  The time to recruitment along an edge connecting a recruiter to a susceptible neighbor has exponential distribution with rate $\lambda$, independent of the identity of the recruiter, neighbor, and all other waiting times
+- @karon2012statistical
+- @raymond2007resource
+- @fanzana2001venue
+- @mackellar1996young
 
--   Assumptions 2 and 3 imply that the "unrecruited degree" of subject recruited in $i$-th order can be represented as $d^{u}_{i} \sim \mathrm{B} (N - i, p)$
+## PPS methods
 
--   This in turns allows us to write $\mathcal{L} (N, p \,|\, G_{S}, \mathbf{Y}) = \prod_{i}^{n} {N - i \choose d^{u}_{i}} p^{d^{u}_{i}} (1-p)^{N-i-d^{u}_{i}}$
+### Horvotz-Thomson
 
--   Assumptions 4-6 imply $\mathcal{L} (G_{S}, \lambda \,|\, \mathbf{Y}) = \left( \prod_{j \notin M} \lambda \mathbf{s}_{j} \right) \exp (-\lambda \mathbf{s}' \mathbf{w})$, where $s = \mathrm{lowerTri} (\mathbf{AC})'\mathbb{1} + \mathbf{C}'u$ -- vector of the number of susceptible edges just before each recruitment event
+### NSUM
 
--   Appendix also has very useful ideas on network structure simulation using *block* approach similar to [@feehan2016]
+- The NSUM approach is based on the idea that for all individuals, the probability that someone they know is in a given subpopulation is the size of that subpopulation divided by the overall population size. The estimate of the sub population size is then based on the share of the subpopulation in the respondent's network. For example, if a respondent knows $100$ people total and knows $2$ intravenous drug users, then it is inferred that $2\%$ of the total population are intravenous drug users. The *number* of people  in a given subpopulation that the respondent knows is assumed to follow a binomial distribution.
+- However, the total number of people known by a respondent, also called his or her degree or personal network size, also needs to be estimated. *[why can't we ask about this directly?]* A person's degree is estimated by asking the respondents about the number of contacts he or she has in several subpopulations of known size, such as twins, people named Nicole, or women over $70$, using the same assumption that an individual should know roughly their degree times the proportion of people in a given subpopulation. *[why asking about hidden population directly will work?]*
+- ...Does not take account of the different propensities of people to know people in different groups, such as people's tendency to know people like themselves; these are called **barrier effects**.
+- **Transmission bias** arises when a respondent does not count his or her contact as being in the group of interest, for example because the respondent does not know that the contact belongs to the group. This bias may be particularly large when a group is stigmatized, as is the case of most of the key affected populations in which we are interested.
+- **Recall bias** refers to the tendency for people to underestimate the number of people they know in larger groups because they forget some of these contacts, and to overestimate the number of people they know in small or unusual groups.
 
-### @handcock2014 {-}
+### G-NSUM (@killworth1998)
 
--   Uses the same RDS data (no need for supplementary data from general population)
+**Basic setup:**
 
--   Models degrees of un-sampled vertices as being drawn independently from a pre-specified parametric distribution
+- $y_{ik}$ be the number of people known by individual $i$, $i = 1, \dots, n$ , in group $k$, $k = 1, \dots, K$
+- Groups $1, \dots, K − 1$ are of known size and group $K$ -- of unknown size (in general number of unknown size groups can be more than one)
+- $N_{k}$ -- size of group $k$, and let $N$ be the total population, which is assumed to be known
+- $d_{i}$ -- number of people that respondent $i$ knows, also called his or her degree or personal network size
+- Core assumption: $y_{ik} \sim \mathrm{B} (d_{i}, \frac{N_{k}}{N})$
+- Main finding: $\widehat{d_{i}} = N \frac{\sum_{k = 1}^{K} y_{ik}}{\sum_{k = 1}^{K} N_{k}}$ which then leads to $\widehat{N_{K}} = N \frac{\sum_{i = 1}^{n} y_{iK}}{\sum_{i = 1}^{n} \widehat{d_{i}}}$
 
--   Does not follow strict topological rules on $G_{S}$ as the ones imposed by [@crawford2018]
+### G-NSUM (@maltiel2015)
 
--   This lack of graphical constraints in the SS-size model suggests a view of RDS recruitment that is not network-based: subjects' reported degrees might be regarded as surrogate measures of "visibility" in the population which in turn refers to [@maltiel2015] and standard HT estimator
+**Additional assumptions (on top of basic setup above):**
 
--   The SS-size model also assumes that the degrees of recruited subjects should decrease over time as the sample accrues [@johnston2017]
+- Number of people respondents $i$ knows is distributed log normal: $d_{i} \sim \textrm{Lognormal} (\mu, \sigma^{2})$ [@salganik2011]
+- Priors are $\pi (N_{k}) \propto \frac{\mathbb{1}_{N_{k} < N}}{N_{K}}$; $\mu \sim \mathrm{U} (3,8)$; $\sigma \sim \mathrm{U} (\frac{1}{4}, 2)$
+- Existence of **barrier effect** implies that $\frac{N_{k}}{N}$ can be over or underestimated by respondent depending on the group $k$, so instead of using this term in binomial distribution assume:
+    - $y_{ik} \sim \mathrm{B} (d_{i}, q_{ik})$ and $q_{ik} \sim \textrm{Beta} (m_{k}, \rho_{k})$ (mean-sd parametrization), where $m_{k} = \mathbb{E} [q_{ik}] \equiv \frac{N_{k}}{N}$
+    - priors are $\pi (m_{k}) \propto \frac{1}{m_{k}}$ and $\rho_{k} \sim \mathrm{U} (0,1)$
+- Existence of **transmission bias** implies that for the group of interest $K$ respondents might underestimate number of connections due to stigma. Thus they assume:
+    - $y_{ik} \sim \mathrm{B} (d_{i}, \tau_{k}\frac{N_{k}}{N})$, $\tau_{K} \sim \textrm{Beta} (\eta_{K}, \nu_{K})$ and $\forall k\neq K:\: \tau_{k} \equiv 1$
+    - standard priors on $\eta_{K}$ and $\nu_{k}$
+- **Recall bias** usually implies that respondents under-report large groups and over-report small groups. Use adjustment method instead of implicit parametrisation to adjust for this bias.
+- If we combine two we get: 
+    - $y_{ik} \sim \mathrm{B} (d_{i}, \tau_{k} q_{ik})$, 
+    - $d_{i} \sim \textrm{Lognormal} (\mu, \sigma^{2})$, 
+    - $q_{ik} \sim \textrm{Beta} (m_{k}, \rho_{k})$, 
+    - $\tau_{K} \sim \textrm{Beta} (\eta_{K}, \nu_{K})$, 
+    - $\mu \sim \mathrm{U} (3,8);\; \sigma \sim \mathrm{U} (\frac{1}{4}, 2);\; \rho_{k} \sim \mathrm{U} (0,1)$
+    - $\pi (N_{k}) \propto \frac{\mathbb{1}_{N_{k} < N}}{N_{K}} ;\; \pi (m_{k}) \propto \frac{1}{m_{k}}$
 
--   We can basically estimate this approach and the one in [@crawford2018] at the same time: While the models are very different the data used is very similar. It seems that the NSUM methods and specifically [@maltiel2015] model has a better "compatibility" with [@handcock2014]
 
-### @berchenko2017 {-}
+### G-NSUM (@feehan2016)
 
--   Current RDS estimators resort to modeling recruitment as a homogeneous random walk, which culminates in the assumption that the sampling probability is proportional to degree, that is, $\pi_{k} \propto k$ which in turns allows for use of HT estimator
-
--   Uses the same RDS data (no need for supplementary data from general population) in the context of epidemiological model setup in [@andersson2000]
-
--   Assumptions:
-
-    1.  Sampling is done without replacement, with $n_{k,t}$ being the (right-continuous) counting process representing the number of people with degree $k$ recruited by time $t$.
-
-    2.  Between times $t$ and $t + \Delta t$, an individual with degree $k$ is sampled with probability $$\lambda_{k,t} = \frac{\beta_{k}}{N} I_{t} (N_{k} - n_{k,t}) \Delta t + \mathcal{o} (\Delta t)$$
-
-        where $I_{t}$ is the number of people actively trying to recruit new individuals, and the constant $\beta_{k}$ is a degree-dependent recruitment rate
-
-    3.  The multivariate counting process $n_{t} \equiv (n_{1,t}, \dots, n_{k_{\max}, t})$ has intensity $$\lambda_{t} = N^{-1} \left( \beta_{1} I^{-}_{t} (N_{1} - n^{-}_{1,t} ), \dots, \beta_{k_{\max}} I^{-}_{t} (N_{k_{\max}} - n^{-}_{k_{\max},t} ) \right)$$
-
-        such that $m_{t} \equiv n_{t} - \int_{0}^{t} \lambda_s \mathrm{d} s$ is a multivariate martingale.
-
--   We are interested in the estimator $\hat{P}_{CP} = \sum_{k \geq 1} \hat{f}_{k} \hat{p}_{k}$ where $\hat{f}_{k}$ is the estimate of proportion of degree $k$ in the population and $\hat{p}_{k}$ is the estimate of prevalence in the degree $k$ group
+- Focus on *in-reports* and *out-reports*:
+    - two people are connected by a directed edge $i \rightarrow j$ if person $i$ would count person $j$ as a member of group of interest (e.g. drug injector). Whenever $i \rightarrow j$, we say that $i$ makes an **out-report** about $j$ and that $j$ receives an **in-report** from $i$.
+    - $K$ - target group, $U$ - whole population, $F$ - frame population (actually surveyed)
+    - Requires relative probability sampling from hidden population with structure of questions related to the group of known size. E.g. "How many widowers do you know?" combined with "How many of these widowers are aware that you inject drugs?"
+- Total number of out-reports from $i$ to group $K$ are $y_{iK}$ and total number of in-reports about $i$ from the whole population is $\nu_{iU}$ and from the frame population is $\nu_{iF}$
+- **Total out-reports = total in-reports**: $\sum_{i \in F} y_{iK} = \sum_{i \in U} \nu_{iF} \Leftrightarrow N_{K} = \frac{\sum_{i \in F} y_{iK}}{\sum_{i \in U} \nu_{iF} \big/ N_{K}}$
+- Assume that the out-reports from people in the frame population only include people in the hidden population, then it must be the case that the visibility of everyone not in the hidden population is 0: $\forall i \notin K:\: \nu_{iF} \equiv 0$
+    - then $N_{K} = \frac{\sum_{i \in F} y_{iK}}{\sum_{i \in K} \nu_{iF} \big/ N_{K}} = \frac{y_{FK}}{ \overline{\nu_{KF}}}$
+- Estimate $y_{FK}$ using HT estimator with known sampling probability from $F$
+- Estimate $\overline{\nu_{KF}}$ using the *probe alters*, $\mathcal{A}$ , groups of known size for which we collect relational data from hidden population sample. Using this data the estimator is $\widehat{\overline{\nu_{KF}}} = \frac{N}{N_{\mathcal{A}}} \frac{\sum_{i \in s_{K}} \sum_{j} \tilde{\nu}_{i, A_{j}} \big/ (c \pi_{i} )}{\sum_{i \in s_{K}} 1 \big/ (c \pi_{i})}$, where $\tilde{\nu}_{i, A_{j}}$ is the self-reported visibility of member of hidden population to group of known size $A_{j}$.
+- Use bootstrap methods to estimate the standard errors/CIs
+- **Very useful:** Provide comparison with the basic NSUM method [@killworth1998] and show that $N_{K} = \underbrace{\left( \frac{y_{FK}}{\overline{d}_{UF}} \right)}_{\text{standard NSUM estimand}} \times \frac{1}{\phi_{F} \delta_{F} \tau_{F}}$, where $\phi_{F}$ -- frame ratio (average connection within $F$ to connection from $U$ to $F$), $\delta_{F}$ -- degree ratio (average connection from $K$ to $F$ to connection within $F$), and $\tau_{F}$ -- true positive ratio (in-reports from $F$ to $K$ to edges connecting $F$ and $K$)
+- Appendix G to the paper also has very useful ideas on network structure simulation using *block* approach, where the chances of link between two individuals depend on their membership in $F$ and $K$ (there is no code, but it sounds like something straightforward to do)
