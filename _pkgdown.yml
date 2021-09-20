@@ -2,7 +2,8 @@ url: https://gsyunyaev.com/hiddenmeta/
 
 template:
   params:
-    bootswatch: cosmo
+    bootstrap: 4
+    bootswatch: slate
     ganalytics: 286940636
 
 home:

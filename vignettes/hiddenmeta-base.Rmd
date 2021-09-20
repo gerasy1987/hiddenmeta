@@ -179,8 +179,8 @@ set.seed(872312)
 example_pop <- study_population()
 
 example_pop %>% 
-  dplyr::sample_n(n()) %>% # shuffle data frame
-  rmarkdown::paged_table(options = list(rows.print = 15))
+  dplyr::sample_n(n()) %>% 
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
 
@@ -225,8 +225,8 @@ study_sample_rds <-
 
 set.seed(872312)
 draw_data(study_population + study_sample_rds) %>%  
-  dplyr::sample_n(n()) %>% # shuffle data frame
-  rmarkdown::paged_table(options = list(rows.print = 15))
+  dplyr::sample_n(n()) %>% 
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
 
@@ -237,8 +237,8 @@ study_sample_pps <-
 
 set.seed(872312)
 draw_data(study_population + study_sample_rds + study_sample_pps) %>% 
-  dplyr::sample_n(n()) %>% # shuffle data frame
-  rmarkdown::paged_table(options = list(rows.print = 15))
+  dplyr::sample_n(n()) %>% 
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
 
@@ -250,8 +250,8 @@ study_sample_tls <-
 set.seed(872312)
 draw_data(study_population + 
             study_sample_rds + study_sample_pps + study_sample_tls) %>% 
-  dplyr::sample_n(n()) %>% # shuffle data frame
-  rmarkdown::paged_table(options = list(rows.print = 15))
+  dplyr::sample_n(n()) %>% 
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
 
@@ -323,19 +323,19 @@ study1 <-
   est_nsum_tls + est_ht_tls + est_recap_tls +
   est_recap_rds_pps + est_recap_rds_tls
 
-# can draw one of the samples
-study1$study_sample_rds(study1$study_population())
-
-# can draw full data
-study1_data <- draw_data(study1)
-
-# can draw estimands
-study1$inquiry(study1_data)
-
-# can draw any of the estimators
-study1$rds_sspse(study1_data)
-study1$pps_ht(study1_data)
-study1$rds_pps_recap(study1_data)
+# # can draw one of the samples
+# study1$study_sample_rds(study1$study_population())
+# 
+# # can draw full data
+# study1_data <- draw_data(study1)
+# 
+# # can draw estimands
+# study1$inquiry(study1_data)
+# 
+# # can draw any of the estimators
+# study1$rds_sspse(study1_data)
+# study1$pps_ht(study1_data)
+# study1$rds_pps_recap(study1_data)
 
 ```
 
