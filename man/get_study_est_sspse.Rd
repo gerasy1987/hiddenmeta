@@ -10,6 +10,7 @@ get_study_est_sspse(
   n_coupons = 3,
   total = 2000,
   mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+  additional_params = list(),
   rds_prefix = "rds",
   label = "sspse"
 )

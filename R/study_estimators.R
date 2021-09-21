@@ -24,6 +24,7 @@ get_study_est_sspse <- function(data,
                                 n_coupons = 3,
                                 total = 2000,
                                 mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+                                additional_params = list(),
                                 rds_prefix = "rds",
                                 label = "sspse") {
 
@@ -41,14 +42,17 @@ get_study_est_sspse <- function(data,
                            population.size = total,
                            max.coupons = n_coupons) %>%
     {
-      .quiet_sspse(s = .,
-                   interval = mcmc_params$interval,
-                   samplesize = mcmc_params$samplesize,
-                   burnin = mcmc_params$burnin,
-                   mean.prior.size = prior_mean,
-                   verbose = FALSE,
-                   # visibility = TRUE,
-                   max.coupons = n_coupons
+      do.call(
+        .quiet_sspse,
+        c(list(s = .,
+               interval = mcmc_params$interval,
+               samplesize = mcmc_params$samplesize,
+               burnin = mcmc_params$burnin,
+               mean.prior.size = prior_mean,
+               verbose = FALSE,
+               # visibility = TRUE,
+               max.coupons = n_coupons),
+          additional_params)
       )
     }
 
