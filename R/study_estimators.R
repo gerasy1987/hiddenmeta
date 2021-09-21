@@ -18,6 +18,7 @@
 #' @importFrom sspse posteriorsize
 #' @importFrom RDS as.rds.data.frame
 #' @importFrom purrr quietly
+
 get_study_est_sspse <- function(data,
                                 prior_mean = .1 * nrow(data),
                                 n_coupons = 3,
