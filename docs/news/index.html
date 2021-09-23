@@ -81,7 +81,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.9</span>
       </span>
     </div>
 
@@ -90,12 +90,27 @@
         <li>
   <a href="../articles/hiddenmeta-base.html">Get started</a>
 </li>
-<li>
-  <a href="../articles/background.html">Background</a>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://declaredesign.org/r/randomizr/">Read study design</a>
+    </li>
+    <li>
+      <a href="../articles/meta-example.html">Simple meta-analysis</a>
+    </li>
+  </ul>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="../articles/background.html">Background</a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
 <li>
@@ -128,6 +143,26 @@
 <li>Lots of them</li>
 <li>Adjusted vignettes</li>
 <li>Allowed RDS sample to sample new seeds</li>
+</ul>
+</div>
+</div>
+    <div id="hiddenmeta-019" class="section level1">
+<h1 class="page-header" data-toc-text="0.1.9">
+<a href="#hiddenmeta-019" class="anchor"></a>hiddenmeta 0.1.9</h1>
+<div id="enhancements" class="section level2">
+<h2 class="hasAnchor">
+<a href="#enhancements" class="anchor"></a>Enhancements</h2>
+<ul>
+<li>Added function that allows to read study parameters from the Google spreadsheet</li>
+<li>Added drafts of several vignettes: On reading study parameters, and on simple meta-analysis simulation</li>
+</ul>
+</div>
+<div id="bug-fixes-1" class="section level2">
+<h2 class="hasAnchor">
+<a href="#bug-fixes-1" class="anchor"></a>Bug Fixes</h2>
+<ul>
+<li>Fixed meta-estimation handler to allow specification of custom Stan code</li>
+<li>Added option to provide more controls over Stan fit call</li>
 </ul>
 </div>
 </div>

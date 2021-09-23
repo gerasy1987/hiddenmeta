@@ -73,7 +73,7 @@ get_meta_estimates <- function(
     c(N = .N, K = .K, .)
 
   .stan_model <-
-    rstan::stan_model(model_code = get_meta_stan2(.stan_data))
+    rstan::stan_model(model_code = stan_handler(.stan_data))
 
   .fit <-
     do.call(rstan::sampling, c(list(object = .stan_model,

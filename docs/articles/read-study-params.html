@@ -37,7 +37,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.9</span>
       </span>
     </div>
 
@@ -46,11 +46,26 @@
 <li>
   <a href="../articles/hiddenmeta-base.html">Get started</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
 <li>
-  <a href="../articles/background.html">Background</a>
+      <a href="https://declaredesign.org/r/randomizr/">Read study design</a>
+    </li>
+    <li>
+      <a href="../articles/meta-example.html">Simple meta-analysis</a>
+    </li>
+  </ul>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="../articles/background.html">Background</a>
+</li>
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
@@ -87,310 +102,29 @@
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://gsyunyaev.com/hiddenmeta/">hiddenmeta</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://declaredesign.org/r/declaredesign/">DeclareDesign</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/">knitr</a></span><span class="op">)</span></code></pre></div>
+</div>
+<div id="read-study-designs" class="section level2">
+<h2 class="hasAnchor">
+<a href="#read-study-designs" class="anchor"></a>Read study designs</h2>
+<ul>
+<li>The Google spreadsheet with the current study designs can be found <a href="https://docs.google.com/spreadsheets/d/1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y/edit?usp=sharing">here</a> (access restricted)</li>
+<li>Currently only spreadsheets of the format presented at the link are supported</li>
+<li>To load the spreadsheet you need to provide authentication e-mail and when reading the parameters you will be asked to log in into your Google account</li>
+<li>In addition the function currently allows to specify spreadsheet ID and specific sheet name within the spreadsheet to use for reading</li>
+</ul>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">read_study_params</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span>
-  <span class="va">auth_email</span> <span class="op">=</span> <span class="st">"gerasy@gmail.com"</span>,
-  <span class="va">ss</span> <span class="op">=</span> <span class="st">"1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y"</span>,
-  <span class="va">sheet</span> <span class="op">=</span> <span class="st">"study_params_readable"</span>,
-  <span class="va">col_spec</span> <span class="op">=</span> <span class="st">"ciiiiiiiciciiiiiiiiciiiiiiciiiccccccccccccccc"</span>,
-  <span class="va">priors_map</span> <span class="op">=</span>
-    <span class="fu">tibble</span><span class="op">(</span>
-      label      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"low"</span>, <span class="st">"medium"</span>, <span class="st">"high"</span><span class="op">)</span>,
-      int        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">10</span>,    <span class="fl">20</span>,       <span class="fl">40</span><span class="op">)</span>,
-      p          <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>,   <span class="fl">0.5</span>,      <span class="fl">0.9</span><span class="op">)</span>,
-      phigh     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.7</span>,   <span class="fl">0.8</span>,      <span class="fl">0.9</span><span class="op">)</span>,
-      plow      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>,   <span class="fl">0.2</span>,      <span class="fl">0.3</span><span class="op">)</span>
-    <span class="op">)</span>
-
-
-<span class="op">)</span> <span class="op">{</span>
-  
-  <span class="fu">googlesheets4</span><span class="fu">::</span><span class="fu"><a href="https://googlesheets4.tidyverse.org/reference/gs4_auth.html">gs4_auth</a></span><span class="op">(</span>email <span class="op">=</span> <span class="va">auth_email</span><span class="op">)</span>
-  
-  <span class="va">labels</span> <span class="op">&lt;-</span>
-    <span class="fu">googlesheets4</span><span class="fu">::</span><span class="fu"><a href="https://googlesheets4.tidyverse.org/reference/range_read.html">read_sheet</a></span><span class="op">(</span>
-      ss <span class="op">=</span> <span class="va">ss</span>,
-      sheet <span class="op">=</span> <span class="va">sheet</span>,
-      skip <span class="op">=</span> <span class="fl">0</span>,
-      n_max <span class="op">=</span> <span class="fl">3</span>,
-      col_names <span class="op">=</span> <span class="cn">FALSE</span>,
-      .name_repair <span class="op">=</span> <span class="st">"minimal"</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="va">unname</span> <span class="op">%&gt;%</span>
-    <span class="va">t</span> <span class="op">%&gt;%</span>
-    <span class="fu">`colnames&lt;-`</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"family"</span>, <span class="st">"name"</span>, <span class="st">"description"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
-      prior_type <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_chr</a></span><span class="op">(</span><span class="va">family</span>, <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/strsplit.html">strsplit</a></span><span class="op">(</span><span class="va">.x</span>, <span class="st">"_"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>,
-      family <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_chr</a></span><span class="op">(</span><span class="va">family</span>, <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/strsplit.html">strsplit</a></span><span class="op">(</span><span class="va">.x</span>, <span class="st">"_"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,
-      colnames <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">family</span><span class="op">)</span>, <span class="va">name</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">family</span>, <span class="st">"_"</span>, <span class="va">name</span><span class="op">)</span><span class="op">)</span>
-    <span class="op">)</span>
-
-
-  <span class="va">spread_sheet</span> <span class="op">&lt;-</span>
-    <span class="fu">googlesheets4</span><span class="fu">::</span><span class="fu"><a href="https://googlesheets4.tidyverse.org/reference/range_read.html">read_sheet</a></span><span class="op">(</span>
-      ss <span class="op">=</span> <span class="va">ss</span>,
-      sheet <span class="op">=</span> <span class="va">sheet</span>,
-      col_names <span class="op">=</span> <span class="cn">FALSE</span>,
-      na <span class="op">=</span> <span class="st">"NA"</span>,
-      col_types <span class="op">=</span> <span class="va">col_spec</span>,
-      .name_repair <span class="op">=</span> <span class="st">"minimal"</span>,
-      skip <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">%&gt;%</span>
-    <span class="fu">`names&lt;-`</span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html">pull</a></span><span class="op">(</span><span class="va">labels</span>, <span class="va">colnames</span><span class="op">)</span><span class="op">)</span>
-
-  <span class="va">prior_types</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html">na.omit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">labels</span><span class="op">$</span><span class="va">prior_type</span><span class="op">)</span><span class="op">)</span>
-
-  <span class="kw">for</span> <span class="op">(</span><span class="va">pr</span> <span class="kw">in</span> <span class="va">prior_types</span><span class="op">)</span> <span class="op">{</span>
-    <span class="va">spread_sheet</span> <span class="op">%&lt;&gt;%</span>
-      <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="fu">across</span><span class="op">(</span>
-        <span class="fu">all_of</span><span class="op">(</span><span class="va">labels</span><span class="op">$</span><span class="va">colnames</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">labels</span><span class="op">$</span><span class="va">prior_type</span> <span class="op">==</span> <span class="va">pr</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>,
-        <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/mapvalues.html">mapvalues</a></span><span class="op">(</span><span class="va">.</span>, warn_missing <span class="op">=</span> <span class="cn">FALSE</span>,
-                                     from <span class="op">=</span> <span class="va">priors_map</span><span class="op">$</span><span class="va">label</span>,
-                                     to <span class="op">=</span> <span class="va">priors_map</span><span class="op">[[</span><span class="va">pr</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
-        <span class="op">)</span><span class="op">)</span>
-  <span class="op">}</span>
-
-  <span class="va">.out</span> <span class="op">&lt;-</span>
-    <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span>
-      <span class="va">spread_sheet</span><span class="op">$</span><span class="va">study_id</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span>, USE.NAMES <span class="op">=</span> <span class="cn">TRUE</span>,
-      FUN <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">study</span><span class="op">)</span> <span class="op">{</span>
-
-        <span class="va">.row</span> <span class="op">&lt;-</span> <span class="va">spread_sheet</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">spread_sheet</span><span class="op">$</span><span class="va">study_id</span> <span class="op">==</span> <span class="va">study</span><span class="op">)</span>,<span class="op">]</span>
-        
-        <span class="kw">if</span> <span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_known_hidden_interact</span> <span class="op">&gt;</span> <span class="va">.row</span><span class="op">$</span><span class="va">observed_k_known</span><span class="op">)</span>
-          <span class="kw"><a href="https://rdrr.io/r/base/stop.html">stop</a></span><span class="op">(</span><span class="st">"More known groups that interact with hidden group than known groups considered"</span><span class="op">)</span>
-        
-        <span class="va">.group_names</span> <span class="op">&lt;-</span>
-          <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"known"</span>, <span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_known_hidden_interact</span><span class="op">)</span><span class="op">)</span>,
-            <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"hidden"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">.row</span><span class="op">$</span><span class="va">observed_k_hidden</span><span class="op">)</span><span class="op">)</span>
-        
-        <span class="va">.pop</span> <span class="op">&lt;-</span>
-          <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
-            handler <span class="op">=</span> <span class="va">get_study_population</span>,
-
-            <span class="co"># network structure setup</span>
-            network_handler <span class="op">=</span> <span class="va">sim_block_network</span>,
-            network_handler_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
-              N <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">observed_n</span>,
-              K <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">prior_known_hidden_interact</span> <span class="op">+</span> <span class="va">.row</span><span class="op">$</span><span class="va">observed_k_hidden</span>,
-              prev_K <span class="op">=</span>
-                <span class="fu">`names&lt;-`</span><span class="op">(</span>
-                  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_known_prev</span>, times <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">prior_known_hidden_interact</span><span class="op">)</span>,
-                    <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_hidden_prev</span>, times <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">observed_k_hidden</span><span class="op">)</span><span class="op">)</span>,
-                  <span class="va">.group_names</span>
-                <span class="op">)</span>,
-              rho_K <span class="op">=</span>
-                <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_rho</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_rho</span>, times <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">.group_names</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">.group_names</span><span class="op">)</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span> <span class="kw">else</span> <span class="va">.row</span><span class="op">$</span><span class="va">prior_rho</span>,
-              p_edge_within <span class="op">=</span>
-                <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">.group_names</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span>,
-                       <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
-                         <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="st">"^known"</span>, <span class="va">x</span><span class="op">)</span><span class="op">)</span>
-                           <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_edge_within_known</span>, <span class="va">.row</span><span class="op">$</span><span class="va">prior_edge_within_known</span><span class="op">)</span>
-                         <span class="kw">else</span>
-                           <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_edge_within_known</span>, <span class="va">.row</span><span class="op">$</span><span class="va">prior_edge_within_hidden</span><span class="op">)</span><span class="op">}</span><span class="op">)</span>,
-              p_edge_between <span class="op">=</span>
-                <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">.group_names</span>, simplify <span class="op">=</span> <span class="cn">FALSE</span>,
-                       <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
-                         <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="st">"^known"</span>, <span class="va">x</span><span class="op">)</span><span class="op">)</span>
-                           <span class="va">.row</span><span class="op">$</span><span class="va">prior_edge_within_known</span>
-                         <span class="kw">else</span>
-                           <span class="va">.row</span><span class="op">$</span><span class="va">prior_edge_between</span><span class="op">}</span><span class="op">)</span>,
-              directed <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,
-
-            <span class="co"># groups</span>
-            group_names <span class="op">=</span> <span class="va">.group_names</span>,
-
-            <span class="co"># probability of visibility (show-up) for each group</span>
-            p_visible <span class="op">=</span>
-              <span class="fu">`names&lt;-`</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span>
-                <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">.row</span><span class="op">$</span><span class="va">prior_known_hidden_interact</span><span class="op">)</span>,
-                  <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_p_visibility</span>, <span class="va">.row</span><span class="op">$</span><span class="va">observed_k_hidden</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,
-                <span class="va">.group_names</span><span class="op">)</span>,
-
-            <span class="co"># probability of service utilization in hidden population</span>
-            <span class="co"># for service multiplier</span>
-            add_groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span>
-          <span class="op">)</span>
-        
-        <span class="co"># add service use where relevant (e.g. service multiplier is used)</span>
-        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_p_service_use</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span>
-
-          <span class="va">.pop</span><span class="op">$</span><span class="va">add_groups</span> <span class="op">&lt;-</span>
-            <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>
-              <span class="va">.pop</span><span class="op">$</span><span class="va">add_groups</span>,
-              service_use <span class="op">=</span>
-                <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"rbinom(n(), 1, "</span>, <span class="va">.row</span><span class="op">$</span><span class="va">prior_p_service_use</span>, <span class="st">")"</span><span class="op">)</span>
-            <span class="op">)</span>
-        <span class="op">}</span>
-        
-        <span class="co"># add time-locations presence if TLS sample is present</span>
-        <span class="kw">if</span> <span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">tls</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span>
-          <span class="co"># this only depends on hidden1 for now,</span>
-          <span class="co"># need to extend this to arbitrary number of hidden groups</span>
-          <span class="va">.pop</span><span class="op">$</span><span class="va">add_groups</span> <span class="op">&lt;-</span>
-            <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>
-              <span class="va">.pop</span><span class="op">$</span><span class="va">add_group</span>,
-              <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"purrr::map_df(hidden1, ~ sapply( `names&lt;-`(rep("</span>,
-                     <span class="va">.row</span><span class="op">$</span><span class="va">prior_p_showup</span>, <span class="st">", times = "</span>,
-                     <span class="va">.row</span><span class="op">$</span><span class="va">tls_n_time_locations</span>, <span class="st">"), paste0('loc_', 1:"</span>,
-                     <span class="va">.row</span><span class="op">$</span><span class="va">tls_n_time_locations</span>, <span class="st">")), function(add) rbinom(length(.x), 1, 0.05 + .x * add)))"</span><span class="op">)</span>
-            <span class="op">)</span>
-        <span class="op">}</span>
-        
-        <span class="co"># add known groups that are not correlated with hidden group membership</span>
-        <span class="kw">if</span> <span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_known_hidden_interact</span> <span class="op">&lt;</span> <span class="va">.row</span><span class="op">$</span><span class="va">observed_k_known</span><span class="op">)</span> <span class="op">{</span>
-          
-          <span class="va">.group_names_add</span> <span class="op">&lt;-</span> 
-            <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"known"</span>, <span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_known_hidden_interact</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">:</span><span class="va">.row</span><span class="op">$</span><span class="va">observed_k_known</span><span class="op">)</span>
-          
-          <span class="va">.pop</span><span class="op">$</span><span class="va">add_groups</span> <span class="op">&lt;-</span>
-            <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>
-              <span class="va">.pop</span><span class="op">$</span><span class="va">add_group</span>,
-              <span class="fu">`names&lt;-`</span><span class="op">(</span>
-                <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">prior_known_prev</span>, times <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">.group_names_add</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,
-                <span class="va">.group_names_add</span>
-              <span class="op">)</span>
-            <span class="op">)</span>
-        <span class="op">}</span>
-        
-        <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">grepl</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="st">"^fixed "</span>, <span class="va">.row</span><span class="op">$</span><span class="va">tls_n_per_time_location</span><span class="op">)</span><span class="op">)</span>
-          <span class="va">.row</span><span class="op">$</span><span class="va">tls_n_per_time_location</span> <span class="op">&lt;-</span> 
-          <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="st">"^fixed "</span>, 
-                          replacement <span class="op">=</span> <span class="st">""</span>,
-                          <span class="va">.row</span><span class="op">$</span><span class="va">tls_n_per_time_location</span><span class="op">)</span><span class="op">)</span>
-        
-        <span class="va">.inquiries</span> <span class="op">&lt;-</span> 
-          <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_estimands</span>,
-               known_pattern <span class="op">=</span> 
-                 <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"^known[1-"</span>, <span class="va">.row</span><span class="op">$</span><span class="va">prior_known_hidden_interact</span>, <span class="st">"]$"</span><span class="op">)</span>,
-               hidden_var <span class="op">=</span> <span class="st">"hidden1"</span><span class="op">)</span>
-        
-        <span class="va">.samples</span> <span class="op">&lt;-</span> 
-          <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
-            rds <span class="op">=</span> 
-              <span class="kw">if</span> <span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">rds</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">sample_rds</span>,
-                                      sampling_variable <span class="op">=</span> <span class="st">"rds"</span>,
-                                      hidden_var <span class="op">=</span> <span class="st">"hidden1"</span>, <span class="co"># default</span>
-                                      n_seed <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">rds_n_seeds</span>,
-                                      n_coupons <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">rds_n_coupons</span>,
-                                      add_seeds <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">rds_allow_add_seeds</span>,
-                                      target_type <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">rds_target_type</span>,
-                                      target_n_rds <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">rds_target_n_sample</span><span class="op">)</span>,
-            tls <span class="op">=</span> 
-              <span class="kw">if</span> <span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">tls</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">sample_tls</span>,
-                                      sampling_variable <span class="op">=</span> <span class="st">"tls"</span>,
-                                      hidden_var <span class="op">=</span> <span class="st">"hidden1"</span>,
-                                      target_n_clusters <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">tls_target_n_tls</span>,
-                                      target_n_tls <span class="op">=</span> 
-                                        <span class="va">.row</span><span class="op">$</span><span class="va">tls_target_n_tls</span> <span class="op">*</span> 
-                                        <span class="va">.row</span><span class="op">$</span><span class="va">tls_n_per_time_location</span>,
-                                      cluster <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"loc_"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">.row</span><span class="op">$</span><span class="va">tls_n_time_locations</span><span class="op">)</span><span class="op">)</span>,
-            pps <span class="op">=</span> 
-              <span class="kw">if</span> <span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">pps</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">sample_pps</span>,
-                                      sampling_variable <span class="op">=</span> <span class="st">"pps"</span>,
-                                      sampling_frame <span class="op">=</span> <span class="cn">NULL</span>,
-                                      strata <span class="op">=</span> 
-                                        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">pps_strata</span><span class="op">)</span><span class="op">)</span> <span class="va">.row</span><span class="op">$</span><span class="va">pps_strata</span>,
-                                      cluster <span class="op">=</span> 
-                                        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">pps_cluster</span><span class="op">)</span><span class="op">)</span> <span class="va">.row</span><span class="op">$</span><span class="va">pps_cluster</span>,
-                                      target_n_pps <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">pps_target_n_pps</span><span class="op">)</span>
-          <span class="op">)</span> <span class="op">%&gt;%</span> 
-          <span class="op">{</span><span class="va">.</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">.</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html">is.null</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">}</span>
-        
-        <span class="va">.estimators</span> <span class="op">&lt;-</span>
-          <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
-            rds <span class="op">=</span>
-              <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>sspse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_sspse</span>,
-                                prior_mean <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">prior_hidden_prev</span> <span class="op">*</span> <span class="va">.row</span><span class="op">$</span><span class="va">observed_n</span>,
-                                mcmc_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>interval <span class="op">=</span> <span class="fl">5</span>, 
-                                                   burnin <span class="op">=</span> <span class="fl">2000</span>, 
-                                                   samplesize <span class="op">=</span> <span class="fl">500</span><span class="op">)</span>,
-                                total <span class="op">=</span> <span class="va">.row</span><span class="op">$</span><span class="va">observed_n</span>,
-                                rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,
-                                label <span class="op">=</span> <span class="st">"rds_sspse"</span><span class="op">)</span>,
-                   chords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_chords</span>,
-                                 type <span class="op">=</span> <span class="st">"mle"</span>,
-                                 seed_condition <span class="op">=</span> <span class="st">"rds_from == -999"</span>,
-                                 n_boot <span class="op">=</span> <span class="fl">100</span>,
-                                 rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,
-                                 label <span class="op">=</span> <span class="st">"rds_chords"</span><span class="op">)</span>,
-                   multiplier <span class="op">=</span> 
-                     <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">.row</span><span class="op">$</span><span class="va">multiplier_n_service_use</span><span class="op">)</span><span class="op">)</span> 
-                       <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_multiplier</span>,
-                            service_var <span class="op">=</span> <span class="st">"service_use"</span>,
-                            total_service <span class="op">=</span> 
-                              <span class="va">.row</span><span class="op">$</span><span class="va">prior_p_service_use</span> <span class="op">*</span> <span class="va">.row</span><span class="op">$</span><span class="va">multiplier_n_service_use</span>,
-                            seed_condition <span class="op">=</span> <span class="st">"rds_from == -999"</span>,
-                            n_boot <span class="op">=</span> <span class="fl">100</span>,
-                            rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,
-                            label <span class="op">=</span> <span class="st">"rds_multi"</span><span class="op">)</span><span class="op">)</span>,
-            tls <span class="op">=</span>
-              <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>ht <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_ht</span>,
-                             weight_var <span class="op">=</span> <span class="st">"tls_weight"</span>,
-                             prefix <span class="op">=</span> <span class="st">"tls"</span>,
-                             label <span class="op">=</span> <span class="st">"tls_ht"</span><span class="op">)</span>,
-                   nsum <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_nsum</span>,
-                               known <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"known"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">.row</span><span class="op">$</span><span class="va">observed_k_known</span><span class="op">)</span>,
-                               hidden <span class="op">=</span> <span class="st">"hidden1_visible_out"</span>,
-                               survey_design <span class="op">=</span> <span class="op">~</span> <span class="va">tls_cluster</span>,
-                               n_boot <span class="op">=</span> <span class="fl">100</span>,
-                               prefix <span class="op">=</span> <span class="st">"tls"</span>,
-                               label <span class="op">=</span> <span class="st">"tls_nsum"</span><span class="op">)</span>,
-                   recap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_recapture</span>,
-                                capture_parse <span class="op">=</span>
-                                  <span class="st">"strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]"</span>,
-                                sample_condition <span class="op">=</span> <span class="st">"tls == 1"</span>,
-                                model <span class="op">=</span> <span class="st">"Mt"</span>,
-                                hidden_variable <span class="op">=</span> <span class="st">"hidden1"</span>,
-                                label <span class="op">=</span> <span class="st">"tls_recap"</span><span class="op">)</span><span class="op">)</span>,
-            pps <span class="op">=</span>
-              <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>ht <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_ht</span>,
-                             prefix <span class="op">=</span> <span class="st">"pps"</span>,
-                             label <span class="op">=</span> <span class="st">"pps_ht"</span><span class="op">)</span>,
-                   nsum <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_nsum</span>,
-                               known <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"known"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">.row</span><span class="op">$</span><span class="va">observed_k_known</span><span class="op">)</span>,
-                               hidden <span class="op">=</span> <span class="st">"hidden_visible_out"</span>,
-                               survey_design <span class="op">=</span> <span class="op">~</span> <span class="va">pps_cluster</span> <span class="op">+</span> <span class="fu">strata</span><span class="op">(</span><span class="va">pps_strata</span><span class="op">)</span>,
-                               n_boot <span class="op">=</span> <span class="fl">100</span>,
-                               prefix <span class="op">=</span> <span class="st">"pps"</span>,
-                               label <span class="op">=</span> <span class="st">"pps_nsum"</span><span class="op">)</span><span class="op">)</span>,
-            rds_pps <span class="op">=</span>
-              <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>recap1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_recapture</span>,
-                                 capture_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"rds"</span>, <span class="st">"pps"</span><span class="op">)</span>,
-                                 model <span class="op">=</span> <span class="st">"Mt"</span>,
-                                 hidden_variable <span class="op">=</span> <span class="st">"hidden1"</span>,
-                                 label <span class="op">=</span> <span class="st">"rds_pps_recap"</span><span class="op">)</span><span class="op">)</span>,
-            rds_tls <span class="op">=</span>
-              <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>recap2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_recapture</span>,
-                                 capture_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"rds"</span><span class="op">)</span>,
-                                 capture_parse <span class="op">=</span>
-                                   <span class="st">"strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]"</span>,
-                                 model <span class="op">=</span> <span class="st">"Mt"</span>,
-                                 hidden_variable <span class="op">=</span> <span class="st">"hidden1"</span>,
-                                 label <span class="op">=</span> <span class="st">"rds_tls_recap"</span><span class="op">)</span><span class="op">)</span>
-          <span class="op">)</span>
-        
-        <span class="va">.estimators</span> <span class="op">&lt;-</span> 
-          <span class="va">.estimators</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/strsplit.html">strsplit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">.estimators</span><span class="op">)</span>, <span class="st">"_"</span><span class="op">)</span>,
-                             <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/all.html">all</a></span><span class="op">(</span><span class="va">x</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">.samples</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>
-        
-        <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span>
-          <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
-            pop <span class="op">=</span> <span class="va">.pop</span>,
-            inquiries <span class="op">=</span> <span class="va">.inquiries</span>,
-            samples <span class="op">=</span> <span class="va">.samples</span>,
-            estimators <span class="op">=</span> <span class="va">.estimators</span>
-          <span class="op">)</span>
-        <span class="op">)</span>
-      <span class="op">}</span><span class="op">)</span>
-  
-  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">.out</span><span class="op">)</span>
-<span class="op">}</span></code></pre></div>
+<code class="sourceCode R"><span class="va">study_designs</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="../reference/read_study_params.html">read_study_params</a></span><span class="op">(</span>
+    auth_email <span class="op">=</span> <span class="st">"gerasy@gmail.com"</span>,
+    ss <span class="op">=</span> <span class="st">"1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y"</span>,
+    sheet <span class="op">=</span> <span class="st">"study_params_readable"</span>
+  <span class="op">)</span></code></pre></div>
+</div>
+<div id="declare-multiple-studies" class="section level2">
+<h2 class="hasAnchor">
+<a href="#declare-multiple-studies" class="anchor"></a>Declare multiple studies</h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">study_designs</span> <span class="op">&lt;-</span> <span class="fu">read_study_params</span><span class="op">(</span><span class="op">)</span>
-
-<span class="co"># study_designs &lt;- study_designs[1:2]</span>
-
-<span class="va">multi_population</span> <span class="op">&lt;-</span> 
+<code class="sourceCode R"><span class="va">multi_population</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_population.html">declare_population</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_populations</span>, 
                      pops_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">pop</span>, 

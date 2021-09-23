@@ -18,30 +18,19 @@ navbar:
   left:
   - text: Get started
     href: articles/hiddenmeta-base.html
+  - text: Articles
+    menu:
+      - text: Read study design
+        href: https://declaredesign.org/r/randomizr/
+      - text: Simple meta-analysis
+        href: articles/meta-example.html
+  right:
   - text: Background
     href: articles/background.html
-    # menu:
-    #   - text: randomizr
-    #     href: https://declaredesign.org/r/randomizr/
-    #   - text: fabricatr
-    #     href: https://declaredesign.org/r/fabricatr/
-    #   - text: estimatr
-    #     href: https://declaredesign.org/r/estimatr/
-    #   - text: DesignLibrary
-    #     href: https://declaredesign.org/r/designlibrary/
-  right:
-  # - text: Our approach
-  #   href: articles/DeclareDesign_101.html
   - text: Reference
     href: reference/index.html
   - text: News
     href: news/index.html
-  # - text: DeclareDesign home
-  #   href: https://declaredesign.org/r/declaredesign/
-  # - text: Articles
-  #   menu:
-  #   - text: DeclareDesign 101
-  #     href: articles/DeclareDesign_101.html
 
 reference:
 - title: Study-level functions
@@ -87,3 +76,4 @@ reference:
   - gen_group_sizes
   - get_rds_boot
   - get_rescaled_boot
+  - read_study_params

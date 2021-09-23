@@ -81,7 +81,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.9</span>
       </span>
     </div>
 
@@ -90,12 +90,27 @@
         <li>
   <a href="../articles/hiddenmeta-base.html">Get started</a>
 </li>
-<li>
-  <a href="../articles/background.html">Background</a>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://declaredesign.org/r/randomizr/">Read study design</a>
+    </li>
+    <li>
+      <a href="../articles/meta-example.html">Simple meta-analysis</a>
+    </li>
+  </ul>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="../articles/background.html">Background</a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
 <li>
@@ -344,6 +359,12 @@
           <p><code><a href="get_rescaled_boot.html">get_rescaled_boot()</a></code> </p>
         </td>
         <td><p>Modified Function for Rescaled Bootstrap by Rust and Rao (1996)</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="read_study_params.html">read_study_params()</a></code> </p>
+        </td>
+        <td><p>Read Study Designs from Google Spreadsheet</p></td>
       </tr>
     </tbody>
     </table>
