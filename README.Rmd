@@ -12,6 +12,7 @@ knitr::opts_chunk$set(
   message=FALSE,
   warning=FALSE
 )
+# pkgdown::build_site()
 ```
 
 # hiddenmeta 
@@ -28,7 +29,16 @@ devtools::install_github("gerasy1987/hiddenmeta", build_vignettes = TRUE)
 
 ### Overview
 
-We rely on [`DeclareDesign`](https://declaredesign.org/) package for the simulations. The key idea of the simulation workflow is that we simulate the design as a set of steps. When concatenated the steps produce an instance of a design. When replicated these instances let us assess the overall performance of a design.
+This package provides tools to implement and evaluate designs to measure the prevalence of hidden populations. 
+
+Researchers use a variety of techniques that vary on three dimensions: how and from whom data is gathered, which measures are taken, how analysis is done using these measure. Specific measures range from simple population sample with scaling by inverse sampling weights, to complex sampling designs using respondent driven sampling or time location sampling, coupled with network scaleup methods, or Bayesian analyses. Each method involves many specific design choices, and the relative performance of different methods likely varies over applications.
+
+The tools provided here help researchers select designs, assess their quality, and implement their analyses. In addition the tools can allow researchers to pool findings from multiple methods in order to implement meta-analysis that lets researchers learn about the relative effectiveness of approaches.  
+
+
+### Evaluating designs
+
+We rely on [`DeclareDesign`](https://declaredesign.org/) package for evaluating designs via simulation. The key idea of the simulation workflow is that we simulate the design as a set of steps. When concatenated the steps produce an instance of a design. When replicated these instances let us assess the overall performance of a design.
 
 Fully specified designs include information on:
 
@@ -43,9 +53,9 @@ Each of these MIDA steps can be defined using "handlers" from the `hiddenmeta` p
 
 The individual study design simulation involves:
 
-1. Selecting parameters
-2. Using these to declare a design
-3. Diagnosing the design
+1. Selecting parameters: this involves specifying methods that will be used and how they will be used.
+2. Using these to declare a design: the declared design can then be used to simulate data and implement analysis.
+3. Diagnosing the design by repeatedly simulating instances of the design
 
 ### Meta analysis
 
@@ -71,4 +81,4 @@ Simulated study level results feed into the meta-analysis:
 
 ---
 
-This project was generously supported by a grant from the [African Programming \& Research Initiative to End Slavery (APRIES)](https://apries.uga.edu/prevalenceforum/).
+This project is based at the [WZB Berlin Social Science Center](https://www.wzb.eu/en/research/political-economy-of-development/institutions-and-political-inequality) (IPI group) and is generously supported by a grant from the [African Programming \& Research Initiative to End Slavery (APRIES)](https://apries.uga.edu/prevalenceforum/).
