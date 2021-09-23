@@ -105,7 +105,7 @@ meta_population <-
                                        "ht", "nsum", "recapture",
                                        "recapture", "recapture"),
                          rel_bias = c(1, runif(9, 0.5, 3)),
-                         absolute_bias = .95 * rel_bias,
+                         absolute_bias = .8 * rel_bias,
                          se = (1 + (1 - rel_bias)^2) * 20),
                      estimands =
                        tibble(estimand = rnbinom(n = 8, size = 10, mu = 300),
@@ -133,7 +133,7 @@ meta_estimator <-
                       iter = 4000, chains = 4, thin = 5,
                       seed = 872312,
                       cores = 1),
-                    stan_handler = get_meta_stan,
+                    stan_handler = get_meta_stan2,
                     handler = get_meta_estimates)
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
@@ -143,28 +143,34 @@ meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 ```{r draw_sims, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
-doParallel::registerDoParallel(cores = 20)
+doParallel::registerDoParallel(cores = 50)
 
 set.seed(872312)
 meta_simulations <-
   plyr::llply(
-    as.list(1:2),
+    as.list(1:200),
     .fun = function(x) {
       base::suppressWarnings(
-        DeclareDesign::simulate_design(meta_study, sims = 1) %>%
+        try(DeclareDesign::simulate_design(meta_study, sims = 1) %>%
           dplyr::mutate(
             sim_ID = x
-          )
+          ))
       )
     },
     .parallel = TRUE
-  ) %>%
+  )
+
+meta_simulations <- 
+  meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] %>%
   dplyr::bind_rows()
 
-saveRDS(meta_simulations, file = "vignettes/meta_sim.rds")
+saveRDS(meta_simulations, file = "vignettes/meta_sim_simple.rds")
 ```
 
 ```{r diagnose, eval=FALSE}
+
+meta_simulations <- readRDS("vignettes/meta_sim_simple.rds")
+
 study_diagnosands <-
   declare_diagnosands(
     mean_estimand = mean(estimand),
