@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Service/Object multiplier estimator — get_study_est_multiplier • hiddenmeta</title>
+<title>Read Study Designs from Google Spreadsheet — read_study_params • hiddenmeta</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Service/Object multiplier estimator — get_study_est_multiplier" />
-<meta property="og:description" content="Service/Object multiplier estimator" />
+<meta property="og:title" content="Read Study Designs from Google Spreadsheet — read_study_params" />
+<meta property="og:description" content="Read Study Designs from Google Spreadsheet" />
 
 
 
@@ -130,73 +130,58 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Service/Object multiplier estimator</h1>
-    <small class="dont-index">Source: <a href='https://github.com/gerasy1987/hiddenmeta/blob/master/R/study_estimators.R'><code>R/study_estimators.R</code></a></small>
-    <div class="hidden name"><code>get_study_est_multiplier.Rd</code></div>
+    <h1>Read Study Designs from Google Spreadsheet</h1>
+    <small class="dont-index">Source: <a href='https://github.com/gerasy1987/hiddenmeta/blob/master/R/helpers_import.R'><code>R/helpers_import.R</code></a></small>
+    <div class="hidden name"><code>read_study_params.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Service/Object multiplier estimator</p>
+    <p>Read Study Designs from Google Spreadsheet</p>
     </div>
 
-    <pre class="usage"><span class='fu'>get_study_est_multiplier</span><span class='op'>(</span>
-  <span class='va'>data</span>,
-  service_var <span class='op'>=</span> <span class='st'>"service_use"</span>,
-  total_service <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/sum.html'>sum</a></span><span class='op'>(</span><span class='va'>data</span><span class='op'>$</span><span class='va'>service_use</span><span class='op'>[</span><span class='va'>data</span><span class='op'>$</span><span class='va'>hidden</span> <span class='op'>==</span> <span class='fl'>1</span><span class='op'>]</span><span class='op'>)</span>,
-  seed_condition <span class='op'>=</span> <span class='st'>"rds_from == -999"</span>,
-  n_boot <span class='op'>=</span> <span class='fl'>100</span>,
-  parallel_boot <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  rds_prefix <span class='op'>=</span> <span class='st'>"rds"</span>,
-  label <span class='op'>=</span> <span class='st'>"multiplier"</span>
+    <pre class="usage"><span class='fu'>read_study_params</span><span class='op'>(</span>
+  <span class='va'>auth_email</span>,
+  <span class='va'>ss</span>,
+  <span class='va'>sheet</span>,
+  col_spec <span class='op'>=</span> <span class='st'>"ciiiiiiiciciiiiiiiiciiiiiiciiiccccccccccccccc"</span>,
+  priors_map <span class='op'>=</span> <span class='fu'>tibble</span><span class='op'>(</span>label <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"low"</span>, <span class='st'>"medium"</span>, <span class='st'>"high"</span><span class='op'>)</span>, int <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>10</span>, <span class='fl'>20</span>, <span class='fl'>40</span><span class='op'>)</span>, p <span class='op'>=</span>
+    <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.1</span>, <span class='fl'>0.5</span>, <span class='fl'>0.9</span><span class='op'>)</span>, phigh <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.7</span>, <span class='fl'>0.8</span>, <span class='fl'>0.9</span><span class='op'>)</span>, plow <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.1</span>, <span class='fl'>0.2</span>, <span class='fl'>0.3</span><span class='op'>)</span><span class='op'>)</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>data</th>
-      <td><p>pass-through population data frame</p></td>
+      <th>auth_email</th>
+      <td><p>Character string giving e-mail to use for Google authentication</p></td>
     </tr>
     <tr>
-      <th>service_var</th>
-      <td><p>name of variable that indicates service/object use by respondent</p></td>
+      <th>ss</th>
+      <td><p>Character string giving ID of the Google spreadsheet</p></td>
     </tr>
     <tr>
-      <th>total_service</th>
-      <td><p>numeric value that indicates number of hidden population members who used the service. Defaults to truth from simulated dataset</p></td>
+      <th>sheet</th>
+      <td><p>Character string giving name of the sheet in the Google spreadsheet to read</p></td>
     </tr>
     <tr>
-      <th>seed_condition</th>
-      <td><p>character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples</p></td>
+      <th>col_spec</th>
+      <td><p>Character string giving column specifications (in readr-style short codes) for the study parameters spreadsheet</p></td>
     </tr>
     <tr>
-      <th>n_boot</th>
-      <td><p>number of bootstrap resamples</p></td>
-    </tr>
-    <tr>
-      <th>parallel_boot</th>
-      <td><p>logical, whether to compute bootstrap samples in parallel using <code>foreach</code> package</p></td>
-    </tr>
-    <tr>
-      <th>rds_prefix</th>
-      <td><p>character prefix used for RDS sample variables</p></td>
-    </tr>
-    <tr>
-      <th>label</th>
-      <td><p>character string describing the estimator</p></td>
+      <th>priors_map</th>
+      <td><p>Data frame giving mapping between simple priors and full prior specification</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Data frame of service/object multiplier population size estimates for single study</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+    
 
-    <p>Function currently requires variable "hidden_visible_out" to be present in the data supplied and represent the hidden population out-report</p>
-    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
-    <p>Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. <a href='https://doi.org/10.1007/s11524-006-9106-x'>https://doi.org/10.1007/s11524-006-9106-x</a></p>
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'>
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
