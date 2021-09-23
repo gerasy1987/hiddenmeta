@@ -99,7 +99,14 @@
 <div id="overview" class="section level3">
 <h3 class="hasAnchor">
 <a href="#overview" class="anchor"></a>Overview</h3>
-<p>We rely on <a href="https://declaredesign.org/"><code>DeclareDesign</code></a> package for the simulations. The key idea of the simulation workflow is that we simulate the design as a set of steps. When concatenated the steps produce an instance of a design. When replicated these instances let us assess the overall performance of a design.</p>
+<p>This package provides tools to implement and evaluate designs to measure the prevalence of hidden populations.</p>
+<p>Researchers use a variety of techniques that vary on three dimensions: how and from whom data is gathered, which measures are taken, how analysis is done using these measure. Specific measures range from simple population sample with scaling by inverse sampling weights, to complex sampling designs using respondent driven sampling or time location sampling, coupled with network scale-up methods, or Bayesian analyses. Each method involves many specific design choices, and the relative performance of different methods likely varies over applications.</p>
+<p>The tools provided here help researchers select designs, assess their quality, and implement their analyses. In addition the tools can allow researchers to pool findings from multiple methods in order to implement meta-analysis that lets researchers learn about the relative effectiveness of approaches.</p>
+</div>
+<div id="evaluating-designs" class="section level3">
+<h3 class="hasAnchor">
+<a href="#evaluating-designs" class="anchor"></a>Evaluating designs</h3>
+<p>We rely on <a href="https://declaredesign.org/"><code>DeclareDesign</code></a> package for evaluating designs via simulation. The key idea of the simulation workflow is that we simulate the design as a set of steps. When concatenated the steps produce an instance of a design. When replicated these instances let us assess the overall performance of a design.</p>
 <p>Fully specified designs include information on:</p>
 <ol>
 <li>
@@ -118,9 +125,9 @@
 <a href="#individual-designs" class="anchor"></a>Individual designs</h3>
 <p>The individual study design simulation involves:</p>
 <ol>
-<li>Selecting parameters</li>
-<li>Using these to declare a design</li>
-<li>Diagnosing the design</li>
+<li>Selecting parameters: this involves specifying methods that will be used and how they will be used.</li>
+<li>Using these to declare a design: the declared design can then be used to simulate data and implement analysis.</li>
+<li>Diagnosing the design by repeatedly simulating instances of the design</li>
 </ol>
 </div>
 <div id="meta-analysis" class="section level3">
@@ -151,7 +158,7 @@
 </li>
 </ul>
 <hr>
-<p>This project was generously supported by a grant from the <a href="https://apries.uga.edu/prevalenceforum/">African Programming &amp; Research Initiative to End Slavery (APRIES)</a>.</p>
+<p>This project is based at the <a href="https://www.wzb.eu/en/research/political-economy-of-development/institutions-and-political-inequality">WZB Berlin Social Science Center</a> (IPI group) and is generously supported by a grant from the <a href="https://apries.uga.edu/prevalenceforum/">African Programming &amp; Research Initiative to End Slavery (APRIES)</a>.</p>
 </div>
 </div>
   </div>
