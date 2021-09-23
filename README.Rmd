@@ -31,7 +31,7 @@ devtools::install_github("gerasy1987/hiddenmeta", build_vignettes = TRUE)
 
 This package provides tools to implement and evaluate designs to measure the prevalence of hidden populations. 
 
-Researchers use a variety of techniques that vary on three dimensions: how and from whom data is gathered, which measures are taken, how analysis is done using these measure. Specific measures range from simple population sample with scaling by inverse sampling weights, to complex sampling designs using respondent driven sampling or time location sampling, coupled with network scaleup methods, or Bayesian analyses. Each method involves many specific design choices, and the relative performance of different methods likely varies over applications.
+Researchers use a variety of techniques that vary on three dimensions: how and from whom data is gathered, which measures are taken, how analysis is done using these measure. Specific measures range from simple population sample with scaling by inverse sampling weights, to complex sampling designs using respondent driven sampling or time location sampling, coupled with network scale-up methods, or Bayesian analyses. Each method involves many specific design choices, and the relative performance of different methods likely varies over applications.
 
 The tools provided here help researchers select designs, assess their quality, and implement their analyses. In addition the tools can allow researchers to pool findings from multiple methods in order to implement meta-analysis that lets researchers learn about the relative effectiveness of approaches.  
 
