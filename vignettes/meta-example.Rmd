@@ -167,9 +167,9 @@ meta_simulations <-
 saveRDS(meta_simulations, file = "vignettes/meta_sim_simple.rds")
 ```
 
-```{r diagnose, eval=FALSE}
+```{r diagnose}
 
-meta_simulations <- readRDS("vignettes/meta_sim_simple.rds")
+meta_simulations <- readRDS(here::here("vignettes/meta_sim_simple.rds"))
 
 study_diagnosands <-
   declare_diagnosands(
