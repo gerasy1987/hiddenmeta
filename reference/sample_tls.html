@@ -92,11 +92,17 @@
   <a href="../articles/hiddenmeta-base.html">Get started</a>
 </li>
 <li>
-  <a href="../articles/background.html">Background</a>
+  <a href="../articles/read-study-params.html">Read study design</a>
+</li>
+<li>
+  <a href="../articles/meta-example.html">Simple meta-analysis</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="../articles/background.html">Background</a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
 <li>
@@ -128,6 +134,7 @@
   <span class='va'>data</span>,
   sampling_variable <span class='op'>=</span> <span class='st'>"tls"</span>,
   drop_nonsampled <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  hidden_var <span class='op'>=</span> <span class='st'>"hidden"</span>,
   target_n_clusters <span class='op'>=</span> <span class='fl'>2</span>,
   target_n_tls <span class='op'>=</span> <span class='fl'>50</span>,
   cluster <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span><span class='op'>(</span><span class='st'>"loc_"</span>, <span class='fl'>1</span><span class='op'>:</span><span class='fl'>3</span><span class='op'>)</span>
@@ -147,6 +154,10 @@
     <tr>
       <th>drop_nonsampled</th>
       <td><p>logical indicating whether to drop units that are not sampled. Default is <code>FALSE</code></p></td>
+    </tr>
+    <tr>
+      <th>hidden_var</th>
+      <td><p>character string specifying hidden variable name (associated probability of visibility should be named <code>p_visible_[hidden_var]</code>). Defaults to "hidden" for the simulations</p></td>
     </tr>
     <tr>
       <th>target_n_clusters</th>

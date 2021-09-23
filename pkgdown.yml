@@ -4,7 +4,9 @@ pkgdown_sha: ~
 articles:
   background: background.html
   hiddenmeta-base: hiddenmeta-base.html
-last_built: 2021-09-20T20:07Z
+  meta-example: meta-example.html
+  read-study-params: read-study-params.html
+last_built: 2021-09-23T09:54Z
 urls:
   reference: https://gsyunyaev.com/hiddenmeta//reference
   article: https://gsyunyaev.com/hiddenmeta//articles
