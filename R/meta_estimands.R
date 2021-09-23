@@ -43,8 +43,8 @@ get_meta_estimands <-
           # sample-estimator level ratio estimands
           dplyr::group_by(., sim_ID, sample, estimator) %>%
             dplyr::summarise(.groups = "drop",
-                             rel_bias = mean(estimate - estimand),
-                             rel_bias_sd = sd(estimate - estimand)) %>%
+                             rel_bias = mean(estimate/estimand),
+                             rel_bias_sd = sd(estimate/estimand)) %>%
             tidyr::pivot_longer(cols = c(rel_bias, rel_bias_sd),
                                 values_to = "estimand", names_to = "inquiry") %>%
             dplyr::mutate(
