@@ -10,7 +10,7 @@ get_meta_estimates(
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
   stan_handler = get_meta_stan2,
-  parallel = FALSE
+  control_params = list(iter = 8000, chains = 8, thin = 10, seed = 872312, cores = 1)
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ get_meta_estimates(
 
 \item{stan_handler}{function that takes stan_data as input and produces compilable stan model object}
 
-\item{parallel}{logical. Whether to parallelize design simulations}
+\item{control_params}{list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use}
 }
 \value{
 
