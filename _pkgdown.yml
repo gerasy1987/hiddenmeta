@@ -18,8 +18,10 @@ navbar:
   left:
   - text: Get started
     href: articles/hiddenmeta-base.html
-  - text: Background
-    href: articles/background.html
+  - text: Read study design
+    href: articles/read-study-params.html
+  - text: Simple meta-analysis
+    href: articles/meta-example.html
     # menu:
     #   - text: randomizr
     #     href: https://declaredesign.org/r/randomizr/
@@ -32,6 +34,8 @@ navbar:
   right:
   # - text: Our approach
   #   href: articles/DeclareDesign_101.html
+  - text: Background
+    href: articles/background.html
   - text: Reference
     href: reference/index.html
   - text: News

@@ -33,9 +33,9 @@ library(knitr)
 ```{r load}
 
 read_study_params <- function(
-  auth_email = "gerasy@gmail.com",
-  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
-  sheet = "study_params_readable",
+  auth_email,
+  ss,
+  sheet,
   col_spec = "ciiiiiiiciciiiiiiiiciiiiiiciiiccccccccccccccc",
   priors_map =
     tibble(
@@ -45,8 +45,6 @@ read_study_params <- function(
       phigh     = c(0.7,   0.8,      0.9),
       plow      = c(0.1,   0.2,      0.3)
     )
-
-
 ) {
   
   googlesheets4::gs4_auth(email = auth_email)
@@ -333,11 +331,14 @@ read_study_params <- function(
 ```
 
 
-```{r declare_studies}
+```{r declare_studies, eval=FALSE}
 
-study_designs <- read_study_params()
-
-# study_designs <- study_designs[1:2]
+study_designs <- 
+  read_study_params(
+    auth_email = "gerasy@gmail.com",
+    ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+    sheet = "study_params_readable"
+  )
 
 multi_population <- 
   declare_population(handler = get_multi_populations, 

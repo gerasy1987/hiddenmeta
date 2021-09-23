@@ -47,10 +47,16 @@
   <a href="../articles/hiddenmeta-base.html">Get started</a>
 </li>
 <li>
-  <a href="../articles/background.html">Background</a>
+  <a href="../articles/read-study-params.html">Read study design</a>
+</li>
+<li>
+  <a href="../articles/meta-example.html">Simple meta-analysis</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="../articles/background.html">Background</a>
+</li>
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
@@ -157,7 +163,7 @@
                                        <span class="st">"ht"</span>, <span class="st">"nsum"</span>, <span class="st">"recapture"</span>,
                                        <span class="st">"recapture"</span>, <span class="st">"recapture"</span><span class="op">)</span>,
                          rel_bias <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">9</span>, <span class="fl">0.5</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>,
-                         absolute_bias <span class="op">=</span> <span class="fl">.95</span> <span class="op">*</span> <span class="va">rel_bias</span>,
+                         absolute_bias <span class="op">=</span> <span class="fl">.8</span> <span class="op">*</span> <span class="va">rel_bias</span>,
                          se <span class="op">=</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">rel_bias</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fl">20</span><span class="op">)</span>,
                      estimands <span class="op">=</span>
                        <span class="fu">tibble</span><span class="op">(</span>estimand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html">rnbinom</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">8</span>, size <span class="op">=</span> <span class="fl">10</span>, mu <span class="op">=</span> <span class="fl">300</span><span class="op">)</span>,
@@ -185,33 +191,38 @@
                       iter <span class="op">=</span> <span class="fl">4000</span>, chains <span class="op">=</span> <span class="fl">4</span>, thin <span class="op">=</span> <span class="fl">5</span>,
                       seed <span class="op">=</span> <span class="fl">872312</span>,
                       cores <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,
-                    stan_handler <span class="op">=</span> <span class="va">get_meta_stan</span>,
+                    stan_handler <span class="op">=</span> <span class="va">get_meta_stan2</span>,
                     handler <span class="op">=</span> <span class="va">get_meta_estimates</span><span class="op">)</span>
 
 <span class="va">meta_study</span> <span class="op">&lt;-</span> <span class="va">meta_population</span> <span class="op">+</span> <span class="va">meta_inquiry</span> <span class="op">+</span> <span class="va">meta_sample</span> <span class="op">+</span> <span class="va">meta_estimator</span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html">requireNamespace</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"doParallel"</span>, <span class="st">"parallel"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu">doParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html">registerDoParallel</a></span><span class="op">(</span>cores <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>
+<span class="fu">doParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html">registerDoParallel</a></span><span class="op">(</span>cores <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
 <span class="va">meta_simulations</span> <span class="op">&lt;-</span>
   <span class="fu">plyr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plyr/man/llply.html">llply</a></span><span class="op">(</span>
-    <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>,
+    <span class="fu"><a href="https://rdrr.io/r/base/list.html">as.list</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">200</span><span class="op">)</span>,
     .fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
       <span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span>
-        <span class="fu">DeclareDesign</span><span class="fu">::</span><span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/simulate_design.html">simulate_design</a></span><span class="op">(</span><span class="va">meta_study</span>, sims <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
+        <span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span><span class="fu">DeclareDesign</span><span class="fu">::</span><span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/simulate_design.html">simulate_design</a></span><span class="op">(</span><span class="va">meta_study</span>, sims <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
           <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>
             sim_ID <span class="op">=</span> <span class="va">x</span>
-          <span class="op">)</span>
+          <span class="op">)</span><span class="op">)</span>
       <span class="op">)</span>
     <span class="op">}</span>,
     .parallel <span class="op">=</span> <span class="cn">TRUE</span>
-  <span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="op">)</span>
+
+<span class="va">meta_simulations</span> <span class="op">&lt;-</span> 
+  <span class="va">meta_simulations</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">meta_simulations</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">==</span> <span class="st">"data.frame"</span><span class="op">)</span><span class="op">]</span> <span class="op">%&gt;%</span>
   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind.html">bind_rows</a></span><span class="op">(</span><span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">meta_simulations</span>, file <span class="op">=</span> <span class="st">"vignettes/meta_sim.rds"</span><span class="op">)</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">meta_simulations</span>, file <span class="op">=</span> <span class="st">"vignettes/meta_sim_simple.rds"</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">study_diagnosands</span> <span class="op">&lt;-</span>
+<code class="sourceCode R"><span class="va">meta_simulations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"vignettes/meta_sim_simple.rds"</span><span class="op">)</span>
+
+<span class="va">study_diagnosands</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_diagnosands.html">declare_diagnosands</a></span><span class="op">(</span>
     mean_estimand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">estimand</span><span class="op">)</span>,
     mean_estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span>,

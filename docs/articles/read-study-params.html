@@ -47,10 +47,16 @@
   <a href="../articles/hiddenmeta-base.html">Get started</a>
 </li>
 <li>
-  <a href="../articles/background.html">Background</a>
+  <a href="../articles/read-study-params.html">Read study design</a>
+</li>
+<li>
+  <a href="../articles/meta-example.html">Simple meta-analysis</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="../articles/background.html">Background</a>
+</li>
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
@@ -89,9 +95,9 @@
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/">knitr</a></span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">read_study_params</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span>
-  <span class="va">auth_email</span> <span class="op">=</span> <span class="st">"gerasy@gmail.com"</span>,
-  <span class="va">ss</span> <span class="op">=</span> <span class="st">"1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y"</span>,
-  <span class="va">sheet</span> <span class="op">=</span> <span class="st">"study_params_readable"</span>,
+  <span class="va">auth_email</span>,
+  <span class="va">ss</span>,
+  <span class="va">sheet</span>,
   <span class="va">col_spec</span> <span class="op">=</span> <span class="st">"ciiiiiiiciciiiiiiiiciiiiiiciiiccccccccccccccc"</span>,
   <span class="va">priors_map</span> <span class="op">=</span>
     <span class="fu">tibble</span><span class="op">(</span>
@@ -101,8 +107,6 @@
       phigh     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.7</span>,   <span class="fl">0.8</span>,      <span class="fl">0.9</span><span class="op">)</span>,
       plow      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.1</span>,   <span class="fl">0.2</span>,      <span class="fl">0.3</span><span class="op">)</span>
     <span class="op">)</span>
-
-
 <span class="op">)</span> <span class="op">{</span>
   
   <span class="fu">googlesheets4</span><span class="fu">::</span><span class="fu"><a href="https://googlesheets4.tidyverse.org/reference/gs4_auth.html">gs4_auth</a></span><span class="op">(</span>email <span class="op">=</span> <span class="va">auth_email</span><span class="op">)</span>
@@ -386,9 +390,12 @@
   <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">.out</span><span class="op">)</span>
 <span class="op">}</span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">study_designs</span> <span class="op">&lt;-</span> <span class="fu">read_study_params</span><span class="op">(</span><span class="op">)</span>
-
-<span class="co"># study_designs &lt;- study_designs[1:2]</span>
+<code class="sourceCode R"><span class="va">study_designs</span> <span class="op">&lt;-</span> 
+  <span class="fu">read_study_params</span><span class="op">(</span>
+    auth_email <span class="op">=</span> <span class="st">"gerasy@gmail.com"</span>,
+    ss <span class="op">=</span> <span class="st">"1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y"</span>,
+    sheet <span class="op">=</span> <span class="st">"study_params_readable"</span>
+  <span class="op">)</span>
 
 <span class="va">multi_population</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_population.html">declare_population</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_populations</span>, 
