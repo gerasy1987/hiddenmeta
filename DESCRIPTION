@@ -43,7 +43,8 @@ Suggests:
     knitr,
     rmarkdown,
     here,
-    DT
+    DT,
+    googlesheets4
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

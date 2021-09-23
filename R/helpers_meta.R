@@ -67,35 +67,3 @@ get_meta_stan2 <- function(
     )
   )
 }
-
-
-#' @export
-sim_meta <- function(
-  possible_samp_est =
-    tibble(
-      sample = list("pps", "pps",
-                    "rds", "rds", "rds",
-                    "tls", "tls", "tls",
-                    c("rds", "pps"), c("rds", "tls")),
-      estimator = c("ht", "nsum",
-                    "sspse", "chords", "multiplier",
-                    "ht", "nsum", "recapture",
-                    "recapture", "recapture"),
-      rel_bias = c(1, runif(9, 0.5, 3)),
-      absolute_bias = .8 * rel_bias,
-      se = (1 + (1 - rel_bias)^2) * 20),
-  estimands =
-    tibble(estimand = rnbinom(n = 7, size = 10, mu = 300),
-           study = paste0("study_", 1:7))
-) {
-
-  tidyr::expand_grid(possible_samp_est, estimands) %>%
-    dplyr::mutate(estimate = floor(estimand * absolute_bias),
-                  sim_ID = 1,
-                  inquiry = "hidden_size") %>%
-    dplyr::arrange(inquiry, study, sample, estimator) %>%
-    get_meta_sample(data = .) %>%
-    dplyr::filter(meta == 1)
-
-
-}
