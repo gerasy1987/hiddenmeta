@@ -8,6 +8,7 @@
 #' @param hidden_var character string specifying hidden variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "hidden" for the simulations
 #' @param target_n_clusters target number of clusters (time-locations)
 #' @param target_n_tls target number of sampled locations
+#' @param n_units_cluster target number of sampled units per cluster
 #' @param cluster character string containing names of all locality names in the study population data frame
 #'
 #' @return Population or sample data frame for single study with TLS sample characteristics added
@@ -31,11 +32,24 @@ sample_tls <-
            hidden_var = "hidden",
            target_n_clusters = 2,
            target_n_tls = 50,
+           n_units_cluster = NULL,
            cluster = paste0("loc_", 1:3)
   ) {
 
-    if (length(cluster) < target_n_clusters)
+    if (length(cluster) < target_n_clusters){
       stop("Number of requested locations for TLS sample exceeds number of available locations")
+    }
+
+    if(!is.null(n_units_cluster)){
+      if(!is.numeric(n_units_cluster)){
+        stop("n_units_cluster has to be numeric")
+      } else {
+        if(target_n_clusters * n_units_cluster != target_n_tls){
+          stop("target_n_clusters, target_n_tls and n_units_cluster are incompatible. Specify arguments such that
+             target_n_cluster * n_units_cluster = target_n_tls.")
+        }
+      }
+    }
 
     sampling_probs <-
       data %>%
@@ -52,20 +66,29 @@ sample_tls <-
     temp_data <- data <- mutate(data, temp_id = 1:n())
 
     temp_data %<>%
-      dplyr::filter(#hidden == 1,
-                    if_any(.cols = all_of(sampled_locs), ~ . == 1)) %>%
+      dplyr::filter(if_any(.cols = all_of(sampled_locs), ~ . == 1))
+
+    if(!is.null(n_units_cluster)){
+      samp <- purrr::map(sampled_locs, function(x) which(temp_data[,x] == 1))%>%
+        lapply(., function(x) sample(x, size = n_units_cluster))%>%
+        unlist()
+    } else {
+      samp <- sample(1:nrow(temp_data), size = min(nrow(temp_data), target_n_tls))
+    }
+
+    temp_data %<>%
       {
         dplyr::left_join(
           .,
           dplyr::mutate(
             tidyr::nest(
-              dplyr::slice_sample(
+              dplyr::slice(
                 dplyr::bind_rows(
                   lapply(sampled_locs,
                          function(x) tibble(.[.[[x]] == 1,
                                               c("temp_id", paste0("p_visible_", hidden_var))],
                                             loc = x))
-                ), n = min(nrow(.), target_n_tls)#, weight_by = p_visible_hidden
+                ), samp#, weight_by = p_visible_hidden
               ), dat = -temp_id
             ), loc_present = purrr::map_chr(dat, ~paste0(.x$loc, collapse = ";"))
           ), by = "temp_id"

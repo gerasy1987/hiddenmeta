@@ -11,6 +11,7 @@ sample_tls(
   hidden_var = "hidden",
   target_n_clusters = 2,
   target_n_tls = 50,
+  n_units_cluster = NULL,
   cluster = paste0("loc_", 1:3)
 )
 }
@@ -26,6 +27,8 @@ sample_tls(
 \item{target_n_clusters}{target number of clusters (time-locations)}
 
 \item{target_n_tls}{target number of sampled locations}
+
+\item{n_units_cluster}{target number of sampled units per cluster}
 
 \item{cluster}{character string containing names of all locality names in the study population data frame}
 }
