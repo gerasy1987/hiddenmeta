@@ -3,7 +3,8 @@
 #' @param data pass-through population data frame
 #' @param prior_mean the mean of the prior distribution on the population size for SS-PSE estimation
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
-#' @param mcmc_params named list of parameters passed to \code{sspse::posteriorsize} for MCMC sampling
+#' @param mcmc_params named list of parameters passed to \code{sspse::posteriorsize} for MCMC sampling,
+#' @param additional_params named list of additional parameter passed to \code{sspse::posteriorsize} . If empty \code{sspse::posteriorsize} uses default parameters.
 #' @param total integer giving the total size of population
 #' @param rds_prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
