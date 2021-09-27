@@ -10,6 +10,7 @@ get_study_est_sspse(
   n_coupons = 3,
   total = 2000,
   mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+  additional_params = list(),
   rds_prefix = "rds",
   label = "sspse"
 )
@@ -23,7 +24,9 @@ get_study_est_sspse(
 
 \item{total}{integer giving the total size of population}
 
-\item{mcmc_params}{named list of parameters passed to \code{sspse::posteriorsize} for MCMC sampling}
+\item{mcmc_params}{named list of parameters passed to \code{sspse::posteriorsize} for MCMC sampling,}
+
+\item{additional_params}{named list of additional parameter passed to \code{sspse::posteriorsize} . If empty \code{sspse::posteriorsize} uses default parameters.}
 
 \item{rds_prefix}{character prefix used for RDS sample variables}
 
