@@ -51,7 +51,7 @@ sample_tls <-
 
     temp_data <- data <- mutate(data, temp_id = 1:n())%>%
       dplyr::filter(if_any(.cols = all_of(sampled_locs), ~ . == 1))%>%
-      dplyr::mutate(sampling_prob = rowSums(dplyr::across(dplyr::all_of(col))))%>%
+      dplyr::mutate(sampling_prob = rowSums(dplyr::across(dplyr::all_of(sampled_locs))))%>%
       dplyr::mutate(sampling_prob = sampling_prob/sum(sampling_prob, na.rm = TRUE))
 
 
