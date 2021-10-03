@@ -49,23 +49,27 @@ sample_tls <-
         sample(x = rownames(.), size = target_n_clusters, prob = as.vector(.))
       }
 
-    temp_data <- data <- mutate(data, temp_id = 1:n())
+    temp_data <- data <- mutate(data, temp_id = 1:n())%>%
+      dplyr::filter(if_any(.cols = all_of(sampled_locs), ~ . == 1))%>%
+      dplyr::mutate(sampling_prob = rowSums(dplyr::across(dplyr::all_of(col))))%>%
+      dplyr::mutate(sampling_prob = sampling_prob/sum(sampling_prob, na.rm = TRUE))
+
+
+    samp <- sample(1:nrow(temp_data), size = min(nrow(temp_data), target_n_tls), prob = temp_data$sampling_prob)
 
     temp_data %<>%
-      dplyr::filter(#hidden == 1,
-                    if_any(.cols = all_of(sampled_locs), ~ . == 1)) %>%
       {
         dplyr::left_join(
           .,
           dplyr::mutate(
             tidyr::nest(
-              dplyr::slice_sample(
+              dplyr::slice(
                 dplyr::bind_rows(
                   lapply(sampled_locs,
                          function(x) tibble(.[.[[x]] == 1,
                                               c("temp_id", paste0("p_visible_", hidden_var))],
                                             loc = x))
-                ), n = min(nrow(.), target_n_tls)#, weight_by = p_visible_hidden
+                ), samp#, weight_by = p_visible_hidden
               ), dat = -temp_id
             ), loc_present = purrr::map_chr(dat, ~paste0(.x$loc, collapse = ";"))
           ), by = "temp_id"
