@@ -77,7 +77,6 @@ sample_tls <-
           unit_sampling_prob = target_n/n
         )
     } else if (target_cluster_type == "fixed") {
-
       sampling_probs %<>%
         dplyr::filter(loc %in% sampled_locs) %>%
         dplyr::mutate(
