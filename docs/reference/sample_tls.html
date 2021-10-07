@@ -144,9 +144,10 @@
   sampling_variable <span class='op'>=</span> <span class='st'>"tls"</span>,
   drop_nonsampled <span class='op'>=</span> <span class='cn'>FALSE</span>,
   hidden_var <span class='op'>=</span> <span class='st'>"hidden"</span>,
-  target_n_clusters <span class='op'>=</span> <span class='fl'>2</span>,
-  target_n_tls <span class='op'>=</span> <span class='fl'>50</span>,
-  cluster <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span><span class='op'>(</span><span class='st'>"loc_"</span>, <span class='fl'>1</span><span class='op'>:</span><span class='fl'>3</span><span class='op'>)</span>
+  <span class='va'>target_n_clusters</span>,
+  target_cluster_type <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"prop"</span>, <span class='st'>"fixed"</span><span class='op'>)</span>,
+  <span class='va'>target_per_cluster</span>,
+  <span class='va'>clusters</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -170,14 +171,18 @@
     </tr>
     <tr>
       <th>target_n_clusters</th>
-      <td><p>target number of clusters (time-locations)</p></td>
+      <td><p>target number of clusters (time-locations). Clusters are always sampled proportionally to their size in terms of number of hidden population members</p></td>
     </tr>
     <tr>
-      <th>target_n_tls</th>
-      <td><p>target number of sampled locations</p></td>
+      <th>target_cluster_type</th>
+      <td><p>character string specifying the type of TLS sampling within each location. Either "prop" in which case <code>target_per_cluster</code> should give a share or "fixed" in which case <code>target_per_cluster</code> should be integer</p></td>
     </tr>
     <tr>
-      <th>cluster</th>
+      <th>target_per_cluster</th>
+      <td><p>numeric target for within cluster</p></td>
+    </tr>
+    <tr>
+      <th>clusters</th>
       <td><p>character string containing names of all locality names in the study population data frame</p></td>
     </tr>
     </table>
@@ -187,9 +192,11 @@
     <p>Population or sample data frame for single study with TLS sample characteristics added</p><dl>
   <dt>[sampling_variable]</dt><dd><p>Sampling indicator</p></dd>
   <dt>[sampling_variable]_cluster</dt><dd><p>Time-locations at which subject was encountered first</p></dd>
-  <dt>[sampling_variable]_loc_present</dt><dd><p>Time-locations at which subject is present</p></dd>
-  <dt>[sampling_variable]_sampled_locs</dt><dd><p>Sampled time-locations</p></dd>
-  <dt>[sampling_variable]_weight</dt><dd><p>Sampling weights</p></dd>
+  <dt>[sampling_variable]_loc_present</dt><dd><p>Sampled time-locations at which subject is present</p></dd>
+  <dt>[sampling_variable]_loc_sampled</dt><dd><p>Sampled time-locations at which subject was sampled</p></dd>
+  <dt>[sampling_variable]_locs_sampled</dt><dd><p>Sampled time-locations</p></dd>
+  <dt>[sampling_variable]_weight</dt><dd><p>Sampling weight without visibility</p></dd>
+  <dt>[sampling_variable]_weight_visible</dt><dd><p>Sampling weight with visibility</p></dd>
  
 </dl>
 

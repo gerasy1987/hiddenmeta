@@ -208,7 +208,7 @@ read_study_params <- function(
                                       target_n_tls =
                                         .row$tls_target_n_tls *
                                         .row$tls_n_per_time_location,
-                                      cluster = paste0("loc_", 1:.row$tls_n_time_locations)),
+                                      clusters = paste0("loc_", 1:.row$tls_n_time_locations)),
             pps =
               if (.row$pps == 1) list(handler = sample_pps,
                                       sampling_variable = "pps",
