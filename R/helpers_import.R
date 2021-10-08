@@ -86,7 +86,8 @@ read_study_params <- function(
 
         .group_names <-
           c(paste0("known", 1:(.row$prior_known_hidden_interact)),
-            paste0("hidden", 1:.row$observed_k_hidden))
+            # this essentially precludes from having more than 1 hidden group
+            paste0("hidden"))
 
         .pop <-
           list(
