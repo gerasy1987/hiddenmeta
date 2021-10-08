@@ -9,9 +9,10 @@ sample_tls(
   sampling_variable = "tls",
   drop_nonsampled = FALSE,
   hidden_var = "hidden",
-  target_n_clusters = 2,
-  target_n_tls = 50,
-  cluster = paste0("loc_", 1:3)
+  target_n_clusters,
+  target_cluster_type = c("prop", "fixed"),
+  target_per_cluster,
+  clusters
 )
 }
 \arguments{
@@ -23,20 +24,24 @@ sample_tls(
 
 \item{hidden_var}{character string specifying hidden variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "hidden" for the simulations}
 
-\item{target_n_clusters}{target number of clusters (time-locations)}
+\item{target_n_clusters}{target number of clusters (time-locations). Clusters are always sampled proportionally to their size in terms of number of hidden population members}
 
-\item{target_n_tls}{target number of sampled locations}
+\item{target_cluster_type}{character string specifying the type of TLS sampling within each location. Either "prop" in which case \code{target_per_cluster} should give a share or "fixed" in which case \code{target_per_cluster} should be integer. Default is proportional sampling within clusters}
 
-\item{cluster}{character string containing names of all locality names in the study population data frame}
+\item{target_per_cluster}{numeric target for within cluster. Either share for proportional sampling or integer for fixed sampling. If in any cluster fixed number of units required for sampling is larger than the number of units in cluster, the whole cluster is sampled and the warning is produced}
+
+\item{clusters}{character string containing names of all locality names in the study population data frame}
 }
 \value{
 Population or sample data frame for single study with TLS sample characteristics added
  \describe{
   \item{[sampling_variable]}{Sampling indicator}
   \item{[sampling_variable]_cluster}{Time-locations at which subject was encountered first}
-  \item{[sampling_variable]_loc_present}{Time-locations at which subject is present}
-  \item{[sampling_variable]_sampled_locs}{Sampled time-locations}
-  \item{[sampling_variable]_weight}{Sampling weights}
+  \item{[sampling_variable]_loc_present}{Sampled time-locations at which subject is present}
+  \item{[sampling_variable]_loc_sampled}{Sampled time-locations at which subject was sampled}
+  \item{[sampling_variable]_locs_sampled}{Sampled time-locations}
+  \item{[sampling_variable]_weight}{Sampling weight without visibility}
+  \item{[sampling_variable]_weight_visible}{Sampling weight with visibility}
  }
 }
 \description{

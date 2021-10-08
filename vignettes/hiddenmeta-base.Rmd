@@ -52,7 +52,7 @@ study_1 <-
         # network structure setup
         network_handler = sim_block_network,
         network_handler_args = 
-          list(N = 1000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = 0,
+          list(N = 1000, K = 2, prev_K = c(known = .3, hidden = .2), rho_K = 0,
                p_edge_within = list(known = c(0.1, 0.3), hidden = c(0.1, 0.3)),
                p_edge_between = list(known = 0.1, hidden = 0.1),
                directed = FALSE),
@@ -66,9 +66,11 @@ study_1 <-
         # probability of service utilization in hidden population
         # for service multiplier
         add_groups = 
-          list(service_use = "rbinom(n(), 1, 0.25)",
-         "purrr::map_df(hidden, ~ sapply( `names<-`(rep(0, times = 10), paste0('loc_', 1:10)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
-         known_2 = 0.3, known_3 = 0.3)
+          list(
+            service_use = "rbinom(n(), 1, 0.25)",
+            "purrr::map_df(hidden, ~ sapply( `names<-`(rep(0.2, times = 10), paste0('loc_', 1:10)), function(add) rbinom(length(.x), 1, 0.05 + .x * add)))",
+            known_2 = 0.3,
+            "purrr::map_df(known, ~ sapply( `names<-`(rep(0, times = 8), paste0('known_', 3:10)), function(add) rbinom(length(.x), 1, 0.3)))")
       ),
     sample = 
       list(
@@ -83,20 +85,22 @@ study_1 <-
                    target_n_rds = 60),
         tls = list(handler = sample_tls,
                    sampling_variable = "tls",
+                   hidden_var = NULL,
                    # TLS sampling parameters
-                   target_n_clusters = 4,
-                   target_n_tls = 180,
-                   cluster = paste0("loc_", 1:10)),
+                   target_n_clusters = 5,
+                   target_cluster_type = "fixed",
+                   target_per_cluster = 15,
+                   clusters = paste0("loc_", 1:10)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
                    sampling_frame = NULL,
                    strata = NULL,
                    cluster = NULL,
-                   target_n_pps = 200)
+                   target_n_pps = 150)
       ),
     inquiries = list(handler = get_study_estimands,
-                     known_pattern = "^known$", 
+                     known_pattern = "^known(\\_\\d|\\d)?$", 
                      hidden_var = "hidden"),
     estimators = 
       list(
@@ -121,13 +125,15 @@ study_1 <-
                                  label = "rds_multi")),
         tls =
           list(ht = list(handler = get_study_est_ht,
+                         hidden_var = "hidden",
                          weight_var = "tls_weight",
+                         survey_design = ~ tls_loc_sampled,
                          prefix = "tls",
                          label = "tls_ht"),
                nsum = list(handler = get_study_est_nsum,
-                           known = c("known", "known_2", "known_3"),
+                           known = c("known", paste0("known_", 2:10)),
                            hidden = "hidden_visible_out",
-                           survey_design = ~ tls_cluster,
+                           survey_design = ~ tls_loc_sampled,
                            n_boot = 100,
                            prefix = "tls",
                            label = "tls_nsum"),
@@ -140,10 +146,11 @@ study_1 <-
                             label = "tls_recap")),
         pps = 
           list(ht = list(handler = get_study_est_ht,
+                         hidden_var = "hidden",
                          prefix = "pps",
                          label = "pps_ht"),
                nsum = list(handler = get_study_est_nsum,
-                           known = c("known", "known_2", "known_3"),
+                           known = c("known", paste0("known_", 2:10)),
                            hidden = "hidden_visible_out",
                            survey_design = ~ pps_cluster + strata(pps_strata),
                            n_boot = 100,
@@ -304,7 +311,8 @@ draw_estimates(study_population +
                  est_sspse + est_chords + est_multi +
                  est_nsum_pps + est_ht_pps +
                  est_nsum_tls + est_ht_tls + est_recap_tls +
-                 est_recap_rds_pps + est_recap_rds_tls) %>%
+                 est_recap_rds_pps + est_recap_rds_tls
+               ) %>%
   kable(digits = 2)
 
 ```
@@ -438,9 +446,10 @@ study_2 <-
         tls = list(handler = sample_tls,
                    sampling_variable = "tls",
                    # TLS sampling parameters
-                   target_n_clusters = 4,
-                   target_n_tls = 300,
-                   cluster = paste0("loc_", 1:8)),
+                   target_n_clusters = 8,
+                   target_cluster_type = "fixed",
+                   target_per_cluster = 40,
+                   clusters = paste0("loc_", 1:10)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
@@ -476,12 +485,13 @@ study_2 <-
         tls =
           list(ht = list(handler = get_study_est_ht,
                          weight_var = "tls_weight",
+                         survey_design = ~ tls_loc_sampled,
                          prefix = "tls",
                          label = "tls_ht"),
                nsum = list(handler = get_study_est_nsum,
                            known = c("known", "frame"),
                            hidden = "hidden_visible_out",
-                           survey_design = ~ tls_cluster,
+                           survey_design = ~ tls_loc_sampled,
                            n_boot = 100,
                            prefix = "tls",
                            label = "tls_nsum"),
@@ -539,7 +549,7 @@ study_3 <-
         # for service multiplier
         add_groups = 
           list(service_use = "rbinom(n(), 1, 0.25 + hidden * 0.05)",
-         "purrr::map_df(hidden, ~ sapply( `names<-`(c(.2, .1, .3, .2), paste0('loc_', 1:4)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
+         "purrr::map_df(hidden, ~ sapply( `names<-`(c(.2, .1, .3, .2, .4, .1, .3, .2), paste0('loc_', 1:8)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
          known_2 = 0.1, known_3 = 0.2)
       ),
     sample = 
@@ -555,9 +565,10 @@ study_3 <-
         tls = list(handler = sample_tls,
                    sampling_variable = "tls",
                    # TLS sampling parameters
-                   target_n_clusters = 3,
-                   target_n_tls = 300,
-                   cluster = paste0("loc_", 1:4)),
+                   target_n_clusters = 4,
+                   target_cluster_type = "fixed",
+                   target_per_cluster = 30,
+                   clusters = paste0("loc_", 1:8)),
         pps = list(handler = sample_pps,
                    sampling_variable = "pps",
                    # prop sampling parameters
@@ -593,17 +604,18 @@ study_3 <-
         tls =
           list(ht = list(handler = get_study_est_ht,
                          weight_var = "tls_weight",
+                         survey_design = ~ tls_loc_sampled,
                          prefix = "tls",
                          label = "tls_ht"),
                nsum = list(handler = get_study_est_nsum,
                            known = c("known", "known_2", "known_3"),
                            hidden = "hidden_visible_out",
-                           survey_design = ~ tls_cluster,
+                           survey_design = ~ tls_loc_sampled,
                            n_boot = 100,
                            prefix = "tls",
                            label = "tls_nsum"),
                recap = list(handler = get_study_est_recapture,
-                            capture_vars = paste0("loc_", 1:4),
+                            capture_vars = paste0("loc_", 1:6),
                             sample_condition = "tls == 1",
                             model = "Mt",
                             hidden_variable = "hidden",
@@ -666,10 +678,10 @@ multi_estimators <-
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
 # set.seed(872312)
-# draw_estimands(multi_study) %>% 
+# draw_estimands(multi_study) %>%
 #   kable()
 # 
-# draw_estimates(multi_study) %>% 
+# draw_estimates(multi_study) %>%
 #   kable()
 
 ```

@@ -8,7 +8,7 @@ read_study_params(
   auth_email,
   ss,
   sheet,
-  col_spec = "ciiiiiiiciciiiiiiiiciiiiiiciiiccccccccccccccc",
+  col_spec = "ciiiiiiiciciiiiiiiiciiiiiiiciiiccccccccccccccc",
   priors_map = tibble(label = c("low", "medium", "high"), int = c(10, 20, 40), p =
     c(0.1, 0.5, 0.9), phigh = c(0.7, 0.8, 0.9), plow = c(0.1, 0.2, 0.3))
 )

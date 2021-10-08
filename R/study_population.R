@@ -47,8 +47,7 @@ get_study_population <-
            p_visible,
            add_groups) {
 
-    if (length(unique(names(add_groups))) != length(add_groups) |
-        length(unique(group_names)) != length(group_names) |
+    if (length(unique(group_names)) != length(group_names) |
         any(names(p_visible) != group_names))
       stop("group names have to be unique and consistent")
 
