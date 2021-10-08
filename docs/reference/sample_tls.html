@@ -175,11 +175,11 @@
     </tr>
     <tr>
       <th>target_cluster_type</th>
-      <td><p>character string specifying the type of TLS sampling within each location. Either "prop" in which case <code>target_per_cluster</code> should give a share or "fixed" in which case <code>target_per_cluster</code> should be integer</p></td>
+      <td><p>character string specifying the type of TLS sampling within each location. Either "prop" in which case <code>target_per_cluster</code> should give a share or "fixed" in which case <code>target_per_cluster</code> should be integer. Default is proportional sampling within clusters</p></td>
     </tr>
     <tr>
       <th>target_per_cluster</th>
-      <td><p>numeric target for within cluster</p></td>
+      <td><p>numeric target for within cluster. Either share for proportional sampling or integer for fixed sampling. If in any cluster fixed number of units required for sampling is larger than the number of units in cluster, the whole cluster is sampled and the warning is produced</p></td>
     </tr>
     <tr>
       <th>clusters</th>

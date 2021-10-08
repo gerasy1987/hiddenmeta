@@ -176,7 +176,7 @@
                    target_n_pps <span class="op">=</span> <span class="fl">150</span><span class="op">)</span>
       <span class="op">)</span>,
     inquiries <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_estimands</span>,
-                     known_pattern <span class="op">=</span> <span class="st">"^known$"</span>, 
+                     known_pattern <span class="op">=</span> <span class="st">"^known(\\_\\d|\\d)?$"</span>, 
                      hidden_var <span class="op">=</span> <span class="st">"hidden"</span><span class="op">)</span>,
     estimators <span class="op">=</span> 
       <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
@@ -355,11 +355,75 @@
 <td align="right">318.00</td>
 </tr>
 <tr class="even">
+<td align="left">known_2_size</td>
+<td align="right">306.00</td>
+</tr>
+<tr class="odd">
+<td align="left">known_3_size</td>
+<td align="right">316.00</td>
+</tr>
+<tr class="even">
+<td align="left">known_4_size</td>
+<td align="right">277.00</td>
+</tr>
+<tr class="odd">
+<td align="left">known_5_size</td>
+<td align="right">303.00</td>
+</tr>
+<tr class="even">
+<td align="left">known_6_size</td>
+<td align="right">305.00</td>
+</tr>
+<tr class="odd">
+<td align="left">known_7_size</td>
+<td align="right">303.00</td>
+</tr>
+<tr class="even">
+<td align="left">known_8_size</td>
+<td align="right">336.00</td>
+</tr>
+<tr class="odd">
+<td align="left">known_9_size</td>
+<td align="right">319.00</td>
+</tr>
+<tr class="even">
 <td align="left">hidden_size</td>
 <td align="right">209.00</td>
 </tr>
 <tr class="odd">
 <td align="left">known_prev</td>
+<td align="right">0.32</td>
+</tr>
+<tr class="even">
+<td align="left">known_2_prev</td>
+<td align="right">0.31</td>
+</tr>
+<tr class="odd">
+<td align="left">known_3_prev</td>
+<td align="right">0.32</td>
+</tr>
+<tr class="even">
+<td align="left">known_4_prev</td>
+<td align="right">0.28</td>
+</tr>
+<tr class="odd">
+<td align="left">known_5_prev</td>
+<td align="right">0.30</td>
+</tr>
+<tr class="even">
+<td align="left">known_6_prev</td>
+<td align="right">0.30</td>
+</tr>
+<tr class="odd">
+<td align="left">known_7_prev</td>
+<td align="right">0.30</td>
+</tr>
+<tr class="even">
+<td align="left">known_8_prev</td>
+<td align="right">0.34</td>
+</tr>
+<tr class="odd">
+<td align="left">known_9_prev</td>
 <td align="right">0.32</td>
 </tr>
 <tr class="even">
@@ -373,6 +437,70 @@
 <tr class="even">
 <td align="left">hidden_prev_in_known</td>
 <td align="right">0.21</td>
+</tr>
+<tr class="odd">
+<td align="left">hidden_size_in_known_2</td>
+<td align="right">68.00</td>
+</tr>
+<tr class="even">
+<td align="left">hidden_prev_in_known_2</td>
+<td align="right">0.22</td>
+</tr>
+<tr class="odd">
+<td align="left">hidden_size_in_known_3</td>
+<td align="right">59.00</td>
+</tr>
+<tr class="even">
+<td align="left">hidden_prev_in_known_3</td>
+<td align="right">0.19</td>
+</tr>
+<tr class="odd">
+<td align="left">hidden_size_in_known_4</td>
+<td align="right">56.00</td>
+</tr>
+<tr class="even">
+<td align="left">hidden_prev_in_known_4</td>
+<td align="right">0.20</td>
+</tr>
+<tr class="odd">
+<td align="left">hidden_size_in_known_5</td>
+<td align="right">58.00</td>
+</tr>
+<tr class="even">
+<td align="left">hidden_prev_in_known_5</td>
+<td align="right">0.19</td>
+</tr>
+<tr class="odd">
+<td align="left">hidden_size_in_known_6</td>
+<td align="right">59.00</td>
+</tr>
+<tr class="even">
+<td align="left">hidden_prev_in_known_6</td>
+<td align="right">0.19</td>
+</tr>
+<tr class="odd">
+<td align="left">hidden_size_in_known_7</td>
+<td align="right">54.00</td>
+</tr>
+<tr class="even">
+<td align="left">hidden_prev_in_known_7</td>
+<td align="right">0.18</td>
+</tr>
+<tr class="odd">
+<td align="left">hidden_size_in_known_8</td>
+<td align="right">66.00</td>
+</tr>
+<tr class="even">
+<td align="left">hidden_prev_in_known_8</td>
+<td align="right">0.20</td>
+</tr>
+<tr class="odd">
+<td align="left">hidden_size_in_known_9</td>
+<td align="right">65.00</td>
+</tr>
+<tr class="even">
+<td align="left">hidden_prev_in_known_9</td>
+<td align="right">0.20</td>
 </tr>
 </tbody>
 </table>
@@ -1104,7 +1232,7 @@
         <span class="co"># for service multiplier</span>
         add_groups <span class="op">=</span> 
           <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>service_use <span class="op">=</span> <span class="st">"rbinom(n(), 1, 0.25 + hidden * 0.05)"</span>,
-         <span class="st">"purrr::map_df(hidden, ~ sapply( `names&lt;-`(c(.2, .1, .3, .2), paste0('loc_', 1:4)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))"</span>,
+         <span class="st">"purrr::map_df(hidden, ~ sapply( `names&lt;-`(c(.2, .1, .3, .2, .4, .1, .3, .2), paste0('loc_', 1:8)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))"</span>,
          known_2 <span class="op">=</span> <span class="fl">0.1</span>, known_3 <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>
       <span class="op">)</span>,
     sample <span class="op">=</span> 
@@ -1170,7 +1298,7 @@
                            prefix <span class="op">=</span> <span class="st">"tls"</span>,
                            label <span class="op">=</span> <span class="st">"tls_nsum"</span><span class="op">)</span>,
                recap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_recapture</span>,
-                            capture_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"loc_"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span>,
+                            capture_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"loc_"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>,
                             sample_condition <span class="op">=</span> <span class="st">"tls == 1"</span>,
                             model <span class="op">=</span> <span class="st">"Mt"</span>,
                             hidden_variable <span class="op">=</span> <span class="st">"hidden"</span>,
@@ -1232,10 +1360,10 @@
 <span class="va">multi_study</span> <span class="op">&lt;-</span> <span class="va">multi_population</span> <span class="op">+</span> <span class="va">multi_sampling</span> <span class="op">+</span> <span class="va">multi_inquiry</span> <span class="op">+</span> <span class="va">multi_estimators</span>
 
 <span class="co"># set.seed(872312)</span>
-<span class="co"># draw_estimands(multi_study) %&gt;% </span>
+<span class="co"># draw_estimands(multi_study) %&gt;%</span>
 <span class="co">#   kable()</span>
 <span class="co"># </span>
-<span class="co"># draw_estimates(multi_study) %&gt;% </span>
+<span class="co"># draw_estimates(multi_study) %&gt;%</span>
 <span class="co">#   kable()</span></code></pre></div>
 </div>
 <div id="diagnose-multiple-studies" class="section level3">

@@ -19,7 +19,7 @@ read_study_params <- function(
   auth_email,
   ss,
   sheet,
-  col_spec = "ciiiiiiiciciiiiiiiiciiiiiiciiiccccccccccccccc",
+  col_spec = "ciiiiiiiciciiiiiiiiciiiiiiiciiiccccccccccccccc",
   priors_map =
     tibble(
       label      = c("low", "medium", "high"),
@@ -149,12 +149,12 @@ read_study_params <- function(
 
         # add time-locations presence if TLS sample is present
         if (.row$tls == 1) {
-          # this only depends on hidden1 for now,
+          # this only depends on hidden for now,
           # need to extend this to arbitrary number of hidden groups
           .pop$add_groups <-
             c(
               .pop$add_group,
-              paste0("purrr::map_df(hidden1, ~ sapply( `names<-`(rep(",
+              paste0("purrr::map_df(hidden, ~ sapply( `names<-`(rep(",
                      .row$prior_p_showup, ", times = ",
                      .row$tls_n_time_locations, "), paste0('loc_', 1:",
                      .row$tls_n_time_locations, ")), function(add) rbinom(length(.x), 1, 0.05 + .x * add)))")
@@ -177,24 +177,18 @@ read_study_params <- function(
             )
         }
 
-        if (grepl(pattern = "^fixed ", .row$tls_n_per_time_location))
-          .row$tls_n_per_time_location <-
-          as.numeric(gsub(pattern = "^fixed ",
-                          replacement = "",
-                          .row$tls_n_per_time_location))
-
         .inquiries <-
           list(handler = get_study_estimands,
                known_pattern =
                  paste0("^known[1-", .row$prior_known_hidden_interact, "]$"),
-               hidden_var = "hidden1")
+               hidden_var = "hidden")
 
         .samples <-
           list(
             rds =
               if (.row$rds == 1) list(handler = sample_rds,
                                       sampling_variable = "rds",
-                                      hidden_var = "hidden1", # default
+                                      hidden_var = "hidden", # default
                                       n_seed = .row$rds_n_seeds,
                                       n_coupons = .row$rds_n_coupons,
                                       add_seeds = .row$rds_allow_add_seeds,
@@ -203,11 +197,10 @@ read_study_params <- function(
             tls =
               if (.row$tls == 1) list(handler = sample_tls,
                                       sampling_variable = "tls",
-                                      hidden_var = "hidden1",
-                                      target_n_clusters = .row$tls_target_n_tls,
-                                      target_n_tls =
-                                        .row$tls_target_n_tls *
-                                        .row$tls_n_per_time_location,
+                                      hidden_var = if (.row$tls_allow_non_hidden == 0) "hidden" else NULL,
+                                      target_n_clusters = .row$tls_target_n_clusters,
+                                      target_cluster_type = .row$tls_target_cluster_type,
+                                      target_per_cluster = .row$tls_target_per_cluster,
                                       clusters = paste0("loc_", 1:.row$tls_n_time_locations)),
             pps =
               if (.row$pps == 1) list(handler = sample_pps,
@@ -255,7 +248,7 @@ read_study_params <- function(
                              label = "tls_ht"),
                    nsum = list(handler = get_study_est_nsum,
                                known = paste0("known", 1:.row$observed_k_known),
-                               hidden = "hidden1_visible_out",
+                               hidden = "hidden_visible_out",
                                survey_design = ~ tls_cluster,
                                n_boot = 100,
                                prefix = "tls",
@@ -265,7 +258,7 @@ read_study_params <- function(
                                   "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
                                 sample_condition = "tls == 1",
                                 model = "Mt",
-                                hidden_variable = "hidden1",
+                                hidden_variable = "hidden",
                                 label = "tls_recap")),
             pps =
               list(ht = list(handler = get_study_est_ht,
@@ -282,7 +275,7 @@ read_study_params <- function(
               list(recap1 = list(handler = get_study_est_recapture,
                                  capture_vars = c("rds", "pps"),
                                  model = "Mt",
-                                 hidden_variable = "hidden1",
+                                 hidden_variable = "hidden",
                                  label = "rds_pps_recap")),
             rds_tls =
               list(recap2 = list(handler = get_study_est_recapture,
@@ -290,7 +283,7 @@ read_study_params <- function(
                                  capture_parse =
                                    "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
                                  model = "Mt",
-                                 hidden_variable = "hidden1",
+                                 hidden_variable = "hidden",
                                  label = "rds_tls_recap"))
           )
 

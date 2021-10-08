@@ -7,8 +7,8 @@
 #' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
 #' @param hidden_var character string specifying hidden variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "hidden" for the simulations
 #' @param target_n_clusters target number of clusters (time-locations). Clusters are always sampled proportionally to their size in terms of number of hidden population members
-#' @param target_cluster_type character string specifying the type of TLS sampling within each location. Either "prop" in which case \code{target_per_cluster} should give a share or "fixed" in which case \code{target_per_cluster} should be integer
-#' @param target_per_cluster numeric target for within cluster
+#' @param target_cluster_type character string specifying the type of TLS sampling within each location. Either "prop" in which case \code{target_per_cluster} should give a share or "fixed" in which case \code{target_per_cluster} should be integer. Default is proportional sampling within clusters
+#' @param target_per_cluster numeric target for within cluster. Either share for proportional sampling or integer for fixed sampling. If in any cluster fixed number of units required for sampling is larger than the number of units in cluster, the whole cluster is sampled and the warning is produced
 #' @param clusters character string containing names of all locality names in the study population data frame
 #'
 #' @return Population or sample data frame for single study with TLS sample characteristics added
@@ -26,7 +26,7 @@
 #'
 #' @import dplyr
 #' @importFrom tidyr nest
-#' @importFrom purrr map_chr
+#' @importFrom purrr map_chr when
 #' @importFrom magrittr `%<>%`
 sample_tls <-
   function(data,
@@ -55,7 +55,6 @@ sample_tls <-
       purrr::when(
         !is.null(hidden_var) ~ dplyr::filter(., across(all_of(hidden_var), ~ .x == 1)),
         ~ .) %>%
-      # dplyr::filter(across(all_of(hidden_var), ~ . == 1)) %>%
       dplyr::summarise(dplyr::across(dplyr::all_of(clusters), sum, .names = "{.col}")) %>%
       { tibble(loc = colnames(.), n = unlist(.), loc_sampling_prob = unlist(.)/sum(.)) }
 
@@ -84,6 +83,8 @@ sample_tls <-
           unit_sampling_prob = target_n/n
         )
 
+      if (any(target_per_cluster > sampling_probs$n))
+        warning("For some clusters number of units required by sampling procedure was larger than cluster size. Probability of unit sampling within those clusters is set to 1")
     }
 
     data %<>% dplyr::mutate(temp_id = 1:n())

@@ -100,7 +100,7 @@ study_1 <-
                    target_n_pps = 150)
       ),
     inquiries = list(handler = get_study_estimands,
-                     known_pattern = "^known$", 
+                     known_pattern = "^known(\\_\\d|\\d)?$", 
                      hidden_var = "hidden"),
     estimators = 
       list(
@@ -549,7 +549,7 @@ study_3 <-
         # for service multiplier
         add_groups = 
           list(service_use = "rbinom(n(), 1, 0.25 + hidden * 0.05)",
-         "purrr::map_df(hidden, ~ sapply( `names<-`(c(.2, .1, .3, .2), paste0('loc_', 1:4)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
+         "purrr::map_df(hidden, ~ sapply( `names<-`(c(.2, .1, .3, .2, .4, .1, .3, .2), paste0('loc_', 1:8)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
          known_2 = 0.1, known_3 = 0.2)
       ),
     sample = 
@@ -615,7 +615,7 @@ study_3 <-
                            prefix = "tls",
                            label = "tls_nsum"),
                recap = list(handler = get_study_est_recapture,
-                            capture_vars = paste0("loc_", 1:4),
+                            capture_vars = paste0("loc_", 1:6),
                             sample_condition = "tls == 1",
                             model = "Mt",
                             hidden_variable = "hidden",
@@ -678,10 +678,10 @@ multi_estimators <-
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
 # set.seed(872312)
-# draw_estimands(multi_study) %>% 
+# draw_estimands(multi_study) %>%
 #   kable()
 # 
-# draw_estimates(multi_study) %>% 
+# draw_estimates(multi_study) %>%
 #   kable()
 
 ```

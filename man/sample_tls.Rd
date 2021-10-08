@@ -26,9 +26,9 @@ sample_tls(
 
 \item{target_n_clusters}{target number of clusters (time-locations). Clusters are always sampled proportionally to their size in terms of number of hidden population members}
 
-\item{target_cluster_type}{character string specifying the type of TLS sampling within each location. Either "prop" in which case \code{target_per_cluster} should give a share or "fixed" in which case \code{target_per_cluster} should be integer}
+\item{target_cluster_type}{character string specifying the type of TLS sampling within each location. Either "prop" in which case \code{target_per_cluster} should give a share or "fixed" in which case \code{target_per_cluster} should be integer. Default is proportional sampling within clusters}
 
-\item{target_per_cluster}{numeric target for within cluster}
+\item{target_per_cluster}{numeric target for within cluster. Either share for proportional sampling or integer for fixed sampling. If in any cluster fixed number of units required for sampling is larger than the number of units in cluster, the whole cluster is sampled and the warning is produced}
 
 \item{clusters}{character string containing names of all locality names in the study population data frame}
 }
