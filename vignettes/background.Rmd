@@ -138,3 +138,99 @@ knitr::opts_chunk$set(
 - Use bootstrap methods to estimate the standard errors/CIs
 - **Very useful:** Provide comparison with the basic NSUM method [@killworth1998] and show that $N_{K} = \underbrace{\left( \frac{y_{FK}}{\overline{d}_{UF}} \right)}_{\text{standard NSUM estimand}} \times \frac{1}{\phi_{F} \delta_{F} \tau_{F}}$, where $\phi_{F}$ -- frame ratio (average connection within $F$ to connection from $U$ to $F$), $\delta_{F}$ -- degree ratio (average connection from $K$ to $F$ to connection within $F$), and $\tau_{F}$ -- true positive ratio (in-reports from $F$ to $K$ to edges connecting $F$ and $K$)
 - Appendix G to the paper also has very useful ideas on network structure simulation using *block* approach, where the chances of link between two individuals depend on their membership in $F$ and $K$ (there is no code, but it sounds like something straightforward to do)
+
+
+## Link-Tracing method
+
+### @vincent2019 
+
+The Link-Tracing method combines ideas from RDS and capture re-capture estimation to approximate population size.Applying a multi-wave snowball sampling frame over the population, it constructs a Gibbs sampling estimator of population size given an observed network structure. The central idea behind the construction of this estimator is that links between units sampled in the waves up to but not including the last wave and all other units can be regarded as iid Bernoulli-type outcomes. The occurrences of network links thus represent binomial type experiments.
+
+#### Population and Assumptions
+
+- population is represented through a stochastic block model where all units in the population $U = (1,2,...,N)$ are assigned to one of G strata (known if unit is observed and latent otherwise) with probability $\underline{\lambda} = (\lambda_1, \lambda_2,...,\lambda_G)$ where $C_i$ is the stratum to which unit $i$ belongs.
+- strata may be considered groupings or factors that affect (explain or predict) the probability of links arising between units. 
+- all links between units are reciprocated, yielding a symmetric adjacency matrix $Y$ of the population, where for all $i,j = 1,2,...,N,Y_{ij} = Y_{ji} = 1$ if a link is present between units $i$ and $j$ and 0 otherwise. 
+- conditional on stratum membership, links occur independently between all pairs of units, such that for any $i,j = 1,2,...,N$ if $i \neq j$ then $P(Y_{ij} = 1|\underline{C} = P(Y_{ij} = 1|C_i,C_j) = \beta_{C_i,C_j}$ and if $i = j$ then $P(Y_{ii} = 1) = 0$.
+
+#### Sampling
+
+- sampling commences with the selection of an initial sample/wave $S_0$ from which all nominated links are        traced.
+- nominations outside of the initial sample comprise the first wave $S_1$.
+- this sampling procedure is continued until $W$ waves are reached (units added in wave $w$ are thus $S_w$).
+- $S = \cup_{w = 0}^{W}S_w$ is thus the final sample, and $S \setminus S_w = \cup_{w = 0}^{W-1}S_w$ is the final sample minus the units selected in the last wave.$\overline{S} = U \setminus S$ denotes the set of units not included in the final sample. 
+
+#### Required Data 
+
+The following data needs to be collected for estimation:
+
+  - stratum assignment of each unit
+  - sampling wave assignment of each unit
+  - adjacency matrix 
+
+We denote the observed data $d_{I_{gn}}$
+
+
+#### Estimation 
+
+Given that $n = n_0 + n_1 + ... + n_w$ and the population can be partitioned into $W + 2$ sets ($S_0,S_1,...,S_w$ and $\overline{S}$ (i.e. initial sample, all waves, non sampled units)) of sizes $n_0,n_1,...,n_w$ and $N-n$ in  ${N \choose n_0,n_1,...,n_w,N-n}$ ways, the following likelihood function for the parameters of interest can be written: 
+
+$\displaystyle L(N,\underline{\lambda},\underline{\beta}|d_{I_{gn}},|S_0|)$
+$\displaystyle = {N \choose n_0,n_1,...,n_w,N-n} \times \prod_{i=1}^{n-n_w}\lambda_{C_i} \times \prod_{i,j = 1,2,...,n-n_w:i<j}\left(\beta_{C_i,C_j}^{Y_{ij}}(1-\beta_{C_i,C_j})^{(1-Y_{ij})}\right) \times$ 
+$\displaystyle \left[\prod_{j = n-n_w+1}^n\left(\lambda_{C_j} \prod_{i = 1}^{n - n_w}\left( \beta_{C_i,C_j}^{Y_{ij}}(1-\beta_{C_i,C_j})^{(1-Y_{ij})}\right) \right)\right] \times \left[\sum_{k = 1}^G \left(\lambda_k \prod_{i = 1}^{n-n_w}(1 - \beta_{C_i,k})\right)\right]^{N-n}$
+
+Where: 
+
+  - the first component corresponds to reorderings of the data
+  - the second component corresponds to the stratum assignment of the units within the fist $W-1$ waves of the         reordered data
+  - the third component corresponds to the occurrence of links within the fist $W-1$ waves of the reordered data 
+  - the fourth component corresponds to the stratum assignment of the units within wave $W$ and the links between      units in wave $W$ and the first $W-1$ waves of the reordered data
+  - the fifth component corresponds to the unobserved stratum memberships of units outside the final sample and        the observed absence of links between units inside and outside of the final sample.
+  
+
+
+As the given likelihood corresponds to a multivariate distribution, Link-tracing employs a Gibbs sampling procedure for parameter estimation. That is, it iteratively samples from each parameters conditional distribution. Estimation thus proceeds as follows: 
+
+  1. initialize values for $N,\underline{\lambda}$ and $\underline{\beta}$ 
+  2. draw from $P(N|d_{I_{ng}},\underline{\lambda},\underline{\beta})$ given the values of          $\underline{\lambda}$ and $\underline{\beta}$ from the previous step
+  3. draw from $P(\underline{\lambda}|N,\underline{\beta})$ given the values of $N$ and $\underline{\beta}$ from the previous steps
+  4. draw from $P(\underline{\beta}|N,\underline{\lambda})$ given the values of $N$ and $\underline{\lambda}$ from the previous steps 
+  5. repeat steps 2-4
+
+
+##### Population Size:
+  
+  - Prior distribution of $N$ defined as $\pi(N) \propto N^{-a}, a = 0,1,2,...$
+
+ 
+  - $P(N|d_{I_{gn}},\underline{\lambda},\underline{\beta}) = \frac{P(d_{I_{gn}}|N,\underline{\lambda},\underline{\beta})\pi(N)}{P(d_{I_{gn}}|\underline{\lambda},\underline{\beta})} \propto \frac{{N - n_0 \choose n_1,...,n_w,N-n}(1-P)^{N - n} \frac{1}{N^a}}{\sum_{N' \geq n} \left({N' - n_0 \choose n_1,...,n_w,N'-n}(1-p)^{N'-n \frac{1}{N'^a}}\right)}$
+$\propto {N - n_0 \choose n_1,...,n_w,N-n}(1-p)^{N-n \frac{1}{N^a}}$
+
+
+  - where $1-p = \sum_{k=1}^{G}\left(\lambda_k \prod_{i=1}^{n - n_w}(1 - \beta_{C_i,k})\right)$
+
+##### Stratum Memberships:
+
+  - Prior distribution of $\underline{\lambda}$ defined as $\pi(\underline{\lambda}) \propto \prod_{k =          1}^{G}\lambda_{k}^{a_k-1}$
+
+
+  - Given the observed data Link-tracing imputes the missing stratum assignments by sampling from the following distribution:
+
+
+  - $P(C_i = k|S,\underline{C}_{S \setminus S_W}, Y_{S \setminus S_W,i}) = \frac{\lambda_k \prod_{j=1}^{n-n_W}(1 - \beta_{C_j,k})}{\sum_{l = 1}^{G}\left(\lambda_l \prod_{j=1}^{n-n_W}(1-\beta_{C_j,l})\right)}$
+
+
+  - New $\underline{\lambda}$ values are then drawn from $Dirichlet(N_1 + 1,...,N_G + 1)$
+
+##### Links:
+
+  - Prior distribution of of $\underline{\beta}$ defined as $\pi(\underline{\beta}) \propto \prod_{k,l = 1: k \leq l}^{G}\left(\beta_{k,l}^{\gamma_1 - 1}(1- \beta_{k,l})^{\gamma_2-1}\right)$
+
+
+  - The imputed stratum assignments and population size from the previous steps update the observed data to a hypothetical full graph realization (knowledge about stratum assignment for each unit) $d_1 = \{S,\underline{C},Y_{S \setminus S_W,U}\}$ where $U$ is the population size estimate. For any $i,j \in S_W \cup \overline{S}$ where $i \ne j$ links arise independently via $P(Y_{ij} = 1|d_1) = \beta_{C_i,C_j}$ and can be imputed through sampling from this. This process yields a hypothetical full graph realization (knowledge about stratum membership and links for all units) $d = \{\underline{C},Y\}$. 
+
+
+  - New $\underline{\beta}$ values for between stratum links $\beta_{k,l}$ for $k,l = 1,2,...,G,k \ne l$ are drawn from $Beta(M_{k,l} + 1, N_k N_l - M_{k,l} + 1)$.
+
+  - New $\underline{\beta}$ values for within stratum links $\beta_{k,k}$ for $k = 1,2,...,G$ are drawn from $Beta(M_{k,k} + 1,{N_k \choose 2} - M_{k,k} + 1)$.
+
