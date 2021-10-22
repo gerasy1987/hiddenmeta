@@ -120,34 +120,39 @@
     auth_email <span class="op">=</span> <span class="st">"gerasy@gmail.com"</span>,
     ss <span class="op">=</span> <span class="st">"1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y"</span>,
     sheet <span class="op">=</span> <span class="st">"study_params_readable"</span>
-  <span class="op">)</span></code></pre></div>
+  <span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/save.html">save</a></span><span class="op">(</span><span class="va">study_designs</span>, file <span class="op">=</span> <span class="st">"study_designs.rdata"</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"study_designs.rdata"</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="declare-multiple-studies" class="section level2">
 <h2 class="hasAnchor">
 <a href="#declare-multiple-studies" class="anchor"></a>Declare multiple studies</h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="va">multi_population</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_population.html">declare_population</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_populations</span>, 
-                     pops_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, 
+                     pops_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">pop</span>, 
                                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">multi_sampling</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_sampling.html">declare_sampling</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_samples</span>, 
-                   samples_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, 
+                   samples_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">samples</span>, 
                                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="va">multi_inquiry</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_inquiry.html">declare_inquiry</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_estimands</span>, 
-                  inquiries_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, 
+                  inquiries_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">inquiries</span>, 
                                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="va">multi_estimators</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_estimator.html">declare_estimator</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_estimates</span>,
-                    estimators_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, 
+                    estimators_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, 
                                              <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">estimators</span>, 
                                              simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
 
