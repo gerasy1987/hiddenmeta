@@ -129,29 +129,39 @@
 <code class="sourceCode R">
 <span class="va">multi_population</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_population.html">declare_population</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_populations</span>, 
-                     pops_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span>, 
+                     pops_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">pop</span>, 
                                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">multi_sampling</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_sampling.html">declare_sampling</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_samples</span>, 
-                   samples_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span>, 
+                   samples_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">samples</span>, 
                                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="va">multi_inquiry</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_inquiry.html">declare_inquiry</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_estimands</span>, 
-                  inquiries_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span>, 
+                  inquiries_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">inquiries</span>, 
                                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="va">multi_estimators</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_estimator.html">declare_estimator</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_estimates</span>,
-                    estimators_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span>, 
+                    estimators_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, 
                                              <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">estimators</span>, 
                                              simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
 
-<span class="va">multi_study</span> <span class="op">&lt;-</span> <span class="va">multi_population</span> <span class="op">+</span> <span class="va">multi_sampling</span> <span class="op">+</span> <span class="va">multi_inquiry</span> <span class="op">+</span> <span class="va">multi_estimators</span></code></pre></div>
+<span class="va">multi_study</span> <span class="op">&lt;-</span> <span class="va">multi_population</span> <span class="op">+</span> <span class="va">multi_sampling</span> <span class="op">+</span> <span class="va">multi_inquiry</span> <span class="op">+</span> <span class="va">multi_estimators</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/draw_functions.html">draw_data</a></span><span class="op">(</span><span class="va">multi_study</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/draw_functions.html">draw_estimands</a></span><span class="op">(</span><span class="va">multi_study</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span>
+
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/draw_functions.html">draw_estimates</a></span><span class="op">(</span><span class="va">multi_study</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 </div>
   </div>
 
