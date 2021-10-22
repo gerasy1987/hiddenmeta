@@ -46,6 +46,14 @@ study_designs <-
     sheet = "study_params_readable"
   )
 
+save(study_designs, file = "vignettes/study_designs.rdata")
+
+```
+
+```{r read_study_designs, eval=TRUE}
+
+load(file = "vignettes/study_designs.rdata")
+
 ```
 
 ## Declare multiple studies
@@ -54,25 +62,25 @@ study_designs <-
 
 multi_population <- 
   declare_population(handler = get_multi_populations, 
-                     pops_args = sapply(study_designs[1:2], 
+                     pops_args = sapply(study_designs[1], 
                                         function(x) x$pop, 
                                         simplify = FALSE))
 
 multi_sampling <- 
   declare_sampling(handler = get_multi_samples, 
-                   samples_args = sapply(study_designs[1:2], 
+                   samples_args = sapply(study_designs[1], 
                                         function(x) x$samples, 
                                         simplify = FALSE)) 
 
 multi_inquiry <- 
   declare_inquiry(handler = get_multi_estimands, 
-                  inquiries_args = sapply(study_designs[1:2], 
+                  inquiries_args = sapply(study_designs[1], 
                                         function(x) x$inquiries, 
                                         simplify = FALSE)) 
 
 multi_estimators <-
   declare_estimator(handler = get_multi_estimates,
-                    estimators_args = sapply(study_designs[1:2], 
+                    estimators_args = sapply(study_designs[1], 
                                              function(x) x$estimators, 
                                              simplify = FALSE))
 
