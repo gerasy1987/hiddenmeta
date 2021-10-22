@@ -611,5 +611,49 @@ get_study_est_recapture <- function(
   }
 }
 
+#' Link tracing estimator
+#'
+#' @param data pass through sample
+#' @param total integer giving the total size of the population
+#' @param gibbs_params named list of parameters passed to Gibbs sampler
+#' @param priors named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).
+#' @param prefix
+#' @param label character string describing the estimator
+#'
+
+
+#' coding notes:
+#' 1. sample loop
+#'    - get permutation of sample (re apply snowball sampler)
+#'      - get sizes of initial sample + waves
+#'      - reorder sample
+#'    - initialize seeds for parameters
+#' 2. marcov chain loop
+#'    -
+
+
+get_study_est_linktrace <- function(
+  data,
+  total = 2000,
+  n_strata = 2,
+  gibbs_params = list(n_chains = 2L, chain_samples = 4000L, chain_burnin = 2000L, n_samples = 100L),
+  priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+  prefix = "",
+  label = "link_trace"
+){
+
+  if(n_strate != length(priors$p_l)){
+    stop("mismatch between number of strata and number of priors specified for strata in p_l")
+  }
+
+  if(length(priors$p_l) > 1){
+    priors$p_l <- rep(priors$p_l, n_strata)
+  }
+
+  data %<>% dplyr::filter(., rds == 1)%>%
+    dplyr::mutate(links_list = hiddenmeta:::retrieve_graph(links)%>% igraph::as_adj_list())
+
+
+}
 
 
