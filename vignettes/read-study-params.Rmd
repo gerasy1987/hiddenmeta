@@ -46,13 +46,13 @@ study_designs <-
     sheet = "study_params_readable"
   )
 
-save(study_designs, file = "vignettes/study_designs.rdata")
+save(study_designs, file = "study_designs.rdata")
 
 ```
 
 ```{r read_study_designs, eval=TRUE}
 
-load(file = "vignettes/study_designs.rdata")
+load(file = "study_designs.rdata")
 
 ```
 
