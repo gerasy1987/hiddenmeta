@@ -9,8 +9,9 @@
 #' @param n_coupons number of unique coupons given to each study participant
 #' @param target_type one of 'sample' or 'waves'
 #' @param target_n_rds numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed
-#' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
 #' @param add_seeds numeric indicating how many seeds to add at a time if target sample size is not reached with initial seeds. Additional seeds are randomly drawn from non-sampled hidden population members. Defaults to \code{NULL} that does not allow adding seeds
+#' @param arrival_rate numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to 1
+#' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
 #'
 #' @return Population or sample data frame for single study with RDS sample characteristics added
 #'  \describe{
@@ -41,12 +42,20 @@ sample_rds <-
            n_seed, n_coupons,
            target_n_rds,
            add_seeds = NULL,
+           arrival_rate = 1,
            drop_nonsampled = FALSE) {
 
     target_type <- match.arg(target_type)
 
     data %<>%
-      dplyr::mutate(links_list = hiddenmeta:::retrieve_graph(links) %>% as_adj_list())
+      dplyr::mutate(links_list = hiddenmeta:::retrieve_graph(links) %>% igraph::as_adj_list())
+
+    # generate arrival times using rate of 2 per unit of time
+    # consider making rate a lambda parameter later
+    .arrival_time <-
+      stats::rexp(n = length(data$name[dplyr::pull(data, hidden_var) == 1]),
+                 rate = arrival_rate) %>%
+      base::cumsum()
 
     if (length(data$name[dplyr::pull(data, hidden_var) == 1]) <= n_seed) {
       .seeds <- data$name[dplyr::pull(data, hidden_var) == 1]
@@ -65,9 +74,9 @@ sample_rds <-
     # at t=1 only seeds are sampled
     .sampled <-
       dplyr::tibble(
-        name = .seeds, from = -999, t = 1:length(.seeds), wave = 1,
+        name = .seeds, from = -999, t = .arrival_time[1:length(.seeds)], wave = 1,
         !!hidden_var := dplyr::pull(data, hidden_var)[data$name %in% .seeds],
-        own_coupon = as.character(t))
+        own_coupon = as.character(1:length(.seeds)))
 
     for (j in 1:n_coupons) {
       .sampled[paste0("coupon_", j)] <- paste0(.sampled$own_coupon, "-", j)
@@ -108,9 +117,12 @@ sample_rds <-
                      own_coupon = sample(
                        x =
                          unname(
-                           unlist(.sampled[.sampled$name == x, grep("^coupon\\_", names(.sampled))])),
+                           unlist(.sampled[.sampled$name == x,
+                                           grep("^coupon\\_", names(.sampled))])),
                        size = min(length(.available_links), n_coupons)))
                  }
+               } else {
+                 tibble(from = integer(), to = integer(), own_coupon = character())
                }
              }) %>%
       dplyr::bind_rows() %>%
@@ -134,15 +146,59 @@ sample_rds <-
 
     repeat {
 
-      # sample 1 individual according to wave!
+      # if ran out of links add seeds at random from those not sampled
+      # this also allows for adding links if initial seeds have no connections
+      if (target_type == "sample" & (nrow(.eligible) == 0)) {
+        if (is.numeric(add_seeds)) {
+
+          # get nodes that were not sampled yet
+          .nonsampled <-
+            setdiff(data$name[dplyr::pull(data, hidden_var) == 1], .sampled$name)
+
+          if (length(.nonsampled) == 0) {
+            break
+          } else {
+
+            # check whether we have enough remaining seeds to sample according to add_seeds
+            .new_seeds <- min(length(.nonsampled), add_seeds)
+
+            # sample new seeds according to number of additional seeds specified
+            .new_seeds <-
+              sample(
+                x = .nonsampled,
+                size = .new_seeds,
+                prob =
+                  dplyr::pull(data, paste0("p_visible_", hidden_var))[data$name %in% .nonsampled],
+                replace = FALSE)
+
+            .eligible <-
+              dplyr::tibble(
+                from = -999, to = .new_seeds, wave = 1,
+                !!hidden_var := dplyr::pull(data, hidden_var)[data$name %in% .new_seeds],
+                own_coupon = as.character((n_seed+1):(n_seed + length(.new_seeds))))
+
+            # update number of seeds
+            n_seed <- n_seed + length(.new_seeds)
+          }
+        } else {
+          break
+        }
+      }
+
+      # if ran out of links and waves are target - break
+      if (target_type == "waves" & (nrow(.eligible) == 0))
+        break
+
+      # sample 1 individual weighting by wave
+      # (so that earlier waves are more likely to be sampled)
       .new <-
         dplyr::slice_sample(.eligible, n = 1, replace = FALSE, weight_by = 1/wave)
 
-      # move sampled from eligible to sampled
+      # move new sampled from eligible to sampled
       .sampled <-
         dplyr::tibble(name = .new$to,
                       from = .new$from,
-                      t = .t,
+                      t = .arrival_time[.t],
                       wave = .new$wave,
                       !!hidden_var := dplyr::pull(.new, hidden_var),
                       own_coupon = unname(.new$own_coupon)) %>%
@@ -206,47 +262,6 @@ sample_rds <-
 
       # break if reached desired sample size
       if (target_type == "sample" & (nrow(.sampled) >= target_n_rds))
-        break
-      # if ran out of links add seeds at random from those not sampled if allowed
-      if (target_type == "sample" & (nrow(.eligible) == 0)) {
-        if (is.numeric(add_seeds)) {
-
-          # get nodes that were not sampled yet
-          .nonsampled <-
-            setdiff(data$name[dplyr::pull(data, hidden_var) == 1], .sampled$name)
-
-          if (length(.nonsampled) == 0) {
-            break
-          } else {
-
-            # check whether we have enough remaining seeds to sample according to add_seeds
-            .new_seeds <- min(length(.nonsampled), add_seeds)
-
-            # sample new seeds according to number of additional seeds specified
-            .new_seeds <-
-              sample(
-                x = .nonsampled,
-                size = .new_seeds,
-                prob =
-                  dplyr::pull(data, paste0("p_visible_", hidden_var))[data$name %in% .nonsampled],
-                replace = FALSE)
-
-            .eligible <-
-              dplyr::tibble(
-                from = -999, to = .new_seeds, wave = 1,
-                !!hidden_var := dplyr::pull(data, hidden_var)[data$name %in% .new_seeds],
-                own_coupon = as.character((n_seed+1):(n_seed + length(.new_seeds))))
-
-            # update number of seeds
-            n_seed <- n_seed + length(.new_seeds)
-          }
-        } else {
-          break
-        }
-      }
-
-      # if ran out of links and waves are target - breal
-      if (target_type == "waves" & (nrow(.eligible) == 0))
         break
 
       .t <- .t + 1

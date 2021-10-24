@@ -13,6 +13,7 @@ sample_rds(
   n_coupons,
   target_n_rds,
   add_seeds = NULL,
+  arrival_rate = 0.5,
   drop_nonsampled = FALSE
 )
 }
@@ -32,6 +33,8 @@ sample_rds(
 \item{target_n_rds}{numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed}
 
 \item{add_seeds}{numeric indicating how many seeds to add at a time if target sample size is not reached with initial seeds. Additional seeds are randomly drawn from non-sampled hidden population members. Defaults to \code{NULL} that does not allow adding seeds}
+
+\item{arrival_rate}{numeric rate of respondent arrival per unit of time (e.g. per day). Defaults to .5}
 
 \item{drop_nonsampled}{logical indicating whether to drop units that are not sampled. Default is \code{FALSE}}
 }
