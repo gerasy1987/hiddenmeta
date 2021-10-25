@@ -146,8 +146,10 @@
   target_type <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"sample"</span>, <span class='st'>"waves"</span><span class='op'>)</span>,
   <span class='va'>n_seed</span>,
   <span class='va'>n_coupons</span>,
+  n_waves <span class='op'>=</span> <span class='cn'>NULL</span>,
   <span class='va'>target_n_rds</span>,
   add_seeds <span class='op'>=</span> <span class='cn'>NULL</span>,
+  arrival_rate <span class='op'>=</span> <span class='fl'>0.5</span>,
   drop_nonsampled <span class='op'>=</span> <span class='cn'>FALSE</span>
 <span class='op'>)</span></pre>
 
@@ -179,12 +181,20 @@
       <td><p>number of unique coupons given to each study participant</p></td>
     </tr>
     <tr>
+      <th>n_waves</th>
+      <td><p>number of waves allowed. Disregarded in <code>target_type = 'sample'</code></p></td>
+    </tr>
+    <tr>
       <th>target_n_rds</th>
       <td><p>numeric target size of RDS sample. If <code>target_type = "sample"</code>, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If <code>target_type = "waves"</code>, this gives maximum number of waves of recruitment allowed</p></td>
     </tr>
     <tr>
       <th>add_seeds</th>
       <td><p>numeric indicating how many seeds to add at a time if target sample size is not reached with initial seeds. Additional seeds are randomly drawn from non-sampled hidden population members. Defaults to <code>NULL</code> that does not allow adding seeds</p></td>
+    </tr>
+    <tr>
+      <th>arrival_rate</th>
+      <td><p>numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to .5</p></td>
     </tr>
     <tr>
       <th>drop_nonsampled</th>
