@@ -24,6 +24,10 @@ navbar:
         href: https://declaredesign.org/r/randomizr/
       - text: Simple meta-analysis
         href: articles/meta-example.html
+      - text: Reading study parameters
+        href: articles/read-study-params.html
+      - text: Diagnosing study robustness
+        href: articles/diagnose-studies.html
   right:
   - text: Background
     href: articles/background.html

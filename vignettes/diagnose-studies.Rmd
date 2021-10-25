@@ -1,8 +1,8 @@
 ---
-title: "Diagnosing robustness of studies with hiddenmeta"
+title: "Diagnosing study robustness with hiddenmeta"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Diagnosing robustness of studies with hiddenmeta}
+  %\VignetteIndexEntry{Diagnosing study robustness with hiddenmeta}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
