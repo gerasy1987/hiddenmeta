@@ -24,7 +24,9 @@ get_study_est_sspse <- function(data,
                                 prior_mean = .1 * nrow(data),
                                 n_coupons = 3,
                                 total = 2000,
-                                mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+                                mcmc_params = list(interval = 5,
+                                                   burnin = 2000,
+                                                   samplesize = 500),
                                 additional_params = list(),
                                 rds_prefix = "rds",
                                 label = "sspse") {
@@ -35,13 +37,15 @@ get_study_est_sspse <- function(data,
     data %>%
     dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
     dplyr::select(name, hidden_visible_out, starts_with(rds_prefix), total) %>%
-    RDS::as.rds.data.frame(df = .,
-                           id = "name",
-                           recruiter.id = paste0(rds_prefix, "_from"),
-                           network.size = "hidden_visible_out",
-                           time = paste0(rds_prefix, "_t"),
-                           population.size = total,
-                           max.coupons = n_coupons) %>%
+    dplyr::arrange(get(paste0(rds_prefix, "_t"))) %>%
+    dplyr::pull("hidden_visible_out") %>%
+    # RDS::as.rds.data.frame(df = .,
+    #                        id = "name",
+    #                        recruiter.id = paste0(rds_prefix, "_from"),
+    #                        network.size = "hidden_visible_out",
+    #                        time = paste0(rds_prefix, "_t"),
+    #                        # population.size = total,
+    #                        max.coupons = n_coupons) %>%
     {
       do.call(
         .quiet_sspse,
