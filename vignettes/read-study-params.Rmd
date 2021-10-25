@@ -28,6 +28,8 @@ library(hiddenmeta)
 library(DeclareDesign)
 library(knitr)
 
+seed <- 871223
+
 study_diagnosands <-
  declare_diagnosands(
     mean_estimand = mean(estimand),
@@ -57,13 +59,13 @@ study_designs <-
     sheet = "study_params_readable"
   )
 
-save(study_designs, file = "study_designs.rdata")
+saveRDS(study_designs, file = here::here("vignettes/study_designs.rds"))
 
 ```
 
 ```{r read_study_designs, eval=TRUE}
 
-load(file = "study_designs.rdata")
+load(file = here::here("vignettes/study_designs.rdata"))
 
 ```
 
@@ -127,7 +129,7 @@ study <-
                  est_recap_rds_pps #+
                  # est_recap_rds_tls
 
-set.seed(872312)
+set.seed(seed)
 diagnose_design(study, sims = 1, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
@@ -159,7 +161,7 @@ study <-
   study_population + study_sample_tls + study_estimands + 
   est_nsum_tls + est_ht_tls + est_recap_tls
 
-set.seed(872312)
+set.seed(seed)
 diagnose_design(study, sims = 1, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
@@ -189,7 +191,7 @@ study <-
   study_population + study_sample_pps +  study_estimands + 
   est_nsum_pps + est_ht_pps
 
-set.seed(872312)
+set.seed(seed)
 diagnose_design(study, sims = 1, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
@@ -230,7 +232,7 @@ study <-
   study_population + study_sample_rds +  study_sample_pps +  study_estimands + 
   est_sspse + est_nsum_pps + est_ht_pps + est_recap_rds_pps #+ est_chords 
 
-set.seed(872312)
+set.seed(seed)
 diagnose_design(study, sims = 1, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
@@ -271,7 +273,7 @@ study <-
   study_population + study_sample_rds +  study_sample_pps +  study_estimands + 
   est_sspse + est_nsum_pps + est_ht_pps + est_recap_rds_pps # + est_chords
 
-set.seed(872312)
+set.seed(seed)
 diagnose_design(study, sims = 1, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
@@ -312,7 +314,7 @@ study <-
   study_population + study_sample_rds +  study_sample_pps +  study_estimands + 
   est_sspse + est_chords + est_nsum_pps + est_ht_pps + est_recap_rds_pps
 
-set.seed(872312)
+set.seed(seed)
 diagnose_design(study, sims = 1, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
@@ -354,7 +356,7 @@ study <-
   study_population + study_sample_rds +  study_sample_tls + study_estimands + 
   est_sspse + est_nsum_tls + est_ht_tls + est_recap_tls + est_recap_rds_tls + est_chords
 
-set.seed(872312)
+set.seed(seed)
 diagnose_design(study, sims = 1, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
@@ -397,7 +399,7 @@ study <-
   study_population + study_sample_rds +  study_sample_tls + study_estimands + 
   est_sspse + est_nsum_tls + est_ht_tls + est_recap_tls + est_recap_rds_tls #+ est_chords
 
-set.seed(872312)
+set.seed(seed)
 diagnose_design(study, sims = 1, 
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
@@ -435,11 +437,51 @@ multi_estimators <-
 
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
-set.seed(872312)
-diagnose_design(multi_study, sims = 1, 
+# set.seed(seed)
+# diagnose_design(multi_study, sims = 1, 
+#                 diagnosands = study_diagnosands) %>% 
+#   reshape_diagnosis %>% select(-'Design') %>%
+#   kable()
+
+```
+
+### Diagnose the studies with initial parameters
+
+```{r multi_study_diagnose, eval=FALSE}
+
+# multi_simulations <- simulate_design(multi_study, sims = 2)
+
+requireNamespace(c("doParallel", "parallel"))
+doParallel::registerDoParallel(cores = 20)
+
+set.seed(seed)
+multi_simulations <-
+  plyr::llply(
+    as.list(1:100),
+    .fun = function(x) {
+      base::suppressWarnings(
+        DeclareDesign::simulate_design(multi_study, sims = 1) %>%
+          dplyr::mutate(
+            sim_ID = x
+          )
+      )
+    },
+    .parallel = TRUE
+  ) %>%
+  dplyr::bind_rows()
+
+saveRDS(multi_simulations, file = here::here("vignettes/multi_sim.rds"))
+
+
+multi_simulations <- readRDS(here::here("vignettes/multi_sim.rds"))
+
+diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
+  reshape_diagnosis(digits = 2) %>%
+  dplyr::select(-'Design') %>%
+  dplyr::filter(`Mean Estimate` != "NA") %>% 
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+
 
 ```
 
@@ -447,7 +489,7 @@ diagnose_design(multi_study, sims = 1,
 
 ```{r declare_studies, eval=FALSE}
 
-set.seed(872312)
+set.seed(seed)
 
 draw_data(multi_study)
 
