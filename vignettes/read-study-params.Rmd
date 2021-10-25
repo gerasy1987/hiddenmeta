@@ -65,7 +65,7 @@ saveRDS(study_designs, file = here::here("vignettes/study_designs.rds"))
 
 ```{r read_study_designs, eval=TRUE}
 
-load(file = here::here("vignettes/study_designs.rdata"))
+study_designs <- readRDS(file = here::here("vignettes/study_designs.rds"))
 
 ```
 

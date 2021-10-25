@@ -1,0 +1,155 @@
+---
+title: "Diagnose robustness of studies with hiddenmeta"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Reading study parameters with hiddenmeta}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = TRUE,
+  echo = TRUE,
+  fig.path = "vignette-",
+  message = FALSE,
+  warning = FALSE
+)
+
+```
+
+## Load packages
+
+```{r setup}
+
+library(hiddenmeta)
+library(DeclareDesign)
+library(knitr)
+
+seed <- 871223
+
+study_diagnosands <-
+ declare_diagnosands(
+    mean_estimand = mean(estimand),
+    mean_estimate = mean(estimate),
+    sd_estimate = sd(estimate),
+    mean_se = mean(se),
+    bias = mean(estimate - estimand),
+    rmse = sqrt(mean((estimate - estimand) ^ 2))
+  )
+
+googlesheets4::gs4_auth(email = "gerasy@gmail.com")
+
+
+```
+
+## Read study designs
+
+```{r read, eval=FALSE}
+
+param_names <- 
+  c("best", sapply(c("visibility_", "showup_", "prevalence_", "connectedness_"), paste0, 1:2))
+
+multi_designs_list <- list()
+
+for(i in seq_along(param_names)) {
+  multi_designs_list[[param_names[i]]] <- 
+  read_study_params(
+    ss = "1fSHX5-RWFJFdghG7GIapYjEqzIz0M-XVk-sd8hkK9uo",
+    sheet = param_names[i]
+  )
+}
+
+saveRDS(multi_designs_list, file = here::here("vignettes/study_designs_list.rds"))
+
+```
+
+```{r read_study_designs, eval=TRUE}
+
+multi_designs_list <- readRDS(file = here::here("vignettes/study_designs_list.rds"))
+
+```
+
+
+## Simulate studies with varying priors
+
+```{r declare_studies, eval=FALSE}
+
+requireNamespace(c("doParallel", "parallel"))
+  doParallel::registerDoParallel(cores = 40)
+  
+
+for(i in seq_along(param_names)) {
+  
+  cat("Doing simulation", param_names[i])
+  
+  study_designs <- multi_designs_list[[param_names[i]]]
+  
+  multi_population <- 
+    declare_population(handler = get_multi_populations, 
+                       pops_args = sapply(study_designs, 
+                                          function(x) x$pop, 
+                                          simplify = FALSE))
+  
+  multi_sampling <- 
+    declare_sampling(handler = get_multi_samples,
+                     samples_args = sapply(study_designs, 
+                                           function(x) x$samples, 
+                                           simplify = FALSE)) 
+  
+  multi_inquiry <- 
+    declare_inquiry(handler = get_multi_estimands, 
+                    inquiries_args = sapply(study_designs, 
+                                            function(x) x$inquiries, 
+                                            simplify = FALSE)) 
+  
+  multi_estimators <-
+    declare_estimator(handler = get_multi_estimates,
+                      estimators_args = sapply(study_designs, 
+                                               function(x) x$estimators, 
+                                               simplify = FALSE))
+  
+  multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
+  
+  
+  set.seed(seed)
+  multi_simulations <-
+    plyr::llply(
+      as.list(1:100),
+      .fun = function(x) {
+        base::suppressWarnings(
+          DeclareDesign::simulate_design(multi_study, sims = 1) %>%
+            dplyr::mutate(
+              sim_ID = x
+            )
+        )
+      },
+      .parallel = TRUE
+    ) %>%
+    dplyr::bind_rows()
+  
+  saveRDS(multi_simulations, file = here::here(paste0("vignettes/multi_sim_real_",
+                                                      param_names[i], ".rds")))
+  
+}
+
+```
+
+### Diagnose the studies with varying priors
+
+
+```{r multi_study_diagnose, eval=FALSE}
+
+multi_simulations <- readRDS(here::here("vignettes/multi_sim_real.rds"))
+
+diagnose_design(simulations_df = multi_simulations, 
+                diagnosands = study_diagnosands) %>% 
+  reshape_diagnosis(digits = 2) %>%
+  dplyr::select(-'Design') %>%
+  dplyr::filter(`Mean Estimate` != "NA") %>% 
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+
+
+```
