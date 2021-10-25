@@ -3,10 +3,11 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   background: background.html
+  diagnose-studies: diagnose-studies.html
   hiddenmeta-base: hiddenmeta-base.html
   meta-example: meta-example.html
   read-study-params: read-study-params.html
-last_built: 2021-10-25T15:51Z
+last_built: 2021-10-25T23:40Z
 urls:
   reference: https://gsyunyaev.com/hiddenmeta//reference
   article: https://gsyunyaev.com/hiddenmeta//articles
