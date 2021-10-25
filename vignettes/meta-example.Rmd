@@ -164,12 +164,13 @@ meta_simulations <-
   meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] %>%
   dplyr::bind_rows()
 
-saveRDS(meta_simulations, file = "vignettes/meta_sim_simple.rds")
+saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim_simple.rds"))
 ```
 
 ```{r diagnose}
 
-meta_simulations <- readRDS(here::here("vignettes/meta_sim_simple.rds"))
+meta_simulations <- 
+  readRDS(system.file("extdata", "meta_sim_simple.rds", package = "hiddenmeta"))
 
 study_diagnosands <-
   declare_diagnosands(

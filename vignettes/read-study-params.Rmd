@@ -59,13 +59,14 @@ study_designs <-
     sheet = "study_params_readable"
   )
 
-saveRDS(study_designs, file = here::here("vignettes/study_designs.rds"))
+saveRDS(study_designs, file = here::here("inst/extdata/study_designs.rds"))
 
 ```
 
 ```{r read_study_designs, eval=TRUE}
 
-study_designs <- readRDS(file = here::here("vignettes/study_designs.rds"))
+study_designs <- 
+  readRDS(system.file("extdata", "study_designs.rds", package = "hiddenmeta"))
 
 ```
 
@@ -449,7 +450,7 @@ set.seed(seed)
 multi_study_data <- draw_data(multi_study)
 
 
-saveRDS(multi_study_data, file = here::here("vignettes/multi_sim_data_draw.rds"))
+saveRDS(multi_study_data, file = here::here("inst/extdata/multi_sim_data_draw.rds"))
 
 
 ```
@@ -477,13 +478,14 @@ multi_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-saveRDS(multi_simulations, file = here::here("vignettes/multi_sim_real.rds"))
+saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim_real.rds"))
 
 ```
 
 ```{r multi_study_diagnose}
 
-multi_simulations <- readRDS(here::here("vignettes/multi_sim_real.rds"))
+multi_simulations <- 
+  readRDS(system.file("extdata", "multi_sim_real.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
@@ -499,7 +501,8 @@ diagnose_design(simulations_df = multi_simulations,
 
 ```{r required_data}
 
-multi_study_data <- readRDS(here::here("vignettes/multi_sim_data_draw.rds"))
+multi_study_data <- 
+  readRDS(system.file("extdata", "multi_sim_data_draw.rds", package = "hiddenmeta"))
 
 get_required_data(multi_study_data)
 

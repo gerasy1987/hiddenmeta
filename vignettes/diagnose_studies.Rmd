@@ -62,13 +62,14 @@ for(i in seq_along(param_names)) {
   )
 }
 
-saveRDS(multi_designs_list, file = here::here("vignettes/study_designs_list.rds"))
+saveRDS(multi_designs_list, file = here::here("inst/extdata/study_designs_list.rds"))
 
 ```
 
 ```{r read_study_designs, eval=TRUE}
 
-multi_designs_list <- readRDS(file = here::here("vignettes/study_designs_list.rds"))
+multi_designs_list <- 
+  readRDS(system.file("extdata", "study_designs_list.rds", package = "hiddenmeta"))
 
 ```
 
@@ -129,7 +130,7 @@ for(i in seq_along(param_names)) {
     ) %>%
     dplyr::bind_rows()
   
-  saveRDS(multi_simulations, file = here::here(paste0("vignettes/multi_sim_real_",
+  saveRDS(multi_simulations, file = here::here(paste0("inst/extdata/multi_sim_real_",
                                                       param_names[i], ".rds")))
   
 }
@@ -141,14 +142,15 @@ for(i in seq_along(param_names)) {
 
 ```{r multi_study_diagnose, eval=FALSE}
 
-multi_simulations <- readRDS(here::here("vignettes/multi_sim_real.rds"))
-
-diagnose_design(simulations_df = multi_simulations, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>% 
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+# multi_simulations <- 
+#   readRDS(system.file("extdata", "multi_sim_real.rds", package = "hiddenmeta"))
+# 
+# diagnose_design(simulations_df = multi_simulations, 
+#                 diagnosands = study_diagnosands) %>% 
+#   reshape_diagnosis(digits = 2) %>%
+#   dplyr::select(-'Design') %>%
+#   dplyr::filter(`Mean Estimate` != "NA") %>% 
+#   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 
 ```

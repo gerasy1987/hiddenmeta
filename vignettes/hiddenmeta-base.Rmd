@@ -370,7 +370,7 @@ study1_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-saveRDS(study1_simulations, "vignettes/study1_sim.rds")
+saveRDS(study1_simulations, here::here("inst/extdata/study1_sim.rds"))
 
 ```
 
@@ -387,7 +387,8 @@ study_diagnosands <-
     rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
 
-study1_simulations <- readRDS(here::here("vignettes/study1_sim.rds"))
+study1_simulations <- 
+  readRDS(system.file("extdata", "study1_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = study1_simulations, 
                 diagnosands = study_diagnosands) %>% 
@@ -712,13 +713,14 @@ multi_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-saveRDS(multi_simulations, file = "vignettes/multi_sim.rds")
+saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim.rds"))
 
 ```
 
 ```{r multi_study_diagnose, eval = FALSE}
 
-multi_simulations <- readRDS(here::here("vignettes/multi_sim.rds"))
+multi_simulations <- 
+  readRDS(system.file("extdata", "multi_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
@@ -808,13 +810,14 @@ meta_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-saveRDS(meta_simulations, file = "vignettes/meta_sim.rds")
+saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim.rds"))
 
 ```
 
 ```{r meta_study_diagnose, eval = TRUE}
 
-meta_simulations <- readRDS(here::here("vignettes/meta_sim.rds"))
+meta_simulations <- 
+  readRDS(system.file("extdata", "meta_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = meta_simulations, 
                 diagnosands = study_diagnosands) %>% 
