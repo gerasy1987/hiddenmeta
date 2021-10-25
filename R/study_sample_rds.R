@@ -7,10 +7,11 @@
 #' @param hidden_var character string specifying hidden variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "hidden" for the simulations
 #' @param n_seed number of seeds randomly drawn from members of hidden population (group K)
 #' @param n_coupons number of unique coupons given to each study participant
+#' @param n_waves number of waves allowed. Disregarded in \code{target_type = 'sample'}
 #' @param target_type one of 'sample' or 'waves'
 #' @param target_n_rds numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed
 #' @param add_seeds numeric indicating how many seeds to add at a time if target sample size is not reached with initial seeds. Additional seeds are randomly drawn from non-sampled hidden population members. Defaults to \code{NULL} that does not allow adding seeds
-#' @param arrival_rate numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to 1
+#' @param arrival_rate numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to .5
 #' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
 #'
 #' @return Population or sample data frame for single study with RDS sample characteristics added
@@ -39,10 +40,10 @@ sample_rds <-
            sampling_variable = "rds",
            hidden_var,
            target_type = c("sample", "waves"),
-           n_seed, n_coupons,
+           n_seed, n_coupons, n_waves = NULL,
            target_n_rds,
            add_seeds = NULL,
-           arrival_rate = 1,
+           arrival_rate = .5,
            drop_nonsampled = FALSE) {
 
     target_type <- match.arg(target_type)
@@ -210,7 +211,7 @@ sample_rds <-
       .eligible %<>% dplyr::filter(to != .new$to)
 
       # presume that only hidden population links can be sampled
-      if ((target_type == "waves") & (.new$wave == target_n_rds)) {
+      if ((target_type == "waves") & ifelse(is.null(n_waves), FALSE, (.new$wave == n_waves))) {
         .new_available_links <- c()
       } else {
         .new_available_links <-
@@ -260,8 +261,8 @@ sample_rds <-
           dplyr::bind_rows(.eligible, .)
       }
 
-      # break if reached desired sample size
-      if (target_type == "sample" & (nrow(.sampled) >= target_n_rds))
+      # break if reached desired sample size (for waves or sample target)
+      if (nrow(.sampled) >= target_n_rds)
         break
 
       .t <- .t + 1
