@@ -1,10 +1,7 @@
 #' Read Study Designs from Google Spreadsheet
 #'
-#' @param auth_email Character string giving e-mail to use for Google authentication
 #' @param ss Character string giving ID of the Google spreadsheet
 #' @param sheet Character string giving name of the sheet in the Google spreadsheet to read
-#' @param col_spec Character string giving column specifications (in readr-style short codes) for the study parameters spreadsheet
-#' @param priors_map Data frame giving mapping between simple priors and full prior specification
 #'
 #' @return
 #' @export
@@ -16,37 +13,25 @@
 #' @importFrom purrr map_chr
 #' @importFrom plyr mapvalues
 read_study_params <- function(
-  auth_email,
   ss,
-  sheet,
-  col_spec = "ciiiiiiiciciiiiiiiiciiiiiiiciiiccccccccccccccc",
-  priors_map =
-    tibble(
-      label      = c("low", "medium", "high"),
-      int        = c(10,    20,       40),
-      p          = c(0.1,   0.5,      0.9),
-      phigh     = c(0.7,   0.8,      0.9),
-      plow      = c(0.1,   0.2,      0.3)
-    )
+  sheet
 ) {
-
-  googlesheets4::gs4_auth(email = auth_email)
 
   labels <-
     googlesheets4::read_sheet(
       ss = ss,
       sheet = sheet,
       skip = 0,
-      n_max = 3,
+      n_max = 4,
       col_names = FALSE,
       .name_repair = "minimal") %>%
     unname %>%
     t %>%
-    `colnames<-`(c("family", "name", "description")) %>%
+    `colnames<-`(c("family", "type", "name", "description")) %>%
     dplyr::as_tibble() %>%
     dplyr::mutate(
-      prior_type = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][2]),
-      family = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][1]),
+      # prior_type = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][2]),
+      # family = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][1]),
       colnames = dplyr::if_else(is.na(family), name, paste0(family, "_", name))
     )
 
@@ -57,22 +42,10 @@ read_study_params <- function(
       sheet = sheet,
       col_names = FALSE,
       na = "NA",
-      col_types = col_spec,
+      col_types = paste0(labels$type, collapse = ""),
       .name_repair = "minimal",
-      skip = 3) %>%
+      skip = 4) %>%
     `names<-`(dplyr::pull(labels, colnames))
-
-  prior_types <- na.omit(unique(labels$prior_type))
-
-  for (pr in prior_types) {
-    spread_sheet %<>%
-      dplyr::mutate(across(
-        dplyr::all_of(labels$colnames[which(labels$prior_type == pr)]),
-        ~ as.numeric(plyr::mapvalues(., warn_missing = FALSE,
-                                     from = priors_map$label,
-                                     to = priors_map[[pr]]))
-      ))
-  }
 
   .out <-
     sapply(
@@ -162,6 +135,18 @@ read_study_params <- function(
             )
         }
 
+        if (.row$pps == 1) {
+          if (!is.na(.row$pps_cluster)) {
+            .pop$add_groups <-
+              c(
+                .pop$add_groups,
+                cluster_for_pps =
+                  paste0("sample(rep(1:ceiling(n() /", .row$pps_n_per_cluster ,
+                         "), times = ", .row$pps_n_per_cluster, ")[1:n()])")
+              )
+          }
+        }
+
         # add known groups that are not correlated with hidden group membership
         if (.row$prior_known_hidden_interact < .row$observed_k_known) {
 
@@ -192,6 +177,8 @@ read_study_params <- function(
                                       hidden_var = "hidden", # default
                                       n_seed = .row$rds_n_seeds,
                                       n_coupons = .row$rds_n_coupons,
+                                      n_waves =
+                                        if (!is.na(.row$rds_target_n_waves)) .row$rds_target_n_waves,
                                       add_seeds = .row$rds_allow_add_seeds,
                                       target_type = .row$rds_target_type,
                                       target_n_rds = .row$rds_target_n_sample),
@@ -207,10 +194,12 @@ read_study_params <- function(
               if (.row$pps == 1) list(handler = sample_pps,
                                       sampling_variable = "pps",
                                       sampling_frame = NULL,
-                                      strata =
-                                        if (!is.na(.row$pps_strata)) .row$pps_strata,
-                                      cluster =
+                                      n_clusters =
                                         if (!is.na(.row$pps_cluster)) .row$pps_cluster,
+                                      strata =
+                                        if (!is.na(.row$pps_strata)) "strata_for_pps",
+                                      cluster =
+                                        if (!is.na(.row$pps_cluster)) "cluster_for_pps",
                                       target_n_pps = .row$pps_target_n_pps)
           ) %>%
           {.[sapply(., function(x) !is.null(x))]}
@@ -220,29 +209,21 @@ read_study_params <- function(
             rds =
               list(sspse = list(handler = get_study_est_sspse,
                                 prior_mean = .row$prior_hidden_prev * .row$observed_n,
-                                mcmc_params = list(interval = 1,
-                                                   burnin = 500,
-                                                   samplesize = 100),
+                                mcmc_params = list(interval = 5,
+                                                   burnin = 2000,
+                                                   samplesize = 1000),
                                 total = .row$observed_n,
                                 n_coupons = .row$rds_n_coupons,
                                 rds_prefix = "rds",
-                                label = "rds_sspse"),
-                   chords = list(handler = get_study_est_chords,
-                                 type = "mle",
-                                 seed_condition = "rds_from == -999",
-                                 n_boot = 100,
-                                 rds_prefix = "rds",
-                                 label = "rds_chords"),
-                   multiplier =
-                     if (!is.na(.row$multiplier_n_service_use))
-                       list(handler = get_study_est_multiplier,
-                            service_var = "service_use",
-                            total_service =
-                              .row$prior_p_service_use * .row$observed_n * .row$prior_hidden_prev,
-                            seed_condition = "rds_from == -999",
-                            n_boot = 100,
-                            rds_prefix = "rds",
-                            label = "rds_multi")),
+                                additional_params = list(alpha = 5),
+                                label = "rds_sspse")#,
+                   # chords = list(handler = get_study_est_chords,
+                   #               type = "mle",
+                   #               seed_condition = "rds_from == -999",
+                   #               n_boot = 100,
+                   #               rds_prefix = "rds",
+                   #               label = "rds_chords")
+                   ),
             tls =
               list(ht = list(handler = get_study_est_ht,
                              weight_var = "tls_weight",
@@ -290,6 +271,18 @@ read_study_params <- function(
                                  label = "rds_tls_recap"))
           )
 
+          if (!is.na(.row$multiplier_n_service_use)) {
+            .estimators$rds$multiplier <-
+              list(handler = get_study_est_multiplier,
+                   service_var = "service_use",
+                   total_service =
+                     .row$prior_p_service_use * .row$observed_n * .row$prior_hidden_prev,
+                   seed_condition = "rds_from == -999",
+                   n_boot = 100,
+                   rds_prefix = "rds",
+                   label = "rds_multi")
+          }
+
         .estimators <-
           .estimators[sapply(strsplit(names(.estimators), "_"),
                              function(x) all(x %in% names(.samples)))]
@@ -305,4 +298,87 @@ read_study_params <- function(
       })
 
   return(.out)
+}
+
+
+#' Generate Data Frame With Required Data by Study
+#'
+#' @param multi_study_data tibble with two columns, study and population, generate by multi-study declaration
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @import dplyr
+#' @importFrom magrittr `%>%`
+#' @importFrom plyr mapvalues
+get_required_data <- function(multi_study_data) {
+
+  sapply(1:nrow(multi_study_data), function(i) {
+    multi_study_data$population[[i]] %>%
+      dplyr::select(
+        name,
+        starts_with(c("known", "hidden", "rds", "pps", "tls", "total"))) %>%
+      names() %>%
+      gsub(., pattern = "[0-9][0-9]", replacement = "X") %>%
+      gsub(., pattern = "[0-9]", replacement = "X") %>%
+      unique() %>%
+      {`colnames<-`(dplyr::as_tibble(t(c(multi_study_data$study[i],
+                                         rep("X", length(.))))), c("study", .))}
+  }) %>%
+    bind_rows() %>%
+    {
+      `colnames<-`(dplyr::as_tibble(cbind(names(.[,-1]), t(.[,-1]))), c("variable", unlist(.[,1])))
+    } %>%
+    dplyr::mutate(
+      label =
+        plyr::mapvalues(
+          variable,
+          from = c(
+            "name",
+            "knownX", "knownX_visible_out", "knownX_visible_in",
+            "hidden", "hidden_visible_out", "hidden_visible_in",
+
+            "rds", "rds_from", "rds_t", "rds_wave", "rds_hidden",
+            "rds_own_coupon", "rds_coupon_X",
+
+            "pps", "pps_frame", "pps_weight", "pps_cluster", "pps_strata",
+
+            "tls", "tls_loc_present", "tls_loc_sampled",
+            "tls_weight",
+
+            "total", "total_knownX", "total_service_use", "total_loc_X"),
+          to = c("Respondent ID",
+                 "Known group X member",
+                 "Knows how many members of known group X",
+                 "Known to be member of known group X to how many people",
+                 "Hidden group member",
+                 "Knows how many members of hidden group",
+                 "Known to be member of hidden group to how many people",
+                 "RDS: Sampled",
+                 "RDS: ID of recruiting respondent",
+                 "RDS: Time of recruitment",
+                 "RDS: Wave",
+                 "RDS: Member of hidden group",
+                 "RDS: Own coupon ID",
+                 "RDS: ID of recruitment coupon X",
+                 "PPS: Sampled",
+                 "PPS: Sampling frame indicator",
+                 "PPS: Sampling weight",
+                 "PPS: Cluster ID",
+                 "PPS: Strata ID",
+                 "TLS: Sampled",
+                 "TLS: Time-locations that can be visited",
+                 "TLS: Time-location at which sampled",
+                 "TLS: Sampling weight (including probability of sampling location)",
+                 "Total size of population (denominator for prevalence)",
+                 "Total size of known groups",
+                 "Total service use by hidden group members over time",
+                 "Total size of time-locations included in sampling frame"
+                 ))
+    ) %>%
+    dplyr::select(variable, label, everything()) %>%
+    dplyr::filter(variable != label)
+
 }
