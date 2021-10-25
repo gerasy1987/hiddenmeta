@@ -654,6 +654,11 @@ get_study_est_linktrace <- function(
     dplyr::mutate(links_list = hiddenmeta:::retrieve_graph(links)%>% igraph::as_adj_list())
 
 
+  l_0 <- rep(1/n_strata, n_strata)
+  b_0 <- matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata)
+  n_0 <- total
+
+
 }
 
 
