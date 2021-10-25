@@ -28,6 +28,16 @@ library(hiddenmeta)
 library(DeclareDesign)
 library(knitr)
 
+study_diagnosands <-
+ declare_diagnosands(
+    mean_estimand = mean(estimand),
+    mean_estimate = mean(estimate),
+    sd_estimate = sd(estimate),
+    mean_se = mean(se),
+    bias = mean(estimate - estimand),
+    rmse = sqrt(mean((estimate - estimand) ^ 2))
+  )
+
 ```
 
 ## Read study designs
@@ -54,16 +64,6 @@ save(study_designs, file = "study_designs.rdata")
 ```{r read_study_designs, eval=TRUE}
 
 load(file = "study_designs.rdata")
-
-study_diagnosands <-
- declare_diagnosands(
-    mean_estimand = mean(estimand),
-    mean_estimate = mean(estimate),
-    sd_estimate = sd(estimate),
-    mean_se = mean(se),
-    bias = mean(estimate - estimand),
-    rmse = sqrt(mean((estimate - estimand) ^ 2))
-  )
 
 ```
 
@@ -380,8 +380,8 @@ study_estimands <-
 
 est_sspse <- 
   eval(as.call(c(list(declare_estimator), design$estimators$rds$sspse)))
-est_chords <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))
+# est_chords <- 
+#   eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))
 
 est_ht_tls <-
   eval(as.call(c(list(declare_estimator), design$estimators$tls$ht)))
@@ -440,5 +440,15 @@ diagnose_design(multi_study, sims = 1,
                 diagnosands = study_diagnosands) %>% 
   reshape_diagnosis %>% select(-'Design') %>%
   kable()
+
+```
+
+## Generate required data
+
+```{r declare_studies, eval=FALSE}
+
+set.seed(872312)
+
+draw_data(multi_study)
 
 ```
