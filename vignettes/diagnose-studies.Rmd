@@ -40,14 +40,13 @@ study_diagnosands <-
     rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
 
-googlesheets4::gs4_auth(email = "gerasy@gmail.com")
-
-
 ```
 
 ## Read study designs
 
 ```{r read, eval=FALSE}
+
+googlesheets4::gs4_auth(email = "gerasy@gmail.com")
 
 param_names <- 
   c("best", sapply(c("visibility_", "showup_", "prevalence_", "connectedness_"), paste0, 1:2))
