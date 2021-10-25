@@ -1,8 +1,8 @@
 ---
-title: "Diagnose robustness of studies with hiddenmeta"
+title: "Diagnosing robustness of studies with hiddenmeta"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Reading study parameters with hiddenmeta}
+  %\VignetteIndexEntry{Diagnosing robustness of studies with hiddenmeta}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -78,7 +78,7 @@ multi_designs_list <- readRDS(file = here::here("vignettes/study_designs_list.rd
 ```{r declare_studies, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
-  doParallel::registerDoParallel(cores = 40)
+doParallel::registerDoParallel(cores = 7)
   
 
 for(i in seq_along(param_names)) {
@@ -113,11 +113,10 @@ for(i in seq_along(param_names)) {
   
   multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
   
-  
   set.seed(seed)
   multi_simulations <-
     plyr::llply(
-      as.list(1:100),
+      as.list(1:7),
       .fun = function(x) {
         base::suppressWarnings(
           DeclareDesign::simulate_design(multi_study, sims = 1) %>%

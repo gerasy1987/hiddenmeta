@@ -116,8 +116,7 @@ read_study_params <- function(
           .pop$add_groups <-
             c(
               .pop$add_groups,
-              service_use =
-                paste0("rbinom(n(), 1, ", .row$prior_p_service_use, ")")
+              service_use = .row$prior_p_service_use
             )
         }
 
@@ -131,7 +130,7 @@ read_study_params <- function(
               paste0("purrr::map_df(hidden, ~ sapply( `names<-`(rep(",
                      .row$prior_p_showup, ", times = ",
                      .row$tls_n_time_locations, "), paste0('loc_', 1:",
-                     .row$tls_n_time_locations, ")), function(add) rbinom(length(.x), 1, 0.05 + .x * add)))")
+                     .row$tls_n_time_locations, ")), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))")
             )
         }
 
