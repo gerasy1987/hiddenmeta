@@ -188,7 +188,7 @@
                             rds_prefix <span class="op">=</span> <span class="st">"rds"</span>, 
                             label <span class="op">=</span> <span class="st">"rds_sspse"</span><span class="op">)</span>,
                chords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_chords</span>, 
-                             type <span class="op">=</span> <span class="st">"mle"</span>,
+                             type <span class="op">=</span> <span class="st">"jeffreys"</span>,
                              seed_condition <span class="op">=</span> <span class="st">"rds_from == -999"</span>,
                              n_boot <span class="op">=</span> <span class="fl">100</span>,
                              rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,
@@ -560,8 +560,8 @@
 </tr>
 <tr class="even">
 <td align="left">hidden_size_rds_chords</td>
-<td align="right">44.00</td>
-<td align="right">24.03</td>
+<td align="right">71.00</td>
+<td align="right">11.67</td>
 <td align="left">hidden_size</td>
 </tr>
 <tr class="odd">
@@ -1124,6 +1124,7 @@
                    hidden_var <span class="op">=</span> <span class="st">"hidden"</span>,
                    n_seed <span class="op">=</span> <span class="fl">100</span>,
                    n_coupons <span class="op">=</span> <span class="fl">3</span>,
+                   n_waves <span class="op">=</span> <span class="fl">2</span>,
                    target_type <span class="op">=</span> <span class="st">"waves"</span>,
                    target_n_rds <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,
         tls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">sample_tls</span>,
@@ -1154,7 +1155,7 @@
                             total <span class="op">=</span> <span class="fl">5000</span>,
                             rds_prefix <span class="op">=</span> <span class="st">"rds"</span><span class="op">)</span>,
                chords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_chords</span>, 
-                             type <span class="op">=</span> <span class="st">"mle"</span>,
+                             type <span class="op">=</span> <span class="st">"jeffreys"</span>,
                              label <span class="op">=</span> <span class="st">"rds_chords"</span>,
                              seed_condition <span class="op">=</span> <span class="st">"rds_from == -999"</span>,
                              n_boot <span class="op">=</span> <span class="fl">100</span>,
@@ -1273,7 +1274,7 @@
                             rds_prefix <span class="op">=</span> <span class="st">"rds"</span>, 
                             label <span class="op">=</span> <span class="st">"rds_sspse"</span><span class="op">)</span>,
                chords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_study_est_chords</span>, 
-                             type <span class="op">=</span> <span class="st">"mle"</span>,
+                             type <span class="op">=</span> <span class="st">"jeffreys"</span>,
                              seed_condition <span class="op">=</span> <span class="st">"rds_from == -999"</span>,
                              n_boot <span class="op">=</span> <span class="fl">100</span>,
                              rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,
@@ -1336,25 +1337,25 @@
 <span class="va">multi_population</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_population.html">declare_population</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_populations</span>, 
                      pops_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>study_1 <span class="op">=</span> <span class="va">study_1</span><span class="op">$</span><span class="va">pop</span>,
-                                      study_2 <span class="op">=</span> <span class="va">study_2</span><span class="op">$</span><span class="va">pop</span>,
+                                      <span class="co"># study_2 = study_2$pop,</span>
                                       study_3 <span class="op">=</span> <span class="va">study_3</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">multi_sampling</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_sampling.html">declare_sampling</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_samples</span>, 
                    samples_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>study_1 <span class="op">=</span> <span class="va">study_1</span><span class="op">$</span><span class="va">sample</span>,
-                                       study_2 <span class="op">=</span> <span class="va">study_2</span><span class="op">$</span><span class="va">sample</span>,
+                                       <span class="co"># study_2 = study_2$sample,</span>
                                        study_3 <span class="op">=</span> <span class="va">study_3</span><span class="op">$</span><span class="va">sample</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="va">multi_inquiry</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_inquiry.html">declare_inquiry</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_estimands</span>, 
                   inquiries_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>study_1 <span class="op">=</span> <span class="va">study_1</span><span class="op">$</span><span class="va">inquiries</span>,
-                                        study_2 <span class="op">=</span> <span class="va">study_2</span><span class="op">$</span><span class="va">inquiries</span>,
+                                        <span class="co"># study_2 = study_2$inquiries,</span>
                                         study_3 <span class="op">=</span> <span class="va">study_3</span><span class="op">$</span><span class="va">inquiries</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="va">multi_estimators</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_estimator.html">declare_estimator</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_estimates</span>,
                     estimators_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>study_1 <span class="op">=</span> <span class="va">study_1</span><span class="op">$</span><span class="va">estimators</span>,
-                                           study_2 <span class="op">=</span> <span class="va">study_2</span><span class="op">$</span><span class="va">estimators</span>,
+                                           <span class="co"># study_2 = study_2$estimators,</span>
                                            study_3 <span class="op">=</span> <span class="va">study_3</span><span class="op">$</span><span class="va">estimators</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">multi_study</span> <span class="op">&lt;-</span> <span class="va">multi_population</span> <span class="op">+</span> <span class="va">multi_sampling</span> <span class="op">+</span> <span class="va">multi_inquiry</span> <span class="op">+</span> <span class="va">multi_estimators</span>
@@ -1374,7 +1375,7 @@
 <span class="co"># multi_simulations &lt;- simulate_design(multi_study, sims = 2)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html">requireNamespace</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"doParallel"</span>, <span class="st">"parallel"</span><span class="op">)</span><span class="op">)</span>
-<span class="fu">doParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html">registerDoParallel</a></span><span class="op">(</span>cores <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>
+<span class="fu">doParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html">registerDoParallel</a></span><span class="op">(</span>cores <span class="op">=</span> <span class="fl">40</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
 <span class="va">multi_simulations</span> <span class="op">&lt;-</span>
