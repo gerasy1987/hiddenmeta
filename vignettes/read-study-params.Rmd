@@ -437,19 +437,24 @@ multi_estimators <-
 
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
-# set.seed(seed)
-# diagnose_design(multi_study, sims = 1, 
-#                 diagnosands = study_diagnosands) %>% 
-#   reshape_diagnosis %>% select(-'Design') %>%
-#   kable()
+set.seed(seed)
+diagnose_design(multi_study, sims = 1,
+                diagnosands = study_diagnosands) %>%
+  reshape_diagnosis %>% select(-'Design') %>%
+  kable()
+
+set.seed(seed)
+multi_study_data <- draw_data(multi_study)
+
+
+saveRDS(multi_study_data, file = here::here("vignettes/multi_sim_data_draw.rds"))
+
 
 ```
 
 ### Diagnose the studies with initial parameters
 
-```{r multi_study_diagnose, eval=FALSE}
-
-# multi_simulations <- simulate_design(multi_study, sims = 2)
+```{r multi_study_sim, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
 doParallel::registerDoParallel(cores = 20)
@@ -470,10 +475,13 @@ multi_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-saveRDS(multi_simulations, file = here::here("vignettes/multi_sim.rds"))
+saveRDS(multi_simulations, file = here::here("vignettes/multi_sim_real.rds"))
 
+```
 
-multi_simulations <- readRDS(here::here("vignettes/multi_sim.rds"))
+```{r multi_study_diagnose}
+
+multi_simulations <- readRDS(here::here("vignettes/multi_sim_real.rds"))
 
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
@@ -487,10 +495,10 @@ diagnose_design(simulations_df = multi_simulations,
 
 ## Generate required data
 
-```{r declare_studies, eval=FALSE}
+```{r required_data}
 
-set.seed(seed)
+multi_study_data <- readRDS(here::here("vignettes/multi_sim_data_draw.rds"))
 
-draw_data(multi_study)
+get_required_data(multi_study_data)
 
 ```

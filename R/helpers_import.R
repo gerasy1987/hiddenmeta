@@ -330,14 +330,19 @@ get_required_data <- function(multi_study_data) {
       gsub(., pattern = "[0-9][0-9]", replacement = "X") %>%
       gsub(., pattern = "[0-9]", replacement = "X") %>%
       unique() %>%
-      {`colnames<-`(dplyr::as_tibble(t(c(multi_study_data$study[i],
-                                         rep("X", length(.))))), c("study", .))}
+      {
+        `colnames<-`(dplyr::as_tibble(t(c(multi_study_data$study[i],
+                                          rep("X", length(.)))), .name_repair = "unique"),
+                     c("study", .))
+      }
   }) %>%
     bind_rows() %>%
     {
-      `colnames<-`(dplyr::as_tibble(cbind(names(.[,-1]), t(.[,-1]))), c("variable", unlist(.[,1])))
+      `colnames<-`(dplyr::as_tibble(cbind(names(.[,-1]), t(.[,-1])), .name_repair = "unique"),
+                   c("variable", unlist(.[,1])))
     } %>%
     dplyr::mutate(
+      across(all_of(multi_study_data$study), ~ ifelse(is.na(.), "", .)),
       label =
         plyr::mapvalues(
           variable,

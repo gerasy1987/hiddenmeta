@@ -715,7 +715,7 @@ saveRDS(multi_simulations, file = "vignettes/multi_sim.rds")
 
 ```
 
-```{r multi_study_diagnose, eval = TRUE}
+```{r multi_study_diagnose, eval = FALSE}
 
 multi_simulations <- readRDS(here::here("vignettes/multi_sim.rds"))
 
