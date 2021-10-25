@@ -115,9 +115,10 @@
 </ul>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
+<span class="fu">googlesheets4</span><span class="fu">::</span><span class="fu"><a href="https://googlesheets4.tidyverse.org/reference/gs4_auth.html">gs4_auth</a></span><span class="op">(</span>email <span class="op">=</span> <span class="st">"gerasy@gmail.com"</span><span class="op">)</span>
+
 <span class="va">study_designs</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="../reference/read_study_params.html">read_study_params</a></span><span class="op">(</span>
-    auth_email <span class="op">=</span> <span class="st">"gerasy@gmail.com"</span>,
     ss <span class="op">=</span> <span class="st">"1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y"</span>,
     sheet <span class="op">=</span> <span class="st">"study_params_readable"</span>
   <span class="op">)</span>
@@ -125,47 +126,368 @@
 <span class="fu"><a href="https://rdrr.io/r/base/save.html">save</a></span><span class="op">(</span><span class="va">study_designs</span>, file <span class="op">=</span> <span class="st">"study_designs.rdata"</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
-<span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"study_designs.rdata"</span><span class="op">)</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/load.html">load</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"study_designs.rdata"</span><span class="op">)</span>
+
+<span class="va">study_diagnosands</span> <span class="op">&lt;-</span>
+ <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_diagnosands.html">declare_diagnosands</a></span><span class="op">(</span>
+    mean_estimand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">estimand</span><span class="op">)</span>,
+    mean_estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span>,
+    sd_estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span>,
+    mean_se <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">se</span><span class="op">)</span>,
+    bias <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">estimate</span> <span class="op">-</span> <span class="va">estimand</span><span class="op">)</span>,
+    rmse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">estimate</span> <span class="op">-</span> <span class="va">estimand</span><span class="op">)</span> <span class="op">^</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>
+  <span class="op">)</span></code></pre></div>
 </div>
-<div id="declare-multiple-studies" class="section level2">
+<div id="declare-studies-separately" class="section level2">
 <h2 class="hasAnchor">
-<a href="#declare-multiple-studies" class="anchor"></a>Declare multiple studies</h2>
+<a href="#declare-studies-separately" class="anchor"></a>Declare studies separately</h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">design</span> <span class="op">&lt;-</span> <span class="va">study_designs</span><span class="op">$</span><span class="va">ff_brazil</span>
+
+<span class="va">study_population</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_population</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_sample_rds</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">rds</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_sample_pps</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">pps</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="co"># study_sample_tls &lt;- </span>
+<span class="co">#   eval(as.call(c(list(declare_sampling), design$samples$tls)))</span>
+
+<span class="va">study_estimands</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_inquiry</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">inquiries</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_sspse</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">sspse</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_chords</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">chords</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_multi</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">multiplier</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_ht_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">ht</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_nsum_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">nsum</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_recap_rds_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds_pps</span><span class="op">$</span><span class="va">recap1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="co"># est_ht_tls &lt;- </span>
+<span class="co">#   eval(as.call(c(list(declare_estimator), design$estimators$tls$ht)))</span>
+<span class="co"># est_nsum_tls &lt;- </span>
+<span class="co">#   eval(as.call(c(list(declare_estimator), design$estimators$tls$nsum)))</span>
+<span class="co"># est_recap_tls &lt;- </span>
+<span class="co">#   eval(as.call(c(list(declare_estimator), design$estimators$tls$recap)))</span>
+
+<span class="va">study</span> <span class="op">&lt;-</span> 
+  <span class="va">study_population</span> <span class="op">+</span>
+                 <span class="va">study_sample_rds</span> <span class="op">+</span> 
+                 <span class="va">study_sample_pps</span> <span class="op">+</span> 
+                 <span class="co"># study_sample_tls +</span>
+                 <span class="va">study_estimands</span> <span class="op">+</span>
+                 <span class="va">est_sspse</span> <span class="op">+</span>
+                 <span class="va">est_chords</span> <span class="op">+</span>
+                 <span class="va">est_multi</span> <span class="op">+</span>
+                 <span class="va">est_nsum_pps</span> <span class="op">+</span>
+                 <span class="va">est_ht_pps</span> <span class="op">+</span>
+                 <span class="co"># est_nsum_tls + </span>
+                 <span class="co"># est_ht_tls + </span>
+                 <span class="co"># est_recap_tls +</span>
+                 <span class="va">est_recap_rds_pps</span> <span class="co">#+</span>
+                 <span class="co"># est_recap_rds_tls</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/diagnose_design.html">diagnose_design</a></span><span class="op">(</span><span class="va">study</span>, sims <span class="op">=</span> <span class="fl">1</span>, 
+                diagnosands <span class="op">=</span> <span class="va">study_diagnosands</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="va">reshape_diagnosis</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="st">'Design'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">design</span> <span class="op">&lt;-</span> <span class="va">study_designs</span><span class="op">$</span><span class="va">umass_tunisia</span>
+
+<span class="va">study_population</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_population</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_sample_tls</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">tls</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_estimands</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_inquiry</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">inquiries</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_ht_tls</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">tls</span><span class="op">$</span><span class="va">ht</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_nsum_tls</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">tls</span><span class="op">$</span><span class="va">nsum</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_recap_tls</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">tls</span><span class="op">$</span><span class="va">recap</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study</span> <span class="op">&lt;-</span> 
+  <span class="va">study_population</span> <span class="op">+</span> <span class="va">study_sample_tls</span> <span class="op">+</span> <span class="va">study_estimands</span> <span class="op">+</span> 
+  <span class="va">est_nsum_tls</span> <span class="op">+</span> <span class="va">est_ht_tls</span> <span class="op">+</span> <span class="va">est_recap_tls</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/diagnose_design.html">diagnose_design</a></span><span class="op">(</span><span class="va">study</span>, sims <span class="op">=</span> <span class="fl">1</span>, 
+                diagnosands <span class="op">=</span> <span class="va">study_diagnosands</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="va">reshape_diagnosis</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="st">'Design'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">design</span> <span class="op">&lt;-</span> <span class="va">study_designs</span><span class="op">$</span><span class="va">stanford_brazil</span>
+
+<span class="va">study_population</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_population</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_sample_pps</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">pps</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_estimands</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_inquiry</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">inquiries</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_ht_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">ht</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_nsum_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">nsum</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study</span> <span class="op">&lt;-</span> 
+  <span class="va">study_population</span> <span class="op">+</span> <span class="va">study_sample_pps</span> <span class="op">+</span>  <span class="va">study_estimands</span> <span class="op">+</span> 
+  <span class="va">est_nsum_pps</span> <span class="op">+</span> <span class="va">est_ht_pps</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/diagnose_design.html">diagnose_design</a></span><span class="op">(</span><span class="va">study</span>, sims <span class="op">=</span> <span class="fl">1</span>, 
+                diagnosands <span class="op">=</span> <span class="va">study_diagnosands</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="va">reshape_diagnosis</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="st">'Design'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">design</span> <span class="op">&lt;-</span> <span class="va">study_designs</span><span class="op">$</span><span class="va">jhu_pakistan</span>
+
+<span class="va">study_population</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_population</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_sample_rds</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">rds</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">study_sample_pps</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">pps</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+
+<span class="va">study_estimands</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_inquiry</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">inquiries</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_sspse</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">sspse</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="co"># est_chords &lt;-</span>
+<span class="co">#   eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))</span>
+
+<span class="va">est_ht_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">ht</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_nsum_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">nsum</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_recap_rds_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds_pps</span><span class="op">$</span><span class="va">recap1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study</span> <span class="op">&lt;-</span> 
+  <span class="va">study_population</span> <span class="op">+</span> <span class="va">study_sample_rds</span> <span class="op">+</span>  <span class="va">study_sample_pps</span> <span class="op">+</span>  <span class="va">study_estimands</span> <span class="op">+</span> 
+  <span class="va">est_sspse</span> <span class="op">+</span> <span class="va">est_nsum_pps</span> <span class="op">+</span> <span class="va">est_ht_pps</span> <span class="op">+</span> <span class="va">est_recap_rds_pps</span> <span class="co">#+ est_chords </span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/diagnose_design.html">diagnose_design</a></span><span class="op">(</span><span class="va">study</span>, sims <span class="op">=</span> <span class="fl">1</span>, 
+                diagnosands <span class="op">=</span> <span class="va">study_diagnosands</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="va">reshape_diagnosis</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="st">'Design'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">design</span> <span class="op">&lt;-</span> <span class="va">study_designs</span><span class="op">$</span><span class="va">johnjay_costarica</span>
+
+<span class="va">study_population</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_population</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_sample_rds</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">rds</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">study_sample_pps</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">pps</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+
+<span class="va">study_estimands</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_inquiry</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">inquiries</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_sspse</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">sspse</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="co"># est_chords &lt;- </span>
+<span class="co">#   eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))</span>
+
+<span class="va">est_ht_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">ht</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_nsum_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">nsum</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_recap_rds_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds_pps</span><span class="op">$</span><span class="va">recap1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study</span> <span class="op">&lt;-</span> 
+  <span class="va">study_population</span> <span class="op">+</span> <span class="va">study_sample_rds</span> <span class="op">+</span>  <span class="va">study_sample_pps</span> <span class="op">+</span>  <span class="va">study_estimands</span> <span class="op">+</span> 
+  <span class="va">est_sspse</span> <span class="op">+</span> <span class="va">est_nsum_pps</span> <span class="op">+</span> <span class="va">est_ht_pps</span> <span class="op">+</span> <span class="va">est_recap_rds_pps</span> <span class="co"># + est_chords</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/diagnose_design.html">diagnose_design</a></span><span class="op">(</span><span class="va">study</span>, sims <span class="op">=</span> <span class="fl">1</span>, 
+                diagnosands <span class="op">=</span> <span class="va">study_diagnosands</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="va">reshape_diagnosis</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="st">'Design'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">design</span> <span class="op">&lt;-</span> <span class="va">study_designs</span><span class="op">$</span><span class="va">johnjay_tanzania</span>
+
+<span class="va">study_population</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_population</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_sample_rds</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">rds</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">study_sample_pps</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">pps</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+
+<span class="va">study_estimands</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_inquiry</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">inquiries</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_sspse</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">sspse</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_chords</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">chords</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_ht_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">ht</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_nsum_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">pps</span><span class="op">$</span><span class="va">nsum</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_recap_rds_pps</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds_pps</span><span class="op">$</span><span class="va">recap1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study</span> <span class="op">&lt;-</span> 
+  <span class="va">study_population</span> <span class="op">+</span> <span class="va">study_sample_rds</span> <span class="op">+</span>  <span class="va">study_sample_pps</span> <span class="op">+</span>  <span class="va">study_estimands</span> <span class="op">+</span> 
+  <span class="va">est_sspse</span> <span class="op">+</span> <span class="va">est_chords</span> <span class="op">+</span> <span class="va">est_nsum_pps</span> <span class="op">+</span> <span class="va">est_ht_pps</span> <span class="op">+</span> <span class="va">est_recap_rds_pps</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/diagnose_design.html">diagnose_design</a></span><span class="op">(</span><span class="va">study</span>, sims <span class="op">=</span> <span class="fl">1</span>, 
+                diagnosands <span class="op">=</span> <span class="va">study_diagnosands</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="va">reshape_diagnosis</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="st">'Design'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">design</span> <span class="op">&lt;-</span> <span class="va">study_designs</span><span class="op">$</span><span class="va">norc_marocco</span>
+
+<span class="va">study_population</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_population</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_sample_rds</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">rds</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">study_sample_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">tls</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_estimands</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_inquiry</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">inquiries</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_sspse</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">sspse</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_chords</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">chords</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_ht_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">tls</span><span class="op">$</span><span class="va">ht</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_nsum_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">tls</span><span class="op">$</span><span class="va">nsum</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_recap_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">tls</span><span class="op">$</span><span class="va">recap</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_recap_rds_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds_tls</span><span class="op">$</span><span class="va">recap2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study</span> <span class="op">&lt;-</span> 
+  <span class="va">study_population</span> <span class="op">+</span> <span class="va">study_sample_rds</span> <span class="op">+</span>  <span class="va">study_sample_tls</span> <span class="op">+</span> <span class="va">study_estimands</span> <span class="op">+</span> 
+  <span class="va">est_sspse</span> <span class="op">+</span> <span class="va">est_nsum_tls</span> <span class="op">+</span> <span class="va">est_ht_tls</span> <span class="op">+</span> <span class="va">est_recap_tls</span> <span class="op">+</span> <span class="va">est_recap_rds_tls</span> <span class="op">+</span> <span class="va">est_chords</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/diagnose_design.html">diagnose_design</a></span><span class="op">(</span><span class="va">study</span>, sims <span class="op">=</span> <span class="fl">1</span>, 
+                diagnosands <span class="op">=</span> <span class="va">study_diagnosands</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="va">reshape_diagnosis</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="st">'Design'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">design</span> <span class="op">&lt;-</span> <span class="va">study_designs</span><span class="op">$</span><span class="va">rti_usa</span>
+
+<span class="va">study_population</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_population</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_sample_rds</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">rds</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">study_sample_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_sampling</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">tls</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study_estimands</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_inquiry</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">inquiries</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_sspse</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">sspse</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_chords</span> <span class="op">&lt;-</span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds</span><span class="op">$</span><span class="va">chords</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_ht_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">tls</span><span class="op">$</span><span class="va">ht</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_nsum_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">tls</span><span class="op">$</span><span class="va">nsum</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">est_recap_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">tls</span><span class="op">$</span><span class="va">recap</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">est_recap_rds_tls</span> <span class="op">&lt;-</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_estimator</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">estimators</span><span class="op">$</span><span class="va">rds_tls</span><span class="op">$</span><span class="va">recap2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">study</span> <span class="op">&lt;-</span> 
+  <span class="va">study_population</span> <span class="op">+</span> <span class="va">study_sample_rds</span> <span class="op">+</span>  <span class="va">study_sample_tls</span> <span class="op">+</span> <span class="va">study_estimands</span> <span class="op">+</span> 
+  <span class="va">est_sspse</span> <span class="op">+</span> <span class="va">est_nsum_tls</span> <span class="op">+</span> <span class="va">est_ht_tls</span> <span class="op">+</span> <span class="va">est_recap_tls</span> <span class="op">+</span> <span class="va">est_recap_rds_tls</span> <span class="co">#+ est_chords</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/diagnose_design.html">diagnose_design</a></span><span class="op">(</span><span class="va">study</span>, sims <span class="op">=</span> <span class="fl">1</span>, 
+                diagnosands <span class="op">=</span> <span class="va">study_diagnosands</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="va">reshape_diagnosis</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="st">'Design'</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="declare-all-studies-together" class="section level2">
+<h2 class="hasAnchor">
+<a href="#declare-all-studies-together" class="anchor"></a>Declare all studies together</h2>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="va">multi_population</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_population.html">declare_population</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_populations</span>, 
-                     pops_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, 
+                     pops_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">pop</span>, 
                                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">multi_sampling</span> <span class="op">&lt;-</span> 
-  <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_sampling.html">declare_sampling</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_samples</span>, 
-                   samples_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, 
+  <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_sampling.html">declare_sampling</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_samples</span>,
+                   samples_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">samples</span>, 
                                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="va">multi_inquiry</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_inquiry.html">declare_inquiry</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_estimands</span>, 
-                  inquiries_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, 
+                  inquiries_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span>, 
                                         <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">inquiries</span>, 
                                         simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="va">multi_estimators</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/declare_estimator.html">declare_estimator</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="va">get_multi_estimates</span>,
-                    estimators_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, 
+                    estimators_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">study_designs</span>, 
                                              <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">estimators</span>, 
                                              simplify <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">multi_study</span> <span class="op">&lt;-</span> <span class="va">multi_population</span> <span class="op">+</span> <span class="va">multi_sampling</span> <span class="op">+</span> <span class="va">multi_inquiry</span> <span class="op">+</span> <span class="va">multi_estimators</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
-<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/draw_functions.html">draw_data</a></span><span class="op">(</span><span class="va">multi_study</span><span class="op">)</span>
-
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">872312</span><span class="op">)</span>
-<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/draw_functions.html">draw_estimands</a></span><span class="op">(</span><span class="va">multi_study</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span>
-
-<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/draw_functions.html">draw_estimates</a></span><span class="op">(</span><span class="va">multi_study</span><span class="op">)</span> <span class="op">%&gt;%</span>
+<span class="fu"><a href="https://declaredesign.org/r/declaredesign/reference/diagnose_design.html">diagnose_design</a></span><span class="op">(</span><span class="va">multi_study</span>, sims <span class="op">=</span> <span class="fl">1</span>, 
+                diagnosands <span class="op">=</span> <span class="va">study_diagnosands</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="va">reshape_diagnosis</span> <span class="op">%&gt;%</span> <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="st">'Design'</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 </div>
   </div>
