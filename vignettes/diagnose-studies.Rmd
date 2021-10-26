@@ -78,8 +78,8 @@ multi_designs_list <-
 ```{r declare_studies, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
-doParallel::registerDoParallel(cores = 40)
-  
+doParallel::registerDoParallel(cores = 50)
+
 
 for (i in seq_along(param_names)) {
   
@@ -116,7 +116,7 @@ for (i in seq_along(param_names)) {
   set.seed(seed)
   multi_simulations <-
     plyr::llply(
-      as.list(1:2),
+      as.list(1:100),
       .fun = function(x) {
         base::suppressWarnings(
           DeclareDesign::simulate_design(multi_study, sims = 1) %>%
