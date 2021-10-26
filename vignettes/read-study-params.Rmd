@@ -465,7 +465,7 @@ multi_simulations <-
   plyr::llply(
     as.list(1:100),
     .fun = function(x) {
-      base::suppressWarnings(
+      try(
         DeclareDesign::simulate_design(multi_study, sims = 1) %>%
           dplyr::mutate(
             sim_ID = x
@@ -474,6 +474,7 @@ multi_simulations <-
     },
     .parallel = TRUE
   ) %>%
+  { .[sapply(., function(x) class(x) != "try-error")] } %>% 
   dplyr::bind_rows()
 
 saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim_real.rds"))

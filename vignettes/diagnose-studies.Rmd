@@ -62,7 +62,9 @@ for (i in seq_along(param_names)) {
   )
 }
 
-saveRDS(multi_designs_list_params, file = here::here("inst/extdata/study_designs_list_priors.rds"))
+saveRDS(multi_designs_list_params, 
+        file = here::here("inst/extdata/study_designs_list_priors.rds"))
+saveRDS(param_names, file = here::here("inst/extdata/sim_param_names.rds"))
 
 # design features
 design_feature_names <- 
@@ -78,16 +80,22 @@ for (i in seq_along(design_feature_names)) {
   )
 }
 
-saveRDS(multi_designs_list_features, file = here::here("inst/extdata/study_designs_list_features.rds"))
+saveRDS(multi_designs_list_features, 
+        file = here::here("inst/extdata/study_designs_list_features.rds"))
+saveRDS(design_feature_names, file = here::here("inst/extdata/sim_design_feature_names.rds"))
 
 
 ```
 
 ```{r, eval=TRUE}
 
+param_names <- 
+  readRDS(system.file("extdata", "sim_param_names.rds", package = "hiddenmeta"))
 multi_designs_list_params <- 
   readRDS(system.file("extdata", "study_designs_list_priors.rds", package = "hiddenmeta"))
 
+design_feature_names <- 
+  readRDS(system.file("extdata", "sim_design_feature_names.rds", package = "hiddenmeta"))
 multi_designs_list_features <- 
   readRDS(system.file("extdata", "study_designs_list_features.rds", package = "hiddenmeta"))
 
@@ -139,7 +147,7 @@ for (i in seq_along(param_names)) {
     plyr::llply(
       as.list(1:100),
       .fun = function(x) {
-        base::suppressWarnings(
+        try(
           DeclareDesign::simulate_design(multi_study, sims = 1) %>%
             dplyr::mutate(
               sim_ID = x
@@ -148,6 +156,7 @@ for (i in seq_along(param_names)) {
       },
       .parallel = TRUE
     ) %>%
+    { .[sapply(., function(x) class(x) != "try-error")] } %>% 
     dplyr::bind_rows()
   
   saveRDS(multi_simulations, file = here::here(paste0("inst/extdata/multi_sim_real_",
@@ -203,7 +212,7 @@ for (i in seq_along(design_feature_names)) {
     plyr::llply(
       as.list(1:100),
       .fun = function(x) {
-        base::suppressWarnings(
+        try(
           DeclareDesign::simulate_design(multi_study, sims = 1) %>%
             dplyr::mutate(
               sim_ID = x
@@ -212,6 +221,7 @@ for (i in seq_along(design_feature_names)) {
       },
       .parallel = TRUE
     ) %>%
+    { .[sapply(., function(x) class(x) != "try-error")] } %>% 
     dplyr::bind_rows()
   
   saveRDS(multi_simulations, file = here::here(paste0("inst/extdata/multi_sim_real_",
@@ -227,15 +237,17 @@ for (i in seq_along(design_feature_names)) {
 
 ```{r multi_study_diagnose, eval=FALSE}
 
-# multi_simulations <- 
-#   readRDS(system.file("extdata", "multi_sim_real.rds", package = "hiddenmeta"))
-# 
-# diagnose_design(simulations_df = multi_simulations, 
-#                 diagnosands = study_diagnosands) %>% 
-#   reshape_diagnosis(digits = 2) %>%
-#   dplyr::select(-'Design') %>%
-#   dplyr::filter(`Mean Estimate` != "NA") %>% 
-#   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+multi_simulations <-
+  readRDS(system.file("extdata", 
+                      paste0("multi_sim_real_", param_names[1], ".rds"), 
+                      package = "hiddenmeta"))
+
+diagnose_design(simulations_df = multi_simulations,
+                diagnosands = study_diagnosands) %>%
+  reshape_diagnosis(digits = 2) %>%
+  dplyr::select(-'Design') %>%
+  dplyr::filter(`Mean Estimate` != "NA") %>%
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 
 ```
