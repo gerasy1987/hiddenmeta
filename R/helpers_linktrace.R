@@ -22,6 +22,12 @@ lt_permute <- function(data){
   return(wave_samples)
 }
 
+#' Adjecency Matrix generator
+#'
+#'
+
+lt_gen_adjmat <- function()
+
 #' Link-tracing MCMC
 #'
 #'
@@ -71,16 +77,23 @@ lt_mcmc <- function(data, chain_samples, chain_burnin, prior_n){
 
 
     ## assign strata to non sampled units
-    not_sampled <- !data_p$name %in% unlist(data_p_waves)
+    not_sampled <- setdiff(c(1:n[t-1,1]), unlist(data_p_waves))
+    stratum <- rep(NA, n[t-1,1])
+    stratum[unlist(data_p_waves)] <- data_p[unlist(data_p_waves),strata]
+    stratum[not_sampled] <- sample(1:n_strata, length(not_sampled), replace = FALSE, prob = no_link_1/no_link)
 
-    data_p[not_sampled,strata] <- sample(1:n_strata, length(not_sampled), replace = FALSE, prob = no_link_1/no_link)
+    ## assign links between units not in first w-1 waves
+
+    ## need to generate adjecency matrix from adjecency list ##
 
 
-    ##
+
+
+
 
   }
-
 }
+
 
 
 #' Gibbs sampler
@@ -94,6 +107,7 @@ lt_mcmc <- function(data, chain_samples, chain_burnin, prior_n){
 lt_gibbs <- function(){
 
 }
+
 
 
 
