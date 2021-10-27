@@ -272,7 +272,7 @@ meta_estimator <-
     benchmark = list(sample = "pps", estimator = "ht"),
     hidden_prior = list(mean = `names<-`(c(1000, 1000, 3000, 3000, 1000, 1000, 1000, 1000), study_map), 
                         se = 10),
-    rel_bias_prior <- list(mean = 1, se = 2),
+    rel_bias_prior <- list(mean = 1, se = 5),
     control_params = list(
       iter = 8000, chains = 8, thin = 10,
       seed = 872312,
