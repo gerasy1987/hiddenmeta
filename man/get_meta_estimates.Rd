@@ -10,6 +10,8 @@ get_meta_estimates(
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
   stan_handler = get_meta_stan2,
+  hidden_prior = list(mean = 300, se = 100),
+  rel_bias_prior = list(mean = 1, se = 10),
   control_params = list(iter = 8000, chains = 8, thin = 10, seed = 872312, cores = 1)
 )
 }
@@ -23,6 +25,10 @@ get_meta_estimates(
 \item{benchmark}{named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)}
 
 \item{stan_handler}{function that takes stan_data as input and produces compilable stan model object}
+
+\item{hidden_prior}{list of two hyperpriors, on means and standard errors of each included sampling-estimator pairs. Names of list objects should be "mean" and "se". If one number provided for a hyperprior it gets expanded to all sampling-estimator pairs}
+
+\item{rel_bias_prior}{list of two hyperpriors, on means and standard errors of relative bias. Names of list objects should be "mean" and "se".}
 
 \item{control_params}{list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use}
 }

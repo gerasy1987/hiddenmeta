@@ -205,12 +205,12 @@ diagnose_design(simulations_df = meta_simulations,
 ```{r declare_meta_base, eval=TRUE}
 
 study_map <- c("Brazil (FF)" = "ff_brazil",
-               "Brazil (Stanford)" = "stanford_brazil",
-               "Costa Rica (John Jay)" = "johnjay_costarica",
-               "Morocco (NORC)" = "norc_marocco",
-               "Pakistan (JHU)" = "jhu_pakistan",
-               "Tanzania (John Jay)" = "johnjay_tanzania",
                "Tunisia (UMass)" = "umass_tunisia",
+               "Brazil (Stanford)" = "stanford_brazil",
+               "Pakistan (JHU)" = "jhu_pakistan",
+               "Costa Rica (John Jay)" = "johnjay_costarica",
+               "Tanzania (John Jay)" = "johnjay_tanzania",
+               "Morocco (NORC)" = "norc_marocco",
                "USA (RTI)" = "rti_usa")
 
 study_designs_base <- 
@@ -243,8 +243,13 @@ study_designs_base <-
   dplyr::select(sim_ID, study, inquiry, sample, estimator, estimand, estimate, se, rel_bias, absolute_bias
 )
 
+# remove all sampling-estimators observed only once
 meta_population <-
-  declare_population(study_designs_base)
+  study_designs_base %>% 
+  dplyr::group_by(sim_ID, sample, estimator) %>% 
+  dplyr::filter(n() >= 3) %>% 
+  dplyr::ungroup() %>% 
+  declare_population(.)
 
 meta_sample <-
   declare_sampling(sampling_variable = "meta",
@@ -255,21 +260,43 @@ meta_sample <-
                        )
                    })
 
-set.seed(871223)
-data <- draw_data(meta_population + meta_sample)
+meta_inquiry <-
+  declare_inquiry(study_estimand = "hidden_size",
+                  samp_est_benchmark = "pps_ht",
+                  handler = get_meta_estimands)
 
-# remove all sampling-estimators observed only once
-data %<>% 
-  dplyr::group_by(sim_ID, sample, estimator) %>% 
-  dplyr::filter(n() != 1) %>% 
-  dplyr::ungroup()
+meta_estimator <-
+  declare_estimator(
+    sampling_variable = "meta",
+    which_estimand = "hidden_size",
+    benchmark = list(sample = "pps", estimator = "ht"),
+    hidden_prior = list(mean = `names<-`(c(1000, 1000, 3000, 3000, 1000, 1000, 1000, 1000), study_map), 
+                        se = 10),
+    rel_bias_prior <- list(mean = 1, se = 2),
+    control_params = list(
+      iter = 8000, chains = 8, thin = 10,
+      seed = 872312,
+      cores = 1),
+    stan_handler = get_meta_stan3,
+    handler = get_meta_estimates)
+
+meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
+
+
+
+set.seed(871223)
+data <- draw_data(meta_population + meta_sample + meta_inquiry)
+draw_estimates(meta_study)
+
 
 
 sampling_variable <- "meta"
 which_estimand <- "hidden_size"
 benchmark <- list(estimator = "ht", sample = "pps")
 stan_handler <- get_meta_stan3
-hidden_prior <- list(mean = 1000, se = 10)
+hidden_prior <- list(mean = `names<-`(c(1000, 1000, 3000, 3000, 1000, 1000, 1000, 1000), study_map), 
+                     se = 10)
+rel_bias_prior <- list(mean = 1, se = 2)
 control_params <- list(
   iter = 8000, chains = 8, thin = 10,
   seed = 872312,
@@ -298,7 +325,9 @@ control_params <- list(
 
 if (nrow(.alpha_prior) == 1) {
   .alpha_prior <- .alpha_prior[rep(1, times = .N),]
-} else if (!(nrow(.alpha_prior) %in% c(1,.N))) {
+} else if (nrow(.alpha_prior) == .N) {
+  .alpha_prior <- .alpha_prior[.studies,]
+} else {
   stop("wrong prior on the prevalence/size parameters was specified")
 }
 
@@ -327,7 +356,8 @@ if (nrow(.alpha_prior) == 1) {
           MARGIN = 1,
           FUN = function(x) paste0(x[2], as.integer(x[1])))
   ) %>%
-  c(list(N = .N, K = .K, alpha_mean = .alpha_prior[,"mean"], alpha_se = .alpha_prior[,"se"]), .)
+  c(list(N = .N, K = .K, alpha_mean = .alpha_prior[,"mean"], alpha_se = .alpha_prior[,"se"],
+         rel_bias_mean = rel_bias_prior$mean, rel_bias_se = rel_bias_prior$se), .)
 
 ## here is the stan model
 cat(stan_handler(.stan_data))
@@ -336,13 +366,53 @@ cat(stan_handler(.stan_data))
 .stan_model <-
   rstan::stan_model(model_code = stan_handler(.stan_data))
 
-.fit <- 
-  rstan::sampling(object = .stan_model, data = .stan_data,
-                  chains = 8, iter = 16000, warmup = 8000, thin = 10)
+.fit <-
+    do.call(rstan::sampling, c(list(object = .stan_model,
+                                  data = .stan_data,
+                                  verbose = FALSE,
+                                  refresh = 0),
+                               control_params)) %>%
+    rstan::extract(.)
 
-## does not converge unfortunately
-.fit
 
-rstan::check_hmc_diagnostics(.fit)
+.biases <-
+  .fit$rel_bias %>%
+  cbind(1, .) %>%
+  plyr::alply(
+    .margins = 1,
+    .fun = function(x) {
+      c(matrix(x, nrow = .K, ncol = .K, byrow = TRUE) /
+          matrix(x, nrow = .K, ncol = .K, byrow = FALSE))
+    }) %>%
+  do.call(rbind, .) %>%
+  plyr::aaply(.margins = 2,
+              .fun = function(x) c(est = mean(x),
+                                   se = sd(x))) %>%
+  plyr::alply(.margins = 2,
+              function(x) {
+                matrix(data = x,
+                       nrow = .K, ncol = .K,
+                       byrow = FALSE,
+                       dimnames = list(.samp_est_names,
+                                       .samp_est_names))
+              })
+
+
+.study_ests <-
+  .fit$alpha %>%
+  plyr::aaply(.margins = 2,
+              .fun = function(x) c(est = mean(x),
+                                   se = sd(x)))
+
+return(
+  data.frame(estimator = c(paste0("rel_bias_", .samp_est_names, "_meta"),
+                           paste0(.studies, "_meta")),
+             estimate = c(unname(.biases[[1]][1,]), unname(.study_ests[,1])),
+             se =   c(unname(.biases[[2]][1,]), unname(.study_ests[,2])),
+             inquiry = c(paste0("rel_bias_", .samp_est_names),
+                         paste0(.studies, "_", which_estimand)),
+             stringsAsFactors = FALSE
+  )
+)
 
 ```

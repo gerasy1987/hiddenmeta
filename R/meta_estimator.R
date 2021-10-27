@@ -5,6 +5,8 @@
 #' @param which_estimand name of study level estimand for meta analysis
 #' @param benchmark named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)
 #' @param stan_handler function that takes stan_data as input and produces compilable stan model object
+#' @param hidden_prior list of two hyperpriors, on means and standard errors of each included sampling-estimator pairs. Names of list objects should be "mean" and "se". If one number provided for a hyperprior it gets expanded to all sampling-estimator pairs
+#' @param rel_bias_prior list of two hyperpriors, on means and standard errors of relative bias. Names of list objects should be "mean" and "se".
 #' @param control_params list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use
 #'
 #' @return
@@ -19,6 +21,8 @@ get_meta_estimates <- function(
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
   stan_handler = get_meta_stan2,
+  hidden_prior = list(mean = 300, se = 100),
+  rel_bias_prior = list(mean = 1, se = 10),
   control_params = list(
     iter = 8000, chains = 8, thin = 10,
     seed = 872312,
@@ -44,6 +48,15 @@ get_meta_estimates <- function(
 
   .N <- length(.studies)
   .K <- nrow(.samp_ests)
+  .alpha_prior <- do.call(cbind, hidden_prior)
+
+  if (nrow(.alpha_prior) == 1) {
+    .alpha_prior <- .alpha_prior[rep(1, times = .N),]
+  } else if (nrow(.alpha_prior) == .N) {
+    .alpha_prior <- .alpha_prior[.studies,]
+  } else {
+    stop("wrong prior on the prevalence/size parameters was specified")
+  }
 
   # get ids of unique samp-est pairs in observed data
   .samp_est_ids <-
@@ -70,7 +83,10 @@ get_meta_estimates <- function(
             MARGIN = 1,
             FUN = function(x) paste0(x[2], as.integer(x[1])))
     ) %>%
-    c(N = .N, K = .K, .)
+    c(list(N = .N, K = .K,
+           alpha_mean = unname(.alpha_prior[,"mean"]), alpha_se = unname(.alpha_prior[,"se"]),
+           rel_bias_mean = rel_bias_prior$mean, rel_bias_se = rel_bias_prior$se),
+      .)
 
   .stan_model <-
     rstan::stan_model(model_code = stan_handler(.stan_data))
