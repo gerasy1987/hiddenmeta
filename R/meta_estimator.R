@@ -68,7 +68,7 @@ get_meta_estimates <- function(
       .,
       apply(X = expand.grid(1:.K, c("n", "observed", "est", "est_se")),
             MARGIN = 1,
-            FUN = function(x) paste0(x[c(2,1)], collapse = ""))
+            FUN = function(x) paste0(x[2], as.integer(x[1])))
     ) %>%
     c(N = .N, K = .K, .)
 

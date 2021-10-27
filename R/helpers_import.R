@@ -326,12 +326,12 @@ get_required_data <- function(multi_study_data) {
         name,
         starts_with(c("known", "hidden", "rds", "pps", "tls", "total"))) %>%
       names() %>%
-      gsub(., pattern = "[0-9][0-9]", replacement = "X") %>%
-      gsub(., pattern = "[0-9]", replacement = "X") %>%
+      gsub(., pattern = "[0-9][0-9]", replacement = "XXX") %>%
+      gsub(., pattern = "[0-9]", replacement = "XXX") %>%
       unique() %>%
       {
         `colnames<-`(
-          dplyr::as_tibble(t(c(multi_study_data$study[i], rep("X", length(.)))), .name_repair = "minimal"),
+          dplyr::as_tibble(t(c(multi_study_data$study[i], rep("Yes", length(.)))), .name_repair = "minimal"),
           c("study", .))
       }
   }) %>%
@@ -342,7 +342,7 @@ get_required_data <- function(multi_study_data) {
         c("variable", unlist(.[,1])))
     } %>%
     dplyr::mutate(
-      across(all_of(multi_study_data$study), ~ ifelse(is.na(.), "", .)),
+      across(all_of(multi_study_data$study), ~ ifelse(is.na(.), "No", .)),
       label =
         plyr::mapvalues(
           variable,
@@ -391,5 +391,133 @@ get_required_data <- function(multi_study_data) {
     ) %>%
     dplyr::select(variable, label, everything()) %>%
     dplyr::filter(variable != label)
+
+}
+
+#' Create Diagnosis Plot of Log Normalized RMSE Across Studies
+#'
+#' @param diagnosands_df diagnosands data frame produced by \code{diagnose_design()}
+#' @param study_map named character vector of mapping between study labels and names used in the plot
+#' @param sampling_map named character vector of mapping between sampling strategies and names used in the plot
+#' @param estimator_map named character vector of mapping between estimators and names used in the plot
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @import dplyr ggplot2
+#' @importFrom magrittr `%>%`
+#' @importFrom plyr mapvalues
+#' @importFrom purrr map2_chr map_chr
+#' @importFrom tidyr nesting expand
+get_rmse_plots <- function(
+  diagnosands_df,
+  study_map = c("Brazil (FF)" = "ff_brazil",
+                "Brazil (Stanford)" = "stanford_brazil",
+                "Costa Rica (John Jay)" = "johnjay_costarica",
+                "Morocco (NORC)" = "norc_marocco",
+                "Pakistan (JHU)" = "jhu_pakistan",
+                "Tanzania (John Jay)" = "johnjay_tanzania",
+                "Tunisia (UMass)" = "umass_tunisia",
+                "USA (RTI)" = "rti_usa"),
+  sampling_map = c("PPS" = "pps",
+                   "RDS" = "rds",
+                   "TLS" = "tls",
+                   "RDS/TLS" = "rds_tls",
+                   "RDS/PPS" = "rds_pps"),
+  estimator_map = c("NSUM" = "nsum",
+                    "HT" = "ht",
+                    "Recapture" = "recap",
+                    "SS-PSE" = "sspse",
+                    "Service Multiplier" = "multi",
+                    "Chords" = "chords")) {
+
+  plot_df <-
+    diagnosands_df %>%
+    dplyr::filter(!is.na(estimator)) %>%
+    dplyr::mutate(
+      study = purrr::map_chr(inquiry, ~ sapply(.x, function(x) {
+        unname(study_map)[sapply(unname(study_map), function(stud) grepl(stud, x, fixed = TRUE))]
+      })),
+      inquiry =
+        purrr::map2_chr(study, inquiry, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
+      estimator =
+        purrr::map2_chr(inquiry, estimator, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
+      target = log1p(rmse/mean_estimand),
+      estimator_full = estimator,
+      estimator = purrr::map_chr(estimator_full,
+                                 ~ tail(strsplit(.x, "_")[[1]], 1)),
+      sampling =
+        purrr::map2_chr(estimator, estimator_full,
+                        ~ gsub(pattern = paste0("_", .x), replacement = "", x = .y, fixed = TRUE)),
+      study = plyr::mapvalues(study, from = unname(study_map), to = names(study_map),
+                              warn_missing = FALSE),
+      sampling = factor(
+        levels = names(sampling_map),
+        ordered = TRUE,
+        x = plyr::mapvalues(sampling, from = unname(sampling_map), to = names(sampling_map),
+                            warn_missing = FALSE)),
+      estimator =
+        plyr::mapvalues(estimator, from = unname(estimator_map), to = names(estimator_map),
+                        warn_missing = FALSE)
+    )
+
+  if ("sim_type" %in% names(plot_df)) {
+
+    suppressMessages(suppressWarnings(
+      plot_df %>%
+        dplyr::select(sim_type, study, inquiry, estimator_full, sampling, estimator, target) %>%
+        {
+          dplyr::left_join(
+            x = tidyr::expand(., sim_type, study, tidyr::nesting(sampling, estimator)),
+            y = .)
+        } %>%
+        dplyr::mutate(empty = ifelse(is.na(target), "X", NA_character_)) %>%
+        ggplot2::ggplot(., aes(y = estimator, x = target, fill = sim_type)) +
+        ggplot2::geom_col(width = .6, position = "dodge", color = "black", size = .1) +
+        ggplot2::facet_grid(sampling~study,
+                            labeller = label_context,
+                            scales = "free_y",
+                            space = "free") +
+        ggplot2::geom_text(aes(x = 0, label=empty), colour="red", size=4) +
+        ggplot2::geom_vline(xintercept=0, color = "red", size=.5) +
+        ggplot2::labs(x = "Log(1 + Normalized RMSE)", y = "") +
+        ggplot2::theme_bw() +
+        ggplot2::theme(axis.text.x = element_text(angle = 90),
+                       axis.text.y = element_text(angle = 30),
+                       legend.position = "bottom") +
+        ggplot2::scale_fill_brewer(palette = "Set2") +
+        ggplot2::guides(fill = guide_legend(title = "Simulation type",
+                                            label.position = "right",
+                                            keywidth = unit(.2, "cm")))
+    ))
+
+  } else {
+
+    suppressMessages(suppressWarnings(
+      plot_df %>%
+        dplyr::select(study, inquiry, estimator_full, sampling, estimator, target) %>%
+        {
+          dplyr::left_join(
+            x = tidyr::expand(., study, tidyr::nesting(sampling, estimator)),
+            y = .)
+        } %>%
+        dplyr::mutate(empty = ifelse(is.na(target), "X", NA_character_)) %>%
+        ggplot2::ggplot(., aes(y = estimator, x = target)) +
+        ggplot2::geom_col(width = .2, position = "dodge", color = "black", size = .1) +
+        ggplot2::facet_grid(sampling~study,
+                            labeller = label_context,
+                            scales = "free_y",
+                            space = "free") +
+        ggplot2::geom_text(aes(x = 0, label=empty), colour="red", size=4) +
+        ggplot2::geom_vline(xintercept=0, color = "red", size=.5) +
+        ggplot2::labs(x = "Log(1 + Normalized RMSE)", y = "") +
+        ggplot2::theme_bw() +
+        ggplot2::theme(axis.text.x = element_text(angle = 90),
+                       axis.text.y = element_text(angle = 30))
+    ))
+
+  }
 
 }

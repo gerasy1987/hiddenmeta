@@ -82,3 +82,4 @@ reference:
   - get_rescaled_boot
   - read_study_params
   - get_required_data
+  - get_rmse_plots

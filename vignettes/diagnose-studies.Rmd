@@ -104,7 +104,7 @@ multi_designs_list_features <-
 
 ## Simulate studies varying priors on core parameters
 
-```{r declare_studies, eval=FALSE}
+```{r over_priors, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
 doParallel::registerDoParallel(cores = 50)
@@ -169,7 +169,7 @@ for (i in seq_along(param_names)) {
 
 ## Simulate studies varying design features
 
-```{r declare_studies, eval=FALSE}
+```{r over_designs, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
 doParallel::registerDoParallel(cores = 50)
@@ -232,22 +232,140 @@ for (i in seq_along(design_feature_names)) {
 ```
 
 
-### Diagnose the studies with varying priors
+### Diagnose the studies with initial parameters
 
+```{r multi_study_sim, eval=FALSE}
 
-```{r multi_study_diagnose, eval=FALSE}
+requireNamespace(c("doParallel", "parallel"))
+doParallel::registerDoParallel(cores = 20)
 
+set.seed(seed)
 multi_simulations <-
-  readRDS(system.file("extdata", 
-                      paste0("multi_sim_real_", param_names[1], ".rds"), 
-                      package = "hiddenmeta"))
+  plyr::llply(
+    as.list(1:100),
+    .fun = function(x) {
+      try(
+        DeclareDesign::simulate_design(multi_study, sims = 1) %>%
+          dplyr::mutate(
+            sim_ID = x
+          )
+      )
+    },
+    .parallel = TRUE
+  ) %>%
+  { .[sapply(., function(x) class(x) != "try-error")] } %>% 
+  dplyr::bind_rows()
 
-diagnose_design(simulations_df = multi_simulations,
-                diagnosands = study_diagnosands) %>%
-  reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>%
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim_real_original.rds"))
 
+```
+
+### Diagnose base study design
+
+```{r multi_study_diagnose, fig.width=9, fig.height=10}
+
+study_designs_base <- 
+  readRDS(system.file("extdata", "multi_sim_real_original.rds", package = "hiddenmeta")) 
+
+(
+  plots_rmse_base <- 
+    study_designs_base %>% 
+    diagnose_design(simulations_df = ., 
+                    diagnosands = study_diagnosands) %>% 
+    .$diagnosands_df %>% 
+    get_rmse_plots(diagnosands_df = .)
+)
+
+```
+
+### Compare performance across priors
+
+```{r, fig.width=9, fig.height=11}
+
+study_designs_over_priors <- 
+  c("multi_sim_real_best.rds",
+    "multi_sim_real_prevalence_1.rds",
+    "multi_sim_real_prevalence_2.rds",
+    "multi_sim_real_showup_1.rds",
+    "multi_sim_real_showup_2.rds",
+    "multi_sim_real_visibility_1.rds",
+    "multi_sim_real_visibility_2.rds",
+    "multi_sim_real_connectedness_1.rds") %>% 
+  lapply(function(x) {
+    diagnose_design(simulations_df = readRDS(system.file("extdata", x, package = "hiddenmeta")), 
+                    diagnosands = study_diagnosands) %>% 
+      .$diagnosands_df %>% 
+      dplyr::mutate(
+        sim_type = gsub("multi\\_sim\\_real\\_|\\.rds", "", x = x),
+        sim_type = 
+          plyr::mapvalues(sim_type,
+                          from = c("best",
+                                   "prevalence_1",
+                                   "prevalence_2",
+                                   "showup_1",
+                                   "showup_2",
+                                   "visibility_1",
+                                   "visibility_2",
+                                   "connectedness_1"),
+                          to = c("Optimistic",
+                                 "Medium prevalence",
+                                 "High prevalence",
+                                 "Medium TLS showup",
+                                 "Low TLS showup",
+                                 "Medium visibility",
+                                 "Low visibility",
+                                 "Network imbalance"),
+                          warn_missing = FALSE),
+        sim_type = 
+          factor(sim_type, levels = c("Optimistic",
+                                      "Medium prevalence",
+                                      "High prevalence",
+                                      "Medium TLS showup",
+                                      "Low TLS showup",
+                                      "Medium visibility",
+                                      "Low visibility",
+                                      "Network imbalance"),
+                 ordered = TRUE)
+      )
+  }) %>% 
+  bind_rows()
+
+( plots_rmse_over_priors <- get_rmse_plots(diagnosands_df = study_designs_over_priors) )
+
+```
+
+### Compare perfromance across design features
+
+```{r, fig.width=9, fig.height=11}
+
+study_designs_over_designs <- 
+  c("multi_sim_real_original.rds",
+    "multi_sim_real_rdsplus_only.rds",
+    "multi_sim_real_shift_sample_1.rds") %>% 
+  lapply(function(x) {
+    diagnose_design(simulations_df = readRDS(system.file("extdata", x, package = "hiddenmeta")), 
+                    diagnosands = study_diagnosands) %>% 
+      .$diagnosands_df %>% 
+      dplyr::mutate(
+        sim_type = gsub("multi\\_sim\\_real\\_|\\.rds", "", x = x),
+        sim_type = 
+          plyr::mapvalues(sim_type,
+                          from = c("original",
+                                   "rdsplus_only",
+                                   "shift_sample_1"),
+                          to = c("Current",
+                                 "Replace RDS w. RDS+ samples",
+                                 "Smaller RDS samples"),
+                          warn_missing = FALSE),
+        sim_type = 
+          factor(sim_type, levels = c("Current",
+                                      "Replace RDS w. RDS+ samples",
+                                      "Smaller RDS samples"),
+                 ordered = TRUE)
+      )
+  }) %>% 
+  bind_rows()
+
+( plots_rmse_over_designs <- get_rmse_plots(diagnosands_df = study_designs_over_designs) )
 
 ```

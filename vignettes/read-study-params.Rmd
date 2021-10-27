@@ -453,49 +453,6 @@ saveRDS(multi_study_data, file = here::here("inst/extdata/multi_sim_data_draw.rd
 
 ```
 
-### Diagnose the studies with initial parameters
-
-```{r multi_study_sim, eval=FALSE}
-
-requireNamespace(c("doParallel", "parallel"))
-doParallel::registerDoParallel(cores = 20)
-
-set.seed(seed)
-multi_simulations <-
-  plyr::llply(
-    as.list(1:100),
-    .fun = function(x) {
-      try(
-        DeclareDesign::simulate_design(multi_study, sims = 1) %>%
-          dplyr::mutate(
-            sim_ID = x
-          )
-      )
-    },
-    .parallel = TRUE
-  ) %>%
-  { .[sapply(., function(x) class(x) != "try-error")] } %>% 
-  dplyr::bind_rows()
-
-saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim_real.rds"))
-
-```
-
-```{r multi_study_diagnose}
-
-multi_simulations <- 
-  readRDS(system.file("extdata", "multi_sim_real.rds", package = "hiddenmeta"))
-
-diagnose_design(simulations_df = multi_simulations, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>% 
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
-
-
-```
-
 ## Generate required data
 
 ```{r required_data}
@@ -503,6 +460,6 @@ diagnose_design(simulations_df = multi_simulations,
 multi_study_data <- 
   readRDS(system.file("extdata", "multi_sim_data_draw.rds", package = "hiddenmeta"))
 
-get_required_data(multi_study_data)
+( data_require_base <- get_required_data(multi_study_data) )
 
 ```
