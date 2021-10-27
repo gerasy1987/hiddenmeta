@@ -67,3 +67,39 @@ get_meta_stan2 <- function(
     )
   )
 }
+
+#' @export
+get_meta_stan3 <- function(
+  stan_data
+) {
+
+  .sizes <-
+    stan_data %>%
+    names %>%
+    grep(pattern = "^n[0-9]", x = .) %>%
+    stan_data[.] %>%
+    sapply(., function(x) x == 1)
+
+  .K <- length(.sizes)
+
+  .dims <- ifelse(.sizes, ";", paste0("[n", 1:.K, "];"))
+
+  return(
+    paste0(
+      "data {\nint<lower=0> N;\nint<lower=0> K;\n",
+      # samp-est level priors on alpha, that allow size and prevalence estimators
+      "real<lower=0> alpha_mean[N];\nreal<lower=0> alpha_se[N];\n",
+      paste0("int<lower=0,upper=N> n", 1:.K, ";", collapse = "\n"), "\n",
+      paste0("int<lower=0,upper=N> observed", 1:.K, .dims, collapse = "\n"), "\n",
+      paste0("real<lower=0> est", 1:.K, .dims, collapse = "\n"), "\n",
+      paste0("real<lower=0> est_se", 1:.K, .dims, collapse = "\n"), "\n",
+      "}\nparameters {\nreal<lower=0.01> rel_bias[K-1];\nvector<lower=1>[N] alpha;\n}\nmodel {\n",
+      paste0(
+        "target += normal_lpdf(est", 1:.K, " | ",
+        c("", paste0("rel_bias[", 1:(.K - 1), "] * ")),
+        "alpha[observed", 1:.K, "], est_se", 1:.K, ");",
+        collapse = "\n"),
+      "\nrel_bias ~ normal(1, .1);\nalpha ~ normal(alpha_mean, alpha_se);\n}"
+    )
+  )
+}
