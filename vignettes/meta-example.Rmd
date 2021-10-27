@@ -282,137 +282,60 @@ meta_estimator <-
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
+```
 
+### Run simulations
 
-set.seed(871223)
-data <- draw_data(meta_population + meta_sample + meta_inquiry)
-draw_estimates(meta_study)
+```{r draw_sims, eval=FALSE}
 
+requireNamespace(c("doParallel", "parallel"))
+doParallel::registerDoParallel(cores = 50)
 
-
-sampling_variable <- "meta"
-which_estimand <- "hidden_size"
-benchmark <- list(estimator = "ht", sample = "pps")
-stan_handler <- get_meta_stan3
-hidden_prior <- list(mean = `names<-`(c(1000, 1000, 3000, 3000, 1000, 1000, 1000, 1000), study_map), 
-                     se = 10)
-rel_bias_prior <- list(mean = 1, se = 2)
-control_params <- list(
-  iter = 8000, chains = 8, thin = 10,
-  seed = 872312,
-  cores = 1)
-
-.stan_data <-
-  data %>%
-  dplyr::filter(across(all_of(sampling_variable), ~ . == 1),
-                inquiry %in% which_estimand)
-
-.samp_ests <- unique(.stan_data[,c("sample", "estimator")])
-.benchmark_sample_est <-
-  which(lapply(.samp_ests$sample, paste0, collapse = "_") ==
-          paste0(benchmark$sample, collapse = "_") &
-          .samp_ests$estimator == benchmark$estimator)
-.samp_ests <-
-  rbind(.samp_ests[.benchmark_sample_est,],
-        .samp_ests[-.benchmark_sample_est,])
-.samp_est_names <-
-  paste0(sapply(.samp_ests$sample, paste0, collapse = "_"), "_", .samp_ests$estimator)
-.studies <- unique(.stan_data$study)
-
-.N <- length(.studies)
-.K <- nrow(.samp_ests)
-.alpha_prior <- do.call(cbind, hidden_prior)
-
-if (nrow(.alpha_prior) == 1) {
-  .alpha_prior <- .alpha_prior[rep(1, times = .N),]
-} else if (nrow(.alpha_prior) == .N) {
-  .alpha_prior <- .alpha_prior[.studies,]
-} else {
-  stop("wrong prior on the prevalence/size parameters was specified")
-}
-
-# get ids of unique samp-est pairs in observed data
-.samp_est_ids <-
-  mapply(
-    x = .samp_ests$sample, y = .samp_ests$estimator,
-    function(x, y) {
-      lapply(.stan_data$sample, paste0, collapse = "_") ==
-        paste0(x, collapse = "_") & .stan_data$estimator == y
-    },
-    SIMPLIFY = FALSE
-  )
-
-.stan_data <-
-  .samp_est_ids %>%
-  {
-    c(lapply(X = ., FUN = sum),
-      lapply(X = ., FUN = function(x) which(.studies %in% .stan_data$study[x])),
-      lapply(X = ., FUN = function(x) .stan_data$estimate[x]),
-      lapply(X = ., FUN = function(x) .stan_data$se[x]))
-  } %>%
-  `names<-`(
-    .,
-    apply(X = expand.grid(1:.K, c("n", "observed", "est", "est_se")),
-          MARGIN = 1,
-          FUN = function(x) paste0(x[2], as.integer(x[1])))
-  ) %>%
-  c(list(N = .N, K = .K, alpha_mean = .alpha_prior[,"mean"], alpha_se = .alpha_prior[,"se"],
-         rel_bias_mean = rel_bias_prior$mean, rel_bias_se = rel_bias_prior$se), .)
-
-## here is the stan model
-cat(stan_handler(.stan_data))
-
-## try to fit it
-.stan_model <-
-  rstan::stan_model(model_code = stan_handler(.stan_data))
-
-.fit <-
-    do.call(rstan::sampling, c(list(object = .stan_model,
-                                  data = .stan_data,
-                                  verbose = FALSE,
-                                  refresh = 0),
-                               control_params)) %>%
-    rstan::extract(.)
-
-
-.biases <-
-  .fit$rel_bias %>%
-  cbind(1, .) %>%
-  plyr::alply(
-    .margins = 1,
+set.seed(872312)
+meta_simulations <-
+  plyr::llply(
+    as.list(1:50),
     .fun = function(x) {
-      c(matrix(x, nrow = .K, ncol = .K, byrow = TRUE) /
-          matrix(x, nrow = .K, ncol = .K, byrow = FALSE))
-    }) %>%
-  do.call(rbind, .) %>%
-  plyr::aaply(.margins = 2,
-              .fun = function(x) c(est = mean(x),
-                                   se = sd(x))) %>%
-  plyr::alply(.margins = 2,
-              function(x) {
-                matrix(data = x,
-                       nrow = .K, ncol = .K,
-                       byrow = FALSE,
-                       dimnames = list(.samp_est_names,
-                                       .samp_est_names))
-              })
-
-
-.study_ests <-
-  .fit$alpha %>%
-  plyr::aaply(.margins = 2,
-              .fun = function(x) c(est = mean(x),
-                                   se = sd(x)))
-
-return(
-  data.frame(estimator = c(paste0("rel_bias_", .samp_est_names, "_meta"),
-                           paste0(.studies, "_meta")),
-             estimate = c(unname(.biases[[1]][1,]), unname(.study_ests[,1])),
-             se =   c(unname(.biases[[2]][1,]), unname(.study_ests[,2])),
-             inquiry = c(paste0("rel_bias_", .samp_est_names),
-                         paste0(.studies, "_", which_estimand)),
-             stringsAsFactors = FALSE
+      base::suppressWarnings(
+        try(DeclareDesign::simulate_design(meta_study, sims = 1) %>%
+          dplyr::mutate(
+            sim_ID = x
+          ))
+      )
+    },
+    .parallel = TRUE
   )
-)
+
+meta_simulations <- 
+  meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] %>%
+  dplyr::bind_rows()
+
+saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim_real_original.rds"))
+
+```
+
+### Diagnose meta study
+
+```{r diagnose}
+
+meta_simulations <- 
+  readRDS(system.file("extdata", "meta_sim_real_original.rds", package = "hiddenmeta"))
+
+study_diagnosands <-
+  declare_diagnosands(
+    mean_estimand = mean(estimand),
+    mean_estimate = mean(estimate),
+    sd_estimate = sd(estimate),
+    mean_se = mean(se),
+    bias = mean(estimate - estimand),
+    rmse = sqrt(mean((estimate - estimand) ^ 2))
+  )
+
+diagnose_design(simulations_df = meta_simulations,
+                diagnosands = study_diagnosands) %>%
+  reshape_diagnosis(digits = 2) %>%
+  dplyr::select(-'Design') %>%
+  dplyr::filter(`Mean Estimate` != "NA") %>%
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
