@@ -320,31 +320,46 @@ read_study_params <- function(
 #' @importFrom plyr mapvalues
 get_required_data <- function(multi_study_data) {
 
-  sapply(1:nrow(multi_study_data), function(i) {
-    multi_study_data$population[[i]] %>%
-      dplyr::select(
-        name,
-        starts_with(c("known", "hidden", "rds", "pps", "tls", "total"))) %>%
-      names() %>%
-      gsub(., pattern = "[0-9][0-9]", replacement = "XXX") %>%
-      gsub(., pattern = "[0-9]", replacement = "XXX") %>%
-      unique() %>%
-      {
-        `colnames<-`(
-          dplyr::as_tibble(t(c(multi_study_data$study[i], rep("Yes", length(.)))), .name_repair = "minimal"),
-          c("study", .))
-      }
-  }) %>%
-    bind_rows() %>%
-    {
-      `colnames<-`(
-        dplyr::as_tibble(cbind(names(.[,-1]), t(.[,-1])), .name_repair = "minimal"),
-        c("variable", unlist(.[,1])))
-    } %>%
+  .out <-
+    lapply(1:nrow(multi_study_data), function(i) {
+      multi_study_data$population[[i]] %>%
+        dplyr::select(
+          name,
+          starts_with(c("known", "hidden", "rds", "pps", "tls", "total"))) %>%
+        {
+          cbind(
+            gsub(names(.), pattern = "[0-9]{1,2}", replacement = "XX"),
+            sapply(unname(.), class),
+            sapply(unname(.), function(x) {
+              if (class(x) == "numeric") {
+                paste0(format(sample(x = na.omit(x), size = 1), scientific = FALSE), collapse = ";")
+              } else {
+                paste0(na.omit(sample(x = x, size = 1)), collapse = ";")
+              }
+            }))
+        } %>%
+        {
+          `names<-`(suppressMessages(
+            as_tibble(., .name_repair = "universal")),
+            c("variable", "type", "example"))
+        } %>%
+        dplyr::distinct(variable, type, .keep_all = TRUE) %>%
+        dplyr::rename(
+          "{ multi_study_data$study[i] }" := example
+        )
+    }) %>%
+    purrr::reduce(., full_join, by = c("variable", "type")) %>%
+    dplyr::rowwise() %>%
     dplyr::mutate(
-      across(all_of(multi_study_data$study), ~ ifelse(is.na(.), "No", .)),
+      example = paste0(na.omit(unique(c_across(-c(variable,type)))), collapse = ";"),
+      example = gsub("\\;{2,}", "", example)
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      across(all_of(multi_study_data$study), ~ ifelse(is.na(.), "", "X")),
       label =
         plyr::mapvalues(
+          warn_missing = FALSE,
           variable,
           from = c(
             "name",
@@ -387,10 +402,84 @@ get_required_data <- function(multi_study_data) {
                  "Total size of known groups",
                  "Total service use by hidden group members over time",
                  "Total size of time-locations included in sampling frame"
-                 ))
+          ))
     ) %>%
-    dplyr::select(variable, label, everything()) %>%
+    dplyr::select(variable, label, type, example, everything()) %>%
     dplyr::filter(variable != label)
+
+  return(.out)
+
+}
+
+#' Get Parameters and Design Features of Specific Study
+#'
+#' @param study Character string giving name of the study to pull. Have to match the names provided in Google Spreadsheet
+#' @param ss Character string giving ID of the Google spreadsheet
+#' @param sheet Character string giving name of the sheet in the Google spreadsheet to read
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @import googlesheets4 dplyr
+#' @importFrom magrittr `%>%`
+read_single_study_params <- function(
+  study = "johnjay_tanzania",
+  ss,
+  sheet
+) {
+
+  labels <-
+    suppressMessages(
+      googlesheets4::read_sheet(
+        ss = ss,
+        sheet = sheet,
+        skip = 0,
+        n_max = 4,
+        col_names = FALSE,
+        .name_repair = "minimal")
+    ) %>%
+    unname %>%
+    t %>%
+    `colnames<-`(c("family", "type", "name", "description")) %>%
+    dplyr::as_tibble() %>%
+    dplyr::mutate(
+      # prior_type = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][2]),
+      # family = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][1]),
+      colnames = dplyr::if_else(is.na(family), name, paste0(family, "_", name))
+    )
+
+
+  study_data <-
+    suppressMessages(
+      googlesheets4::read_sheet(
+        ss = ss,
+        sheet = sheet,
+        col_names = FALSE,
+        na = "NA",
+        col_types = paste0(labels$type, collapse = ""),
+        .name_repair = "minimal",
+        skip = 4) %>%
+        `names<-`(dplyr::pull(labels, colnames))
+    ) %>%
+    dplyr::filter(study_id == study) %>%
+    {dplyr::tibble(colnames = colnames(.), params := t(.)[,1])}
+
+  .out <- dplyr::left_join(labels, study_data, by = "colnames")
+
+  for (i in c("rds", "pps", "tls")) {
+    if (.out$params[which(.out$colnames == i)] == 0) {
+      .out <- dplyr::filter(.out, family != i)
+    }
+  }
+
+  return(
+    dplyr::select(.out,
+                  "Name" = name,
+                  "Description" = description,
+                  "Value" = params)
+  )
 
 }
 
