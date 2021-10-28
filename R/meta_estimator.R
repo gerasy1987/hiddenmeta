@@ -21,7 +21,7 @@ get_meta_estimates <- function(
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
   stan_handler = get_meta_stan2,
-  hidden_prior = list(mean = 300, se = 100),
+  hidden_prior = NULL,
   rel_bias_prior = list(mean = 1, se = 10),
   control_params = list(
     iter = 8000, chains = 8, thin = 10,
@@ -48,14 +48,21 @@ get_meta_estimates <- function(
 
   .N <- length(.studies)
   .K <- nrow(.samp_ests)
-  .alpha_prior <- do.call(cbind, hidden_prior)
 
-  if (nrow(.alpha_prior) == 1) {
-    .alpha_prior <- .alpha_prior[rep(1, times = .N),]
-  } else if (nrow(.alpha_prior) == .N) {
-    .alpha_prior <- .alpha_prior[.studies,]
-  } else {
-    stop("wrong prior on the prevalence/size parameters was specified")
+  if(is.null(hidden_prior)) {
+      .alpha_prior <- do.call(cbind, hidden_prior)
+
+      if (nrow(.alpha_prior) == 1) {
+        .alpha_prior <- .alpha_prior[rep(1, times = .N),]
+      } else if (nrow(.alpha_prior) == .N) {
+        .alpha_prior <- .alpha_prior[.studies,]
+      } else {
+        stop("wrong prior on the prevalence/size parameters was specified")
+      }
+    } else {
+      .alpha_prior <- .stan_data %>% group_by(study) %>%
+        summarize(mean = mean(estimate), se = 2*mean(se))  %>%
+        select(-study) %>% as.matrix()
   }
 
   # get ids of unique samp-est pairs in observed data
@@ -135,8 +142,12 @@ get_meta_estimates <- function(
                se =   c(unname(.biases[[2]][1,]), unname(.study_ests[,2])),
                inquiry = c(paste0("rel_bias_", .samp_est_names),
                            paste0(.studies, "_", which_estimand)),
+               # note assumes first item is benchmark
+               prior = c(1, rep(rel_bias_prior[1], .K-1), .alpha_prior[,1]) %>% unlist,
+               prior_var = c(0, rep(rel_bias_prior[2], .K-1), .alpha_prior[,2]) %>% unlist,
                stringsAsFactors = FALSE
     )
   )
 
 }
+

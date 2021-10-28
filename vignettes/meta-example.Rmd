@@ -256,7 +256,7 @@ meta_sample <-
                    handler = function(data, sampling_variable) {
                      data %>% 
                        dplyr::mutate(
-                         "{ sampling_variable }" := as.integer(sim_ID == sample(1, unique(sim_ID)))
+                         "{ sampling_variable }" := as.integer(sim_ID == sample(x = unique(sim_ID), size = 1 ))
                        )
                    })
 
@@ -270,8 +270,8 @@ meta_estimator <-
     sampling_variable = "meta",
     which_estimand = "hidden_size",
     benchmark = list(sample = "pps", estimator = "ht"),
-    hidden_prior = list(mean = `names<-`(c(1000, 1000, 3000, 3000, 1000, 1000, 1000, 1000), study_map), 
-                        se = 50),
+    # hidden_prior = list(mean = `names<-`(c(1000, 1000, 3000, 3000, 1000, 1000, 1000, 1000), study_map), 
+    #                    se = 50),
     rel_bias_prior <- list(mean = 1, se = 5),
     control_params = list(
       iter = 8000, chains = 8, thin = 10,
@@ -317,8 +317,6 @@ saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim_real_original
 ### Diagnose meta study
 
 ```{r diagnose_real}
-```{r diagnose_real}
-
 meta_simulations <- 
   readRDS(system.file("extdata", "meta_sim_real_original.rds", package = "hiddenmeta"))
 
