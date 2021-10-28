@@ -256,7 +256,7 @@ meta_sample <-
                    handler = function(data, sampling_variable) {
                      data %>% 
                        dplyr::mutate(
-                         "{ sampling_variable }" := as.integer(sim_ID == sample(x = unique(sim_ID), size = 1 ))
+                         "{ sampling_variable }" := as.integer(sim_ID == sample(x = unique(sim_ID), size = 1))
                        )
                    })
 
@@ -317,6 +317,7 @@ saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim_real_original
 ### Diagnose meta study
 
 ```{r diagnose_real}
+
 meta_simulations <- 
   readRDS(system.file("extdata", "meta_sim_real_original.rds", package = "hiddenmeta"))
 
