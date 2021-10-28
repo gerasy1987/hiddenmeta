@@ -13,8 +13,8 @@
 #' @importFrom purrr map_chr
 #' @importFrom plyr mapvalues
 read_study_params <- function(
-  ss,
-  sheet
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable"
 ) {
 
   labels <-
@@ -436,9 +436,9 @@ get_required_data <- function(
 #' @import googlesheets4 dplyr
 #' @importFrom magrittr `%>%`
 read_single_study_params <- function(
-  study = "johnjay_tanzania",
-  ss,
-  sheet
+  study,
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable"
 ) {
 
   labels <-
@@ -621,5 +621,64 @@ get_rmse_plots <- function(
     ))
 
   }
+
+}
+
+#' Get Parameters and Design Features of Specific Study
+#'
+#' @param study Character string giving name of the study to pull. Have to match the names provided in Google Spreadsheet
+#' @param ss Character string giving ID of the Google spreadsheet
+#' @param sheet Character string giving name of the sheet in the Google spreadsheet to read
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @import googlesheets4 dplyr
+#' @importFrom magrittr `%>%`
+#' @importFrom stringr str_extract
+#' @importFrom DeclareDesign declare_population declare_sampling declare_inquiry declare_estimator
+get_single_study_design <- function(
+  study = "johnjay_tanzania",
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable") {
+
+  .type_map <-
+    list(population = DeclareDesign::declare_population,
+         sample     = DeclareDesign::declare_sampling,
+         inquiry    = DeclareDesign::declare_inquiry,
+         est        = DeclareDesign::declare_estimator)
+
+  .design_list <- read_study_params(ss, sheet)[[study]]
+
+  .declare_list <-
+    list(study_population   = .design_list$pop,
+         study_sample_rds   = .design_list$samples$rds,
+         study_sample_pps   = .design_list$samples$pps,
+         study_sample_tls   = .design_list$samples$tls,
+         study_estimands    = .design_list$inquiries,
+         est_sspse          = .design_list$estimators$rds$sspse,
+         est_chords         = .design_list$estimators$rds$chords,
+         est_multi          = .design_list$estimators$rds$multiplier,
+         est_ht_pps         = .design_list$estimators$pps$ht,
+         est_nsum_pps       = .design_list$estimators$pps$nsum,
+         est_recap_rds_pps  = .design_list$estimators$rds_pps$recap1,
+         est_ht_tls         = .design_list$estimators$tls$ht,
+         est_nsum_tls       = .design_list$estimators$tls$nsum,
+         est_recap_tls      = .design_list$estimators$tls$recap
+         )
+
+  for (i in seq_along(.declare_list)) {
+    if (!is.null(.declare_list[[i]])) {
+      .declare_fun <- .type_map[[stringr::str_extract(pattern = paste0(names(.type_map), collapse = "|"),
+                                                    string = names(.declare_list)[i])]]
+      assign(names(.declare_list)[i], eval(as.call(c(list(.declare_fun), .declare_list[[i]]))))
+    }
+  }
+
+  return(
+    eval(parse(text = paste0(names(.declare_list)[sapply(.declare_list, function(x) !is.null(x))], collapse = " + ")))
+  )
 
 }

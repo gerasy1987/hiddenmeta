@@ -4,7 +4,11 @@
 \alias{read_single_study_params}
 \title{Get Parameters and Design Features of Specific Study}
 \usage{
-read_single_study_params(study = "johnjay_tanzania", ss, sheet)
+read_single_study_params(
+  study,
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable"
+)
 }
 \arguments{
 \item{study}{Character string giving name of the study to pull. Have to match the names provided in Google Spreadsheet}
