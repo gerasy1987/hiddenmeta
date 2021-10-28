@@ -202,7 +202,7 @@ diagnose_design(simulations_df = meta_simulations,
 ## Use actual study designs
 
 
-```{r declare_meta_base, eval=TRUE}
+```{r declare_meta_base, eval=FALSE}
 
 study_map <- c("Brazil (FF)" = "ff_brazil",
                "Tunisia (UMass)" = "umass_tunisia",
@@ -271,7 +271,7 @@ meta_estimator <-
     which_estimand = "hidden_size",
     benchmark = list(sample = "pps", estimator = "ht"),
     hidden_prior = list(mean = `names<-`(c(1000, 1000, 3000, 3000, 1000, 1000, 1000, 1000), study_map), 
-                        se = 10),
+                        se = 50),
     rel_bias_prior <- list(mean = 1, se = 5),
     control_params = list(
       iter = 8000, chains = 8, thin = 10,
@@ -286,7 +286,7 @@ meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
 ### Run simulations
 
-```{r draw_sims, eval=FALSE}
+```{r draw_sims_real, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
 doParallel::registerDoParallel(cores = 50)
@@ -294,7 +294,7 @@ doParallel::registerDoParallel(cores = 50)
 set.seed(872312)
 meta_simulations <-
   plyr::llply(
-    as.list(1:50),
+    as.list(1:100),
     .fun = function(x) {
       base::suppressWarnings(
         try(DeclareDesign::simulate_design(meta_study, sims = 1) %>%
@@ -316,7 +316,8 @@ saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim_real_original
 
 ### Diagnose meta study
 
-```{r diagnose}
+```{r diagnose_real}
+```{r diagnose_real}
 
 meta_simulations <- 
   readRDS(system.file("extdata", "meta_sim_real_original.rds", package = "hiddenmeta"))
