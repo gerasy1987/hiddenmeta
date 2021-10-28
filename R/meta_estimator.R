@@ -49,7 +49,7 @@ get_meta_estimates <- function(
   .N <- length(.studies)
   .K <- nrow(.samp_ests)
 
-  if(is.null(hidden_prior)) {
+  if (!is.null(hidden_prior)) {
       .alpha_prior <- do.call(cbind, hidden_prior)
 
       if (nrow(.alpha_prior) == 1) {
