@@ -154,6 +154,12 @@
 <code class="sourceCode R">
 <span class="va">design</span> <span class="op">&lt;-</span> <span class="va">study_designs</span><span class="op">$</span><span class="va">ff_brazil</span>
 
+<span class="fu"><a href="../reference/read_single_study_params.html">read_single_study_params</a></span><span class="op">(</span>
+  study <span class="op">=</span> <span class="st">"ff_brazil"</span>,
+  ss <span class="op">=</span> <span class="st">"1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y"</span>,
+  sheet <span class="op">=</span> <span class="st">"study_params_readable"</span>
+<span class="op">)</span>
+
 <span class="va">study_population</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://rdrr.io/r/base/eval.html">eval</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/call.html">as.call</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">declare_population</span><span class="op">)</span>, <span class="va">design</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 
@@ -514,21 +520,22 @@
   <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"multi_sim_data_draw.rds"</span>, package <span class="op">=</span> <span class="st">"hiddenmeta"</span><span class="op">)</span><span class="op">)</span>
 
 <span class="op">(</span> <span class="va">data_require_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_required_data.html">get_required_data</a></span><span class="op">(</span><span class="va">multi_study_data</span><span class="op">)</span> <span class="op">)</span>
-<span class="co">#&gt; # A tibble: 21 × 10</span>
-<span class="co">#&gt;    variable           label ff_brazil umass_tunisia stanford_brazil jhu_pakistan</span>
-<span class="co">#&gt;    &lt;chr&gt;              &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;         &lt;chr&gt;           &lt;chr&gt;       </span>
-<span class="co">#&gt;  1 name               Resp… Yes       Yes           Yes             Yes         </span>
-<span class="co">#&gt;  2 hidden             Hidd… Yes       Yes           Yes             Yes         </span>
-<span class="co">#&gt;  3 hidden_visible_out Know… Yes       Yes           Yes             Yes         </span>
-<span class="co">#&gt;  4 hidden_visible_in  Know… Yes       Yes           Yes             Yes         </span>
-<span class="co">#&gt;  5 rds                RDS:… Yes       No            No              Yes         </span>
-<span class="co">#&gt;  6 rds_from           RDS:… Yes       No            No              Yes         </span>
-<span class="co">#&gt;  7 rds_t              RDS:… Yes       No            No              Yes         </span>
-<span class="co">#&gt;  8 rds_wave           RDS:… Yes       No            No              Yes         </span>
-<span class="co">#&gt;  9 rds_hidden         RDS:… Yes       No            No              Yes         </span>
-<span class="co">#&gt; 10 rds_own_coupon     RDS:… Yes       No            No              Yes         </span>
-<span class="co">#&gt; # … with 11 more rows, and 4 more variables: johnjay_costarica &lt;chr&gt;,</span>
-<span class="co">#&gt; #   johnjay_tanzania &lt;chr&gt;, norc_marocco &lt;chr&gt;, rti_usa &lt;chr&gt;</span></code></pre></div>
+<span class="co">#&gt; # A tibble: 21 × 12</span>
+<span class="co">#&gt;    Variable  Label Type  Example `Brazil (FF)` `Tunisia (UMass… `Brazil (Stanfo…</span>
+<span class="co">#&gt;    &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;         &lt;chr&gt;            &lt;chr&gt;           </span>
+<span class="co">#&gt;  1 name      Resp… inte… "6825;… X             "X"              "X"             </span>
+<span class="co">#&gt;  2 hidden    Hidd… inte… "0"     X             "X"              "X"             </span>
+<span class="co">#&gt;  3 hidden_v… Know… nume… "1;3;6… X             "X"              "X"             </span>
+<span class="co">#&gt;  4 hidden_v… Know… nume… "0;16"  X             "X"              "X"             </span>
+<span class="co">#&gt;  5 rds       RDS:… inte… "0"     X             ""               ""              </span>
+<span class="co">#&gt;  6 rds_from  RDS:… nume… "9682;… X             ""               ""              </span>
+<span class="co">#&gt;  7 rds_t     RDS:… nume… "514.6… X             ""               ""              </span>
+<span class="co">#&gt;  8 rds_wave  RDS:… nume… "7;1"   X             ""               ""              </span>
+<span class="co">#&gt;  9 rds_hidd… RDS:… inte… ""      X             ""               ""              </span>
+<span class="co">#&gt; 10 rds_own_… RDS:… char… ""      X             ""               ""              </span>
+<span class="co">#&gt; # … with 11 more rows, and 5 more variables: Pakistan (JHU) &lt;chr&gt;,</span>
+<span class="co">#&gt; #   Costa Rica (John Jay) &lt;chr&gt;, Tanzania (John Jay) &lt;chr&gt;,</span>
+<span class="co">#&gt; #   Morocco (NORC) &lt;chr&gt;, USA (RTI) &lt;chr&gt;</span></code></pre></div>
 </div>
   </div>
 
