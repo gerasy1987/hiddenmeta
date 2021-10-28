@@ -63,7 +63,8 @@ get_meta_estimates <- function(
     .alpha_prior <-
       .stan_data %>%
       group_by(study) %>%
-      summarize(mean = mean(estimate), se = mean(se)) %>%
+      summarize(mean = sum(estimate / (se * sum(1/se))), se = 2 * mean(se / (se * sum(1/se)))) %>%
+      { .[order(match(.$study,.studies)),] } %>%
       select(-study) %>%
       as.matrix()
   } else {
@@ -148,8 +149,8 @@ get_meta_estimates <- function(
                inquiry = c(paste0("rel_bias_", .samp_est_names),
                            paste0(.studies, "_", which_estimand)),
                # note assumes first item is benchmark
-               prior = c(1, rep(rel_bias_prior[1], .K-1), .alpha_prior[,1]) %>% unlist,
-               prior_var = c(0, rep(rel_bias_prior[2], .K-1), .alpha_prior[,2]) %>% unlist,
+               prior = c(1, rep(rel_bias_prior[[1]], .K-1), .alpha_prior[,1]) %>% unlist,
+               prior_sd = c(0, rep(rel_bias_prior[[2]], .K-1), .alpha_prior[,2]) %>% unlist,
                stringsAsFactors = FALSE
     )
   )

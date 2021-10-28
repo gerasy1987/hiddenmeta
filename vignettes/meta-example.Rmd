@@ -202,7 +202,7 @@ diagnose_design(simulations_df = meta_simulations,
 ## Use actual study designs
 
 
-```{r declare_meta_base, eval=FALSE}
+```{r declare_meta_base, eval=TRUE}
 
 study_map <- c("Brazil (FF)" = "ff_brazil",
                "Tunisia (UMass)" = "umass_tunisia",
@@ -280,8 +280,6 @@ meta_estimator <-
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
-draw_estimates(meta_study)
-
 ```
 
 ### Run simulations
@@ -294,13 +292,13 @@ doParallel::registerDoParallel(cores = 50)
 set.seed(872312)
 meta_simulations <-
   plyr::llply(
-    as.list(1:100),
+    as.list(1:50),
     .fun = function(x) {
       base::suppressWarnings(
         try(DeclareDesign::simulate_design(meta_study, sims = 1) %>%
-          dplyr::mutate(
-            sim_ID = x
-          ))
+              dplyr::mutate(
+                sim_ID = x
+              ))
       )
     },
     .parallel = TRUE
@@ -328,7 +326,9 @@ study_diagnosands <-
     sd_estimate = sd(estimate),
     mean_se = mean(se),
     bias = mean(estimate - estimand),
-    rmse = sqrt(mean((estimate - estimand) ^ 2))
+    rmse = sqrt(mean((estimate - estimand) ^ 2)),
+    prior = mean(prior),
+    prior_sd = mean(prior_sd)
   )
 
 diagnose_design(simulations_df = meta_simulations,
@@ -337,5 +337,88 @@ diagnose_design(simulations_df = meta_simulations,
   dplyr::select(-'Design') %>%
   dplyr::filter(`Mean Estimate` != "NA") %>%
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+
+```
+
+## Leave 1 out exercise
+
+```{r leave1out, eval=FALSE}
+
+for (i in seq_along(study_map)) {
+  
+  cat("Doing simulations leaving study", names(study_map)[i], "out: ")
+  
+  study_designs_base <- 
+    readRDS(system.file("extdata", "multi_sim_real_original.rds", package = "hiddenmeta")) %>% 
+    dplyr::filter(!is.na(estimator), !is.nan(se)) %>%
+    dplyr::mutate(
+      study = purrr::map_chr(inquiry, ~ sapply(.x, function(x) {
+        unname(study_map)[sapply(unname(study_map), function(stud) grepl(stud, x, fixed = TRUE))]
+      })),
+      inquiry =
+        purrr::map2_chr(study, inquiry, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
+      estimator =
+        purrr::map2_chr(inquiry, estimator, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
+      estimator_full = estimator,
+      estimator = purrr::map_chr(estimator_full,
+                                 ~ tail(strsplit(.x, "_")[[1]], 1)),
+      sampling =
+        purrr::map2_chr(estimator, estimator_full,
+                        ~ gsub(pattern = paste0("_", .x), replacement = "", x = .y, fixed = TRUE)),
+      sample = purrr::map(sampling, ~ strsplit(.x, split = "_")[[1]]),
+      absolute_bias = abs(estimate/estimand)
+    ) %>% 
+    dplyr::filter(study != unname(study_map)[i]) %>%
+    dplyr::select(-design, -sampling, -estimator_full) %>% 
+    dplyr::filter(inquiry == "hidden_size") %>% 
+    dplyr::group_by(sim_ID, study, inquiry) %>% 
+    dplyr::mutate(
+      rel_bias = estimate/estimate[estimator == "ht"]
+    ) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::select(sim_ID, study, inquiry, sample, estimator, estimand, estimate, se, rel_bias, absolute_bias
+    )
+  
+  # remove all sampling-estimators observed only once
+  meta_population <-
+    study_designs_base %>% 
+    dplyr::group_by(sim_ID, sample, estimator) %>% 
+    dplyr::filter(n() >= 3) %>% 
+    dplyr::ungroup() %>% 
+    declare_population(.)
+  
+  meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
+  
+  
+  requireNamespace(c("doParallel", "parallel"))
+  doParallel::registerDoParallel(cores = 50)
+  
+  set.seed(872312)
+  meta_simulations <-
+    plyr::llply(
+      as.list(1:50),
+      .fun = function(x) {
+        base::suppressWarnings(
+          try(DeclareDesign::simulate_design(meta_study, sims = 1) %>%
+                dplyr::mutate(
+                  sim_ID = x
+                ))
+        )
+      },
+      .parallel = TRUE
+    )
+  
+  meta_simulations <- 
+    meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] %>%
+    dplyr::bind_rows()
+  
+  saveRDS(meta_simulations, 
+          file = here::here(paste0("inst/extdata/meta_sim_real_excl_", unname(study_map)[i], ".rds")))
+  
+  cat("done!\n")
+  
+}
+
+
 
 ```
