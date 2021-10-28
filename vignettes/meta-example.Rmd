@@ -190,11 +190,15 @@ study_diagnosands <-
     rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
 
-diagnose_design(simulations_df = meta_simulations,
-                diagnosands = study_diagnosands) %>%
-  reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>%
+
+(
+  table_meta_simple <- 
+    diagnose_design(simulations_df = meta_simulations,
+                    diagnosands = study_diagnosands) %>%
+    reshape_diagnosis(digits = 2) %>%
+    dplyr::select(-'Design') %>%
+    dplyr::filter(`Mean Estimate` != "NA") 
+) %>%
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -331,11 +335,14 @@ study_diagnosands <-
     prior_sd = mean(prior_sd)
   )
 
-diagnose_design(simulations_df = meta_simulations,
-                diagnosands = study_diagnosands) %>%
-  reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>%
+(
+  table_meta_original <- 
+    diagnose_design(simulations_df = meta_simulations,
+                    diagnosands = study_diagnosands) %>%
+    reshape_diagnosis(digits = 2) %>%
+    dplyr::select(-'Design') %>%
+    dplyr::filter(`Mean Estimate` != "NA") 
+) %>%
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -391,7 +398,7 @@ for (i in seq_along(study_map)) {
   
   
   requireNamespace(c("doParallel", "parallel"))
-  doParallel::registerDoParallel(cores = 50)
+  doParallel::registerDoParallel(cores = 25)
   
   set.seed(872312)
   meta_simulations <-
@@ -399,10 +406,10 @@ for (i in seq_along(study_map)) {
       as.list(1:50),
       .fun = function(x) {
         base::suppressWarnings(
-          try(DeclareDesign::simulate_design(meta_study, sims = 1) %>%
-                dplyr::mutate(
-                  sim_ID = x
-                ))
+          DeclareDesign::simulate_design(meta_study, sims = 1) %>%
+            dplyr::mutate(
+              sim_ID = x
+            )
         )
       },
       .parallel = TRUE
@@ -446,18 +453,37 @@ leave1out_sims <-
       dplyr::filter(!is.na(mean_estimate)) %>% 
       dplyr::mutate(study_excluded = x,
                     "{ x }" := rmse/mean_estimand) %>% 
-      dplyr::select(c(inquiry, x))
+      dplyr::select(c(inquiry, all_of(x)))
     
   }) 
 
-readRDS(system.file("extdata", paste0("meta_sim_real_original.rds"), package = "hiddenmeta")) %>% 
+(
+  table_leave1out <- 
+    readRDS(system.file("extdata", paste0("meta_sim_real_original.rds"), package = "hiddenmeta")) %>% 
     diagnose_design(simulations_df = .,
                     diagnosands = study_diagnosands) %>%
     .$diagnosands_df %>% 
     dplyr::filter(!is.na(mean_estimate)) %>% 
     dplyr::mutate(all = abs(rmse/mean_estimand)) %>% 
     dplyr::select(c(inquiry, all)) %>% 
-  purrr::reduce(.x = leave1out_sims, .f = left_join, by = "inquiry", .init = .) %>% 
-  dplyr::filter(inquiry != "rel_bias_tls_recap")
+    purrr::reduce(.x = leave1out_sims, .f = left_join, by = "inquiry", .init = .) %>% 
+    dplyr::filter(!(inquiry %in% c("rel_bias_tls_recap", "rel_bias_pps_ht")) & !grepl("hidden_size", inquiry)) %>%
+    dplyr::mutate(
+      across(all_of(unname(study_map)), ~ ifelse(is.na(.), "-", format(., digits = 2))),
+      all = format(all, digits = 2),
+      # inquiry = gsub("_hidden_size", "size", inquiry),
+      inquiry = gsub("rel_bias_", "", inquiry)
+    ) %>% 
+    dplyr::rename(Estimand = inquiry, "Benchmark" = all) %>% 
+    dplyr::rename_with(~ plyr::mapvalues(., from = unname(study_map), to = names(study_map)))
+) %>%
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+
+```
+
+
+```{r save_tables, eval=FALSE, include=FALSE}
+
+save(list = ls()[grepl("^table", ls())], file = here::here("../report_1/meta_tables.rdata"))
 
 ```

@@ -544,7 +544,7 @@ get_rmse_plots <- function(
         purrr::map2_chr(study, inquiry, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
       estimator =
         purrr::map2_chr(inquiry, estimator, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
-      target = log1p(rmse/mean_estimand),
+      target = rmse/mean_estimand,
       estimator_full = estimator,
       estimator = purrr::map_chr(estimator_full,
                                  ~ tail(strsplit(.x, "_")[[1]], 1)),
@@ -576,15 +576,16 @@ get_rmse_plots <- function(
         dplyr::mutate(empty = ifelse(is.na(target), "X", NA_character_)) %>%
         ggplot2::ggplot(., aes(y = estimator, x = target, fill = sim_type)) +
         ggplot2::geom_col(width = .6, position = "dodge", color = "black", size = .1) +
+        ggplot2::scale_x_continuous(trans = "sqrt") +
         ggplot2::facet_grid(sampling~study,
                             labeller = label_context,
                             scales = "free_y",
-                            space = "free") +
-        ggplot2::geom_text(aes(x = 0, label=empty), colour="red", size=4) +
+                            space = "free_y") +
+        ggplot2::geom_text(aes(x = 0.1, label=empty), colour="red", size=4) +
         ggplot2::geom_vline(xintercept=0, color = "red", size=.5) +
-        ggplot2::labs(x = "Log(1 + Normalized RMSE)", y = "") +
+        ggplot2::labs(x = "Normalized RMSE", y = "") +
         ggplot2::theme_bw() +
-        ggplot2::theme(axis.text.x = element_text(angle = 90),
+        ggplot2::theme(#axis.text.x = element_text(angle = 90),
                        axis.text.y = element_text(angle = 30),
                        legend.position = "bottom") +
         ggplot2::scale_fill_brewer(palette = "Set2") +
@@ -606,15 +607,16 @@ get_rmse_plots <- function(
         dplyr::mutate(empty = ifelse(is.na(target), "X", NA_character_)) %>%
         ggplot2::ggplot(., aes(y = estimator, x = target)) +
         ggplot2::geom_col(width = .2, position = "dodge", color = "black", size = .1) +
+        ggplot2::scale_x_continuous(trans = "sqrt") +
         ggplot2::facet_grid(sampling~study,
                             labeller = label_context,
                             scales = "free_y",
-                            space = "free") +
-        ggplot2::geom_text(aes(x = 0, label=empty), colour="red", size=4) +
-        ggplot2::geom_vline(xintercept=0, color = "red", size=.5) +
-        ggplot2::labs(x = "Log(1 + Normalized RMSE)", y = "") +
+                            space = "free_y") +
+        ggplot2::geom_text(aes(x = 0.1, label = empty), colour="red", size=4) +
+        ggplot2::geom_vline(xintercept = 0, color = "red", size=.5) +
+        ggplot2::labs(x = "Normalized RMSE", y = "") +
         ggplot2::theme_bw() +
-        ggplot2::theme(axis.text.x = element_text(angle = 90),
+        ggplot2::theme(#axis.text.x = element_text(angle = 90),
                        axis.text.y = element_text(angle = 30))
     ))
 
