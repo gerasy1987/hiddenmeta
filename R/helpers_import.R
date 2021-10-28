@@ -481,7 +481,7 @@ read_single_study_params <- function(
 
   for (i in c("rds", "pps", "tls")) {
     if (.out$params[which(.out$colnames == i)] == 0) {
-      .out <- dplyr::filter(.out, family != i)
+      .out <- dplyr::filter(.out, is.na(family) | (family != i))
     }
   }
 
