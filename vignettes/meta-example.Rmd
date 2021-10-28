@@ -295,10 +295,10 @@ meta_simulations <-
     as.list(1:100),
     .fun = function(x) {
       base::suppressWarnings(
-        try(DeclareDesign::simulate_design(meta_study, sims = 1) %>%
+        DeclareDesign::simulate_design(meta_study, sims = 1) %>%
               dplyr::mutate(
                 sim_ID = x
-              ))
+              )
       )
     },
     .parallel = TRUE
@@ -436,20 +436,28 @@ study_diagnosands <-
     prior_sd = mean(prior_sd)
   )
 
+leave1out_sims <- 
+  lapply(study_map, function(x) {
+    
+    readRDS(system.file("extdata", paste0("meta_sim_real_excl_", x, ".rds"), package = "hiddenmeta")) %>% 
+      diagnose_design(simulations_df = .,
+                      diagnosands = study_diagnosands) %>%
+      .$diagnosands_df %>% 
+      dplyr::filter(!is.na(mean_estimate)) %>% 
+      dplyr::mutate(study_excluded = x,
+                    "{ x }" := rmse/mean_estimand) %>% 
+      dplyr::select(c(inquiry, x))
+    
+  }) 
 
-lapply(study_map, function(x) {
-  
-  readRDS(system.file("extdata", paste0("meta_sim_real_excl_", study_map[8], ".rds"), package = "hiddenmeta")) %>% 
+readRDS(system.file("extdata", paste0("meta_sim_real_original.rds"), package = "hiddenmeta")) %>% 
     diagnose_design(simulations_df = .,
                     diagnosands = study_diagnosands) %>%
     .$diagnosands_df %>% 
-    dplyr::select(-design) %>%
-    dplyr::filter(!is.na(mean_estimate))
-  
-})
-
-saveRDS(meta_simulations, 
-          file = here::here(paste0("inst/extdata/meta_sim_real_excl_", unname(study_map)[i], ".rds")))
-
+    dplyr::filter(!is.na(mean_estimate)) %>% 
+    dplyr::mutate(all = abs(rmse/mean_estimand)) %>% 
+    dplyr::select(c(inquiry, all)) %>% 
+  purrr::reduce(.x = leave1out_sims, .f = left_join, by = "inquiry", .init = .) %>% 
+  dplyr::filter(inquiry != "rel_bias_tls_recap")
 
 ```
