@@ -633,19 +633,23 @@ get_study_est_linktrace <- function(
 
   data %<>%
     dplyr::filter(., rds == 1) %>%
+    dplyr::mutate(rds_from = replace(rds_from, rds_from == -999, NA))%>%
     dplyr::inner_join(.,
                       {
                         nodes <- dplyr::select(., name)
-                        edges <-tidyr::drop_na(dplyr::select(., c(rds_from, name)))
-                        graph_from_data_frame(edges, nodes, directed = FALSE) %>%
-                          as_adj_list() %>%
+                        edges <- tidyr::drop_na(dplyr::select(., c(rds_from, name)))
+                        igraph::graph_from_data_frame(edges, nodes, directed = FALSE) %>%
+                          igraph::as_adj_list() %>%
                           lapply(., function(i) as.numeric(i$name))
                       } %>%
                         {
                           links_list <- .
                           data.frame(name = as.numeric(names(.))) %>%
                             dplyr::mutate(links_list = links_list)
-                        }, by = "name")
+                        }, by = "name")%>%
+    dplyr::mutate(strata_id = as.numeric(factor(.[[strata]])))
+
+  strata <- "strata_id"
 
   n_strata <- length(unique(data[[strata]]))
 
@@ -657,9 +661,11 @@ get_study_est_linktrace <- function(
     priors$p_l <- rep(priors$p_l, n_strata)
   }
 
-  l_0 <- rep(1/n_strata, n_strata)
-  b_0 <- matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata)
-  n_0 <- total
+
+  param_init <- list(l_0 = rep(1/n_strata, n_strata),
+                     b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
+                     n_0 = total)
+
 
 
 }
