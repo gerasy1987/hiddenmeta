@@ -41,6 +41,7 @@ Imports:
 Suggests: 
     covr (>= 3.5.0),
     DeclareDesign (>= 0.20.0),
+    ggplot2 (>= 3.3.0),
     knitr,
     rmarkdown,
     here,

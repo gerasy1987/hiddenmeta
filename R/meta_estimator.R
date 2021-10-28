@@ -20,7 +20,7 @@ get_meta_estimates <- function(
   sampling_variable = "meta",
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
-  stan_handler = get_meta_stan2,
+  stan_handler = get_meta_stan3,
   hidden_prior = NULL,
   rel_bias_prior = list(mean = 1, se = 10),
   control_params = list(
@@ -49,20 +49,25 @@ get_meta_estimates <- function(
   .N <- length(.studies)
   .K <- nrow(.samp_ests)
 
-  if (!is.null(hidden_prior)) {
-      .alpha_prior <- do.call(cbind, hidden_prior)
+  if (!is.null(hidden_prior) & is.list(hidden_prior)) {
+    .alpha_prior <- do.call(cbind, hidden_prior)
 
-      if (nrow(.alpha_prior) == 1) {
-        .alpha_prior <- .alpha_prior[rep(1, times = .N),]
-      } else if (nrow(.alpha_prior) == .N) {
-        .alpha_prior <- .alpha_prior[.studies,]
-      } else {
-        stop("wrong prior on the prevalence/size parameters was specified")
-      }
+    if (nrow(.alpha_prior) == 1) {
+      .alpha_prior <- .alpha_prior[rep(1, times = .N),]
+    } else if (nrow(.alpha_prior) == .N) {
+      .alpha_prior <- .alpha_prior[.studies,]
     } else {
-      .alpha_prior <- .stan_data %>% group_by(study) %>%
-        summarize(mean = mean(estimate), se = 2*mean(se))  %>%
-        select(-study) %>% as.matrix()
+      stop("There is mismatch in length of hyperpriors on mean and std. error of target parameters. Length of each element should be equal either to length of number of studies included or to 1")
+    }
+  } else if (is.null(hidden_prior)) {
+    .alpha_prior <-
+      .stan_data %>%
+      group_by(study) %>%
+      summarize(mean = mean(estimate), se = mean(se)) %>%
+      select(-study) %>%
+      as.matrix()
+  } else {
+    stop("Hyperpriors on target parameters are provided in wrong format (should be NULL or list of two numeric objects)")
   }
 
   # get ids of unique samp-est pairs in observed data

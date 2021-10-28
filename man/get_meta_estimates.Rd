@@ -9,8 +9,8 @@ get_meta_estimates(
   sampling_variable = "meta",
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
-  stan_handler = get_meta_stan2,
-  hidden_prior = list(mean = 300, se = 100),
+  stan_handler = get_meta_stan3,
+  hidden_prior = NULL,
   rel_bias_prior = list(mean = 1, se = 10),
   control_params = list(iter = 8000, chains = 8, thin = 10, seed = 872312, cores = 1)
 )
