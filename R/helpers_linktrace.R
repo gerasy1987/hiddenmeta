@@ -14,11 +14,33 @@ lt_permute <- function(data){
   wave_samples[[1]] <- sample(data$name, n_initial)
 
   for(i in 2:length(wave_samples)){
-    wave_samples[[i]] <- unique(unlist(data[wave_samples[[i - 1]],"links_list"][[1]]))%>%
-      setdiff(., unlist(wave_samples[1:i-1]))
+    wave_samples[[i]] <- unique(unlist(data[data$name %in% wave_samples[[(i - 1)]],"links_list"]))%>%
+      setdiff(., unlist(wave_samples[1:(i-1)]))
   }
 
-  return(wave_samples)
+  data <- data%>%
+    dplyr::filter(name %in% unlist(wave_samples))%>%
+    dplyr::inner_join(.,
+                      {
+                        data.frame(name = unlist(wave_samples),
+                                   rds_wave_perm = rep(c(1:n_waves), sapply(wave_samples, length)))
+                      },
+                      by = "name")%>%
+    dplyr::mutate(rds_from = replace(rds_from, rds_wave_perm == 1,NA))%>%
+    {
+      new_ids <- data.frame(name = sort(.$name))%>%
+        dplyr::mutate(name_perm = c(1:nrow(.)))
+
+      dplyr::inner_join(., new_ids, by = "name")
+    }%>%
+    {
+      new_ids <- data.frame(rds_from = sort(.$name))%>%
+        dplyr::mutate(rds_from_perm = c(1:nrow(.)))
+
+      dplyr::left_join(., new_ids, by = "rds_from")
+    }
+
+  return(list(data_permute = data, wave_samples = wave_samples))
 }
 
 
@@ -27,6 +49,7 @@ lt_permute <- function(data){
 #' @param data pass through of sammple data created in get_study_est_linktrace
 #' @param strata pass through of the strata column indicator from get_study_est_linktrace
 #' @param n_strata pass through of n_strata variable created in get_study_est_linktrace indicating number of unique strata
+#' @param n_waves pass through of n_waves variable created in get_study_est_linktrace indicating number of rds waves
 #' @param total pass through of total variable from get_study_est_linktrace
 #' @param chain_samples pass through of chain_samples variable from get_study_est_linktrace indicating number of samples for gibbs sampler
 #' @param chain_burnin pass through of chain_burnin variable from get_study_est_linktrace indicating number of burnin samples for gibbs sampler
@@ -36,10 +59,11 @@ lt_permute <- function(data){
 #'
 #' @export
 
-lt_gibbs <- function(data, strata, n_strata, total, chain_samples, chain_burnin, priors, param_init){
+lt_gibbs <- function(data, strata, n_strata, n_waves, total, chain_samples, chain_burnin, priors, param_init){
 
-  data_p <- data
-  data_p_waves <- hiddenmeta::lt_permute(data = data_p)
+  permuted <- hiddenmeta::lt_permute(data = data)
+  data_p_waves <- permuted[["wave_samples"]]
+  data_p <- permuted[["data_permute"]]
 
   l <- matrix(0,chain_samples,n_strata)
   b <- array(0, c(n_strata, n_strata, chain_samples))
@@ -56,8 +80,8 @@ lt_gibbs <- function(data, strata, n_strata, total, chain_samples, chain_burnin,
   for(t in 2:chain_samples){
 
     ## generate new N
-    strata_count <- data%>%
-      dplyr::filter(., name %in% unlist(data_p_waves[1:length(data_p_waves)-1]))%>%
+    strata_count <- data_p%>%
+      dplyr::filter(., rds_wave_perm %in% c(1:n_waves - 1))%>%
       group_by_at(strata)%>%
       summarise(n = n())%>%
       .[["n"]]
@@ -73,23 +97,23 @@ lt_gibbs <- function(data, strata, n_strata, total, chain_samples, chain_burnin,
     no_link_1 <- l[t-1,] * no_link
     no_link <- sum(no_link_1)
 
-    n_post_range <- c(length(unlist(data_p_waves)):(total * 5))
-
     nn_0 <- length(data_p_waves[[1]])
-    nn <- length(unlist(data_p_waves))
+    nn <- nrow(data_p)
 
-    n[t,1] <- sapply(n_post_range, function(k) sum(log((n_post_range[k] + 1 - nn):(n_post_range[k] - nn_0))) +
-                       (n_post_range[k] - nn) * log(no_link) - prior_n * log(n_post_range[k]))%>%
+    n_post_range <- c(nn:(total * 5))
+
+    n[t,1] <- sapply(n_post_range, function(k) sum(log((k + 1 - nn):(k - nn_0))) +
+                       (k - nn) * log(no_link) - prior_n * log(k))%>%
       - max(.)%>%
       exp(.)%>%
       sample(n_post_range, 1, prob = .)
 
 
     ## assign strata to non sampled units
-    not_sampled <- setdiff(c(1:n[t,1]), unlist(data_p_waves))
+    not_sampled <- setdiff(c(1:n[t,1]), data_p$name_perm)
     stratum <- rep(NA, n[t,1])
-    stratum[unlist(data_p_waves)] <- data_p[unlist(data_p_waves),strata]
-    stratum[not_sampled] <- sample(1:n_strata, length(not_sampled), replace = FALSE, prob = no_link_1/no_link)
+    stratum[data_p$name_perm] <- data_p[,strata]
+    stratum[not_sampled] <- sample(1:n_strata, length(not_sampled), replace = TRUE, prob = no_link_1/no_link)
 
 
     ## assign links between units not in first w-1 waves
@@ -97,20 +121,23 @@ lt_gibbs <- function(data, strata, n_strata, total, chain_samples, chain_burnin,
       {
         nodes <- data.frame(c(1:n[t,1]))
 
-        edges <- tidyr::drop_na(dplyr::select(., c(rds_from, name)))%>%
+        edges <-dplyr::select(., c(rds_from_perm, name_perm))%>%
+          tidyr::drop_na()%>%
           rbind(.,
-                t(combn(setdiff(1:n[t,1], unlist(data_p_waves[1:length(data_p_waves)-1])), 2)) %>%
-                  {
-                    n_pairs <- dim(.)[1]
-                    link_prob <- runif(n_pairs)
+                {
+                  comb_nodes <- .[.$rds_wave_perm < n_waves,"name_perm"]
 
-                    as.data.frame(.)%>%
-                      dplyr::slice(., which(link_prob < b[,,t-1][cbind(stratum[.[1:n_pairs,1]],
-                                                                       stratum[.[1:n_pairs,2]])]))%>%
-                      dplyr::rename("rds_from" = V1, "name" = V2)
-
-                  }
-                )
+                  t(combn(setdiff(1:n[t,1], comb_nodes),2))%>%
+                    {
+                      n_pairs <- dim(.)[1]
+                      link_prob <- runif(n_pairs)
+                      as.data.frame(.)%>%
+                        dplyr::slice(., which(link_prob < b[,,t-1][cbind(stratum[.[1:n_pairs,1]],
+                                                                         stratum[.[1:n_pairs,2]])]))%>%
+                        dplyr::rename("rds_from_perm" = V1, "name_perm" = V2)
+                    }
+                }
+              )
 
         igraph::graph_from_data_frame(edges, nodes, directed = FALSE) %>%
           igraph::as_adjacency_matrix()%>%
@@ -169,6 +196,7 @@ lt_gibbs <- function(data, strata, n_strata, total, chain_samples, chain_burnin,
 #' @param n_samples pass through of n_samples variable from from get_study_est_linktrace
 #' @param data pass through of sammple data created in get_study_est_linktrace
 #' @param n_strata pass through of n_strata variable created in get_study_est_linktrace indicating number of unique strata
+#' @param n_waves pass through of n_waves variable created in get_study_est_linktrace indicating number of rds waves
 #' @param chain_samples pass through of chain_samples variable from get_study_est_linktrace indicating number of samples for gibbs sampler
 #' @param chain_burnin pass through of chain_burnin variable from get_study_est_linktrace indicating number of burnin samples for gibbs sampler
 #' @param priors pass through of priors from get_study_est_linktrace
@@ -177,8 +205,17 @@ lt_gibbs <- function(data, strata, n_strata, total, chain_samples, chain_burnin,
 #'
 #' @export
 
-lt_gibbs_sample <- function(n_samples, data, n_strata, chain_samples, chain_burnin, priors, param_init){
-
+lt_gibbs_sample <- function(n_samples, data, strata, n_strata, n_waves, chain_samples, chain_burnin, priors, param_init){
+  future::plan(future::multisession)
+  out <- furrr::future_map(1:n_samples, ~hiddenmeta::lt_gibbs(data = data,
+                                                              strata = strata
+                                                              n_strata = n_strata,
+                                                              n_waves = n_waves,
+                                                              chain_samples = chain_samples,
+                                                              chain_burnin = chain_burnin,
+                                                              priors = priors,
+                                                              param_init = param_init))
+  return(out)
 }
 
 

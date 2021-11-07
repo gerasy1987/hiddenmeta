@@ -661,12 +661,23 @@ get_study_est_linktrace <- function(
     priors$p_l <- rep(priors$p_l, n_strata)
   }
 
+  n_waves <- max(data$rds_wave)
+
 
   param_init <- list(l_0 = rep(1/n_strata, n_strata),
                      b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
                      n_0 = total)
 
+  res <- hiddenmeta::lt_gibbs_sample(n_samples = gibbs_params$n_samples,
+                                     data = data,
+                                     n_strata = n_strata,
+                                     n_waves = n_waves,
+                                     chain_samples = gibbs_params$chain_samples,
+                                     chain_burnin = gibbs_params$chain_burnin,
+                                     priors = priors,
+                                     param_init = param_init)
 
+  return(res)
 
 }
 
