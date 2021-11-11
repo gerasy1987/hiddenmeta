@@ -155,9 +155,12 @@ lt_gibbs <- function(data, y_samp ,strata, n_strata, n_waves, total, chain_sampl
 
   }
 
-  lt_gibbs_out <- list(n = mean(n[(chain_burnin + 1):chain_samples]),
-                       l = apply(l[(chain_burnin + 1):chain_samples,], 2, mean),
-                       b = apply(b[,,(chain_burnin + 1):chain_samples], 1:2, mean))
+  lt_gibbs_out <- list(est = list(n = mean(n[(chain_burnin + 1):chain_samples]),
+                                  l = apply(l[(chain_burnin + 1):chain_samples,], 2, mean),
+                                  b = apply(b[,,(chain_burnin + 1):chain_samples], 1:2, mean)),
+                       ci = list(n_ci = quantile(n[(chain_burnin + 1):chain_samples], probs = c(0.025,0.975)),
+                                 l_ci = apply(l[(chain_burnin + 1):chain_samples,],2, quantile, probs = c(0.025,0.975)),
+                                 b_ci = apply(b[,,(chain_burnin + 1):chain_samples], 1:2, quantile, probs = c(0.025,0.975))))
 
   return(lt_gibbs_out)
 }
