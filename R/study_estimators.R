@@ -615,16 +615,19 @@ get_study_est_recapture <- function(
 #'
 #' @param data pass through sample
 #' @param total integer giving the total size of the population
+#' @param strata column name of strata vector as character
+#' @param parallel logical, if TRUE gibbs sampling proceeds in parallel
 #' @param gibbs_params named list of parameters passed to Gibbs sampler
 #' @param priors named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).
 #' @param prefix
 #' @param label character string describing the estimator
-#'
+
 
 get_study_est_linktrace <- function(
   data,
   total = 2000,
   strata = "",
+  parallel = TRUE,
   gibbs_params = list(n_chains = 2L, chain_samples = 4000L, chain_burnin = 2000L, n_samples = 100L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
   prefix = "",
@@ -649,16 +652,25 @@ get_study_est_linktrace <- function(
                         }, by = "name")%>%
     dplyr::mutate(strata_id = as.numeric(factor(.[[strata]])))
 
+  y_samp <- data %>%
+    {
+      nodes <- dplyr::select(., name)
+      edges <- tidyr::drop_na(dplyr::select(., c(rds_from, name)))
+      igraph::graph_from_data_frame(edges, nodes, directed = FALSE) %>%
+        igraph::as_adjacency_matrix()%>%
+        as.matrix()
+    }
+
   strata <- "strata_id"
 
   n_strata <- length(unique(data[[strata]]))
 
-  if(n_strata != length(priors$p_l)){
-    stop("mismatch between number of strata and number of priors specified for strata in p_l")
+  if(length(priors$p_l) == 1){
+    priors$p_l <- rep(priors$p_l, n_strata)
   }
 
-  if(length(priors$p_l) > 1){
-    priors$p_l <- rep(priors$p_l, n_strata)
+  if(n_strata != length(priors$p_l)){
+    stop("mismatch between number of strata and number of priors specified for strata in p_l")
   }
 
   n_waves <- max(data$rds_wave)
@@ -668,14 +680,34 @@ get_study_est_linktrace <- function(
                      b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
                      n_0 = total)
 
-  res <- hiddenmeta::lt_gibbs_sample(n_samples = gibbs_params$n_samples,
-                                     data = data,
-                                     n_strata = n_strata,
-                                     n_waves = n_waves,
-                                     chain_samples = gibbs_params$chain_samples,
-                                     chain_burnin = gibbs_params$chain_burnin,
-                                     priors = priors,
-                                     param_init = param_init)
+  if(parallel){
+    future::plan(future::multisession)
+    res <- furrr::future_map(1:gibbs_params$n_samples,
+                             ~lt_gibbs(data = data,
+                                       y_samp = y_samp,
+                                       strata = strata,
+                                       n_strata = n_strata,
+                                       n_waves = n_waves,
+                                       total = total,
+                                       chain_samples = gibbs_params$chain_samples,
+                                       chain_burnin = gibbs_params$chain_burnin,
+                                       priors = priors,
+                                       param_init = param_init),
+                             .options = furrr::furrr_options(seed = TRUE),
+                             .progress = TRUE)
+  } else {
+    res <- purrr::map(1:gibbs_params$n_samples,
+                      ~lt_gibbs(data = data,
+                                y_samp = y_samp,
+                                strata = strata,
+                                n_strata = n_strata,
+                                n_waves = n_waves,
+                                total = total,
+                                chain_samples = gibbs_params$chain_samples,
+                                chain_burnin = gibbs_params$chain_burnin,
+                                priors = priors,
+                                param_init = param_init))
+  }
 
   return(res)
 

@@ -7,7 +7,8 @@
 get_study_est_linktrace(
   data,
   total = 2000,
-  n_strata = 2,
+  strata = "",
+  parallel = TRUE,
   gibbs_params = list(n_chains = 2L, chain_samples = 4000L, chain_burnin = 2000L,
     n_samples = 100L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
@@ -20,20 +21,15 @@ get_study_est_linktrace(
 
 \item{total}{integer giving the total size of the population}
 
+\item{strata}{column name of strata vector as character}
+
+\item{parallel}{logical, if TRUE gibbs sampling proceeds in parallel}
+
 \item{gibbs_params}{named list of parameters passed to Gibbs sampler}
 
 \item{priors}{named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).}
 
-\item{label}{character string describing the estimator
-
-coding notes:
-1. sample loop
-   - get permutation of sample (re apply snowball sampler)
-     - get sizes of initial sample + waves
-     - reorder sample
-   - initialize seeds for parameters
-2. marcov chain loop
-   -}
+\item{label}{character string describing the estimator}
 }
 \description{
 Link tracing estimator
