@@ -1,6 +1,33 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+
+// [[Rcpp::export]]
+NumericVector sv_math(NumericVector x, double num, String operation){
+  NumericVector ret(x.size());
+  for(int i = 0; i < ret.size(); i++){
+
+    if(operation == "multiply"){
+      ret[i] = x[i] * num;
+    }
+
+    if(operation == "add"){
+      ret[i] = x[i] + num;
+    }
+
+    if(operation == "subtract"){
+      ret[i] = x[i] - num;
+    }
+
+    if(operation == "divide"){
+      ret[i] = x[i] / num;
+    }
+
+  }
+  return ret;
+}
+
+
 // [[Rcpp::export]]
 List lt_permute(DataFrame data){
   NumericVector wave = data["rds_wave"];
@@ -39,6 +66,7 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
               List param_init) {
 
   Function c_unlist("unlist");
+  Function c_rep("rep");
   List data_p_waves = lt_permute(data);
   DataFrame data_p = clone(data);
 
@@ -69,6 +97,8 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
 
   for(int t = 1; t < chain_samples; t++){
 
+    // generate new N
+
     IntegerVector data_p_strata = clone(data_p["strata"]);
     IntegerVector rows = c_unlist(head(data_p_waves, n_waves - 1));
     IntegerVector rows_pull = clone(rows) - 1;
@@ -82,7 +112,7 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
 
     IntegerVector strata_count = table(strata_t);
 
-    NumericVector no_link_init(1, n_strata);
+    NumericVector no_link_init = c_rep(1, n_strata);
 
     for(int i = 0; i < n_strata; i++){
       for(int j = 0; j < n_strata; j++){
@@ -94,7 +124,27 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     NumericVector no_link_l = l(t - 1,_) * no_link_init;
     double no_link = sum(no_link_l);
 
-    int nn_0 =
+    IntegerVector n_0 = data_p_waves[0];
+    int nn_0 = n_0.size();
+    IntegerVector nn_vec = c_unlist(dat_p_waves);
+    int nn = nn_vec.size();
+
+    IntegerVector n_post_range = Range(nn, total * 5);
+
+    NumericVector n_sample_prob_vec(n_post_range.size());
+
+    for(int i = 0; i < n_post_range.size(); i++){
+     n_sample_prob_vec[i] =  sum(log(Range(n_post_range[i] + 1 - nn, n_post_range[i] - nn_0))) +
+       (n_post_range[i] - nn) * log(no_link) - prior_n * log(n_post_range[i]);
+    }
+
+    double n_sample_prob_max = max(n_sample_prob_vec);
+    NumericVector n_sample_prob = exp(sv_math(n_sample_prob_vec, n_sample_prob_max, "subtract"));
+    n[t] = sample(n_post_range, 1, false, n_sample_prob)[0];
+
+    // assign strata to non sampled units
+
+
 
   }
 }
