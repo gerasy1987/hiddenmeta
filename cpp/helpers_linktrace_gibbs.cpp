@@ -61,12 +61,6 @@ IntegerVector int_vec_insert(IntegerVector vec, IntegerVector vals, IntegerVecto
   return vec;
 }
 
-// [[Rcpp::export]]
-IntegerMatrix matrix_extract(){}
-
-// [[Rcpp::export]]
-IntegerMatrix matrix_insert(){}
-
 
 // [[Rcpp::export]]
 List lt_permute(DataFrame data){
@@ -97,6 +91,15 @@ List lt_permute(DataFrame data){
     wave_samples[i] = res_i;
   }
   return wave_samples;
+}
+
+// [[Rcpp::export]]
+IntegerVector g(IntegerMatrix m, IntegerVector r, IntegerVector c){
+  IntegerVector s1 = sv_math_int(c,1,"subtract");
+  IntegerVector s2 = sv_math_int(s1, m.nrow(), "multiply");
+  IntegerVector ret = s2 + r;
+  ret = sv_math_int(ret, 1, "subtract");
+  return ret;
 }
 
 
@@ -191,11 +194,11 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     IntegerVector data_p_reorder_unlist = c_unlist(data_p_reorder);
     IntegerVector n_range = Range(1, n[t]);
     IntegerVector not_sampled = setdiff(n_range, data_p_reorder_unlist);
-    not_sampled = sv_math_int(not_sampled, 1, "subtract");
+    not_sampled = clone(not_sampled) - 1;
 
     IntegerVector stratum(n[t]);
 
-    IntegerVector ins_pos_us = sv_math_int(data_p_reorder_unlist, 1, "subtract");
+    IntegerVector ins_pos_us = clone(data_p_reorder_unlist) - 1;
     IntegerVector data_p_waves_unlist = c_unlist(data_p_waves);
     rows_pull = clone(data_p_waves_unlist) - 1;
     IntegerVector ins_val_us(rows_pull.size());
@@ -212,11 +215,15 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     IntegerVector stratsamp = sample(strat, not_sampled.size(), true, pstrat);
 
     stratum = int_vec_insert(stratum, stratsamp, not_sampled);
-    DataFrame link_comb = c_expand_grid(Range(1,n_waves), Range(1,n_waves));
+    DataFrame link_comb = c_expand_grid(Range(0,n_waves - 1), Range(0,n_waves - 1));
     IntegerVector g1 = link_comb[0];
+    g1 = clone(g1);
     IntegerVector g2 = link_comb[1];
+    g2 = clone(g2);
 
-    for(int i = 0; i < g1.size - 1; i++){
+    // for matrix replacement use matrix indeces of values (i.e. col 0 & row 2 == 2)
+    // (col * nrow) + row (-1)?
+    for(int i = 0; i < g1.size(); i++){
 
     }
 
@@ -226,7 +233,6 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
   ret[0] = n;
   return ret;
 }
-
 
 
 

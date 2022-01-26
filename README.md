@@ -81,13 +81,13 @@ Simulated study level results feed into the meta-analysis:
     population-sampling-estimator triads
 
 2.  Estimands include:
-
-    -   Average estimand by inquiry label (within study)
-    -   Average bias of specific sampling-estimator pair (across
+    
+      - Average estimand by inquiry label (within study)
+      - Average bias of specific sampling-estimator pair (across
         studies) compared to truth
-    -   Average relative bias of sampling-estimator pair (across
+      - Average relative bias of sampling-estimator pair (across
         studies) compared to “gold standard”
-    -   Ratio of average bias to costs of sampling-estimator pair
+      - Ratio of average bias to costs of sampling-estimator pair
 
 3.  Sampling consists of drawing population-sampling-estimator triads
     presuming that each study uses at least two sampling strategies at a
@@ -97,15 +97,15 @@ Simulated study level results feed into the meta-analysis:
     estimands and sampling-estimator specific errors (biases, study
     level prevalence or size, cost-effectiveness)
 
-------------------------------------------------------------------------
+-----
 
 ### Getting started
 
--   To familiarize yourself with the `hiddenmeta` workflow please read
+  - To familiarize yourself with the `hiddenmeta` workflow please read
     [this
     vignette](https://gsyunyaev.com/hiddenmeta/articles/hiddenmeta-base.html)
 
-------------------------------------------------------------------------
+-----
 
 This project is based at the [WZB Berlin Social Science
 Center](https://www.wzb.eu/en/research/political-economy-of-development/institutions-and-political-inequality)
