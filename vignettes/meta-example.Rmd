@@ -296,13 +296,13 @@ doParallel::registerDoParallel(cores = 50)
 set.seed(872312)
 meta_simulations <-
   plyr::llply(
-    as.list(1:50),
+    as.list(1:100),
     .fun = function(x) {
       base::suppressWarnings(
         DeclareDesign::simulate_design(meta_study, sims = 1) %>%
-          dplyr::mutate(
-            sim_ID = x
-          )
+              dplyr::mutate(
+                sim_ID = x
+              )
       )
     },
     .parallel = TRUE
