@@ -136,7 +136,7 @@ sample_pps <-
       )
 
     if (drop_nonsampled) {
-      data %<>% dplyr::filter(dplyr::across(dplyr::all_of(sampling_variable), ~ . == 1))
+      data %<>% dplyr::filter(dplyr::if_all(dplyr::all_of(sampling_variable), ~ . == 1))
     }
 
     return(data)

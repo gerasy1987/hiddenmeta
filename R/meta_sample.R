@@ -58,7 +58,7 @@ get_meta_sample <-
     if (drop_nonsampled) {
       data <-
         data %>%
-        dplyr::filter(across(all_of(sampling_variable), ~ . == 1))
+        dplyr::filter(dplyr::if_any(sampling_variable, ~ . == 1))
     }
 
     return(data.frame(data, stringsAsFactors = FALSE))

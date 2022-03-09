@@ -237,7 +237,7 @@ get_study_est_chords <- function(data,
 
   .data_mod <-
     data %>%
-    dplyr::filter(dplyr::across(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
+    dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
     dplyr::mutate(
       NS1 = apply(.[,grep(pattern = .pattern, x = names(data))], 1, sum),
       refCoupNum = get(paste0(rds_prefix, "_own_coupon")),
@@ -461,7 +461,7 @@ get_study_est_multiplier <- function(data,
 
   .data_mod <-
     data %>%
-    dplyr::filter(dplyr::across(dplyr::all_of(rds_prefix), ~ . == 1))
+    dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1))
 
   .est_out <-
     total_service/mean(.data_mod[[service_var]])

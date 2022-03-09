@@ -277,7 +277,7 @@ sample_rds <-
       dplyr::select(-links_list)
 
     if (drop_nonsampled) data %<>%
-      dplyr::filter(dplyr::across(dplyr::all_of(sampling_variable), ~ . == 1))
+      dplyr::filter(dplyr::if_all(dplyr::all_of(sampling_variable), ~ . == 1))
 
     return(data)
 

@@ -31,7 +31,7 @@ get_meta_estimates <- function(
 
   .stan_data <-
     data %>%
-    dplyr::filter(across(all_of(sampling_variable), ~ . == 1),
+    dplyr::filter(dplyr::if_any(sampling_variable, ~ . == 1),
                   inquiry %in% which_estimand)
 
   .samp_ests <- unique(.stan_data[,c("sample", "estimator")])
