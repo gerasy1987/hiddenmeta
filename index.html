@@ -25,6 +25,8 @@
 </script>
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -47,14 +49,14 @@
   <a href="articles/hiddenmeta-base.html">Get started</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="https://declaredesign.org/r/randomizr/">Read study design</a>
+      <a href="https://declaredesign.org/r/randomizr/" class="external-link">Read study design</a>
     </li>
     <li>
       <a href="articles/meta-example.html">Simple meta-analysis</a>
@@ -90,31 +92,31 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="hiddenmeta" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#hiddenmeta" class="anchor"></a>hiddenmeta</h1></div>
+<div class="section level1">
+<div class="page-header"><h1 id="hiddenmeta">hiddenmeta<a class="anchor" aria-label="anchor" href="#hiddenmeta"></a>
+</h1></div>
 
-<div id="installation" class="section level3">
-<h3 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h3>
+<div class="section level3">
+<h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"DeclareDesign"</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"DeclareDesign"</span><span class="op">)</span>
 
 <span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"gerasy1987/hiddenmeta"</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="overview" class="section level3">
-<h3 class="hasAnchor">
-<a href="#overview" class="anchor"></a>Overview</h3>
+<div class="section level3">
+<h3 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h3>
 <p>This package provides tools to implement and evaluate designs to measure the prevalence of hidden populations.</p>
 <p>Researchers use a variety of techniques that vary on three dimensions: how and from whom data is gathered, which measures are taken, how analysis is done using these measure. Specific measures range from simple population sample with scaling by inverse sampling weights, to complex sampling designs using respondent driven sampling or time location sampling, coupled with network scale-up methods, or Bayesian analyses. Each method involves many specific design choices, and the relative performance of different methods likely varies over applications.</p>
 <p>The tools provided here help researchers select designs, assess their quality, and implement their analyses. In addition the tools can allow researchers to pool findings from multiple methods in order to implement meta-analysis that lets researchers learn about the relative effectiveness of approaches.</p>
 </div>
-<div id="evaluating-designs" class="section level3">
-<h3 class="hasAnchor">
-<a href="#evaluating-designs" class="anchor"></a>Evaluating designs</h3>
-<p>We rely on <a href="https://declaredesign.org/"><code>DeclareDesign</code></a> package for evaluating designs via simulation. The key idea of the simulation workflow is that we simulate the design as a set of steps. When concatenated the steps produce an instance of a design. When replicated these instances let us assess the overall performance of a design.</p>
+<div class="section level3">
+<h3 id="evaluating-designs">Evaluating designs<a class="anchor" aria-label="anchor" href="#evaluating-designs"></a>
+</h3>
+<p>We rely on <a href="https://declaredesign.org/" class="external-link"><code>DeclareDesign</code></a> package for evaluating designs via simulation. The key idea of the simulation workflow is that we simulate the design as a set of steps. When concatenated the steps produce an instance of a design. When replicated these instances let us assess the overall performance of a design.</p>
 <p>Fully specified designs include information on:</p>
-<ol>
+<ol style="list-style-type: decimal">
 <li>
 <strong>M</strong>: The background model—for instance, background beliefs about network structures.</li>
 <li>
@@ -126,21 +128,21 @@
 </ol>
 <p>Each of these MIDA steps can be defined using “handlers” from the <code>hiddenmeta</code> package and can be adjusted to reflect details of individual study designs.</p>
 </div>
-<div id="individual-designs" class="section level3">
-<h3 class="hasAnchor">
-<a href="#individual-designs" class="anchor"></a>Individual designs</h3>
+<div class="section level3">
+<h3 id="individual-designs">Individual designs<a class="anchor" aria-label="anchor" href="#individual-designs"></a>
+</h3>
 <p>The individual study design simulation involves:</p>
-<ol>
+<ol style="list-style-type: decimal">
 <li>Selecting parameters: this involves specifying methods that will be used and how they will be used.</li>
 <li>Using these to declare a design: the declared design can then be used to simulate data and implement analysis.</li>
 <li>Diagnosing the design by repeatedly simulating instances of the design</li>
 </ol>
 </div>
-<div id="meta-analysis" class="section level3">
-<h3 class="hasAnchor">
-<a href="#meta-analysis" class="anchor"></a>Meta analysis</h3>
+<div class="section level3">
+<h3 id="meta-analysis">Meta analysis<a class="anchor" aria-label="anchor" href="#meta-analysis"></a>
+</h3>
 <p>Simulated study level results feed into the meta-analysis:</p>
-<ol>
+<ol style="list-style-type: decimal">
 <li><p>Conduct multi-study design for as many sampling-estimator pairs in each study as possible, then diagnose the multi-study design. Calculate average (across simulations) estimand and bias of sampling-estimator for each of the studies and estimator sampling strategies. These will serve as population we will be drawing population-sampling-estimator triads</p></li>
 <li>
 <p>Estimands include:</p>
@@ -156,63 +158,74 @@
 </ol>
 <hr>
 </div>
-<div id="getting-started" class="section level3">
-<h3 class="hasAnchor">
-<a href="#getting-started" class="anchor"></a>Getting started</h3>
+<div class="section level3">
+<h3 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
+</h3>
 <ul>
 <li>To familiarize yourself with the <code>hiddenmeta</code> workflow please read <a href="https://gsyunyaev.com/hiddenmeta/articles/hiddenmeta-base.html">this vignette</a>
 </li>
 </ul>
 <hr>
-<p>This project is based at the <a href="https://www.wzb.eu/en/research/political-economy-of-development/institutions-and-political-inequality">WZB Berlin Social Science Center</a> (IPI group) and is generously supported by a grant from the <a href="https://apries.uga.edu/prevalenceforum/">African Programming &amp; Research Initiative to End Slavery (APRIES)</a>.</p>
+<p>This project is based at the <a href="https://www.wzb.eu/en/research/political-economy-of-development/institutions-and-political-inequality" class="external-link">WZB Berlin Social Science Center</a> (IPI group) and is generously supported by a grant from the <a href="https://apries.uga.edu/prevalenceforum/" class="external-link">African Programming &amp; Research Initiative to End Slavery (APRIES)</a>.</p>
 </div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li>Browse source code at <br><a href="https://github.com/gerasy1987/hiddenmeta/">https://​github.com/​gerasy1987/​hiddenmeta/​</a>
-</li>
-<li>Report a bug at <br><a href="https://github.com/gerasy1987/hiddenmeta/issues">https://​github.com/​gerasy1987/​hiddenmeta/​issues</a>
-</li>
-</ul>
-</div>
-<div class="license">
-<h2>License</h2>
-<ul class="list-unstyled">
-<li>
-<a href="https://opensource.org/licenses/mit-license.php">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
-</li>
-</ul>
-</div>
-<div class="developers">
-<h2>Developers</h2>
-<ul class="list-unstyled">
-<li>Georgiy Syunyaev <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-4391-6313" target="orcid.widget" aria-label="ORCID"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Macartan Humphreys <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0001-7029-2326" target="orcid.widget" aria-label="ORCID"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li><a href="authors.html">All authors...</a></li>
+<li><a href="https://github.com/gerasy1987/hiddenmeta/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/gerasy1987/hiddenmeta/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
-  <div class="dev-status">
-<h2>Dev status</h2>
+<div class="license">
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="https://codecov.io/gh/gerasy1987/hiddenmeta"><img src="https://codecov.io/gh/gerasy1987/hiddenmeta/branch/main/graph/badge.svg?token=ZG9A64Q0A1" alt="codecov"></a></li>
-<li><a href="https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a></li>
+<li>
+<a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
+</li>
 </ul>
 </div>
+
+
+<div class="citation">
+<h2 data-toc-skip>Citation</h2>
+<ul class="list-unstyled">
+<li><a href="authors.html#citation">Citing hiddenmeta</a></li>
+</ul>
 </div>
+
+<div class="developers">
+<h2 data-toc-skip>Developers</h2>
+<ul class="list-unstyled">
+<li>Georgiy Syunyaev <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-4391-6313" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Macartan Humphreys <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0001-7029-2326" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li><a href="authors.html">More about authors...</a></li>
+</ul>
+</div>
+
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://codecov.io/gh/gerasy1987/hiddenmeta" class="external-link"><img src="https://codecov.io/gh/gerasy1987/hiddenmeta/branch/main/graph/badge.svg?token=ZG9A64Q0A1" alt="codecov"></a></li>
+<li><a href="https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE" class="external-link"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a></li>
+</ul>
+</div>
+
+  </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p>Developed by Georgiy Syunyaev, Macartan Humphreys.</p>
+  <p></p>
+<p>Developed by Georgiy Syunyaev, Macartan Humphreys.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer>
@@ -220,6 +233,8 @@
 
   
 
+
+  
 
   </body>
 </html>
