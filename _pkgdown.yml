@@ -82,5 +82,6 @@ reference:
   - get_rescaled_boot
   - read_study_params
   - read_single_study_params
+  - get_single_study_design
   - get_required_data
   - get_rmse_plots

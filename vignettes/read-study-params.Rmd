@@ -76,12 +76,6 @@ study_designs <-
 
 design <- study_designs$ff_brazil
 
-read_single_study_params(
-  study = "ff_brazil",
-  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
-  sheet = "study_params_readable"
-)
-
 study_population <-
   eval(as.call(c(list(declare_population), design$pop)))
 

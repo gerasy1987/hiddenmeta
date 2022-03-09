@@ -13,8 +13,8 @@
 #' @importFrom purrr map_chr
 #' @importFrom plyr mapvalues
 read_study_params <- function(
-  ss,
-  sheet
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable"
 ) {
 
   labels <-
@@ -436,9 +436,9 @@ get_required_data <- function(
 #' @import googlesheets4 dplyr
 #' @importFrom magrittr `%>%`
 read_single_study_params <- function(
-  study = "johnjay_tanzania",
-  ss,
-  sheet
+  study,
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable"
 ) {
 
   labels <-
@@ -481,7 +481,7 @@ read_single_study_params <- function(
 
   for (i in c("rds", "pps", "tls")) {
     if (.out$params[which(.out$colnames == i)] == 0) {
-      .out <- dplyr::filter(.out, family != i)
+      .out <- dplyr::filter(.out, is.na(family) | (family != i))
     }
   }
 
@@ -544,7 +544,7 @@ get_rmse_plots <- function(
         purrr::map2_chr(study, inquiry, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
       estimator =
         purrr::map2_chr(inquiry, estimator, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
-      target = log1p(rmse/mean_estimand),
+      target = rmse/mean_estimand,
       estimator_full = estimator,
       estimator = purrr::map_chr(estimator_full,
                                  ~ tail(strsplit(.x, "_")[[1]], 1)),
@@ -576,15 +576,16 @@ get_rmse_plots <- function(
         dplyr::mutate(empty = ifelse(is.na(target), "X", NA_character_)) %>%
         ggplot2::ggplot(., aes(y = estimator, x = target, fill = sim_type)) +
         ggplot2::geom_col(width = .6, position = "dodge", color = "black", size = .1) +
+        ggplot2::scale_x_continuous(trans = "sqrt") +
         ggplot2::facet_grid(sampling~study,
                             labeller = label_context,
                             scales = "free_y",
-                            space = "free") +
-        ggplot2::geom_text(aes(x = 0, label=empty), colour="red", size=4) +
+                            space = "free_y") +
+        ggplot2::geom_text(aes(x = 0.1, label=empty), colour="red", size=4) +
         ggplot2::geom_vline(xintercept=0, color = "red", size=.5) +
-        ggplot2::labs(x = "Log(1 + Normalized RMSE)", y = "") +
+        ggplot2::labs(x = "Normalized RMSE", y = "") +
         ggplot2::theme_bw() +
-        ggplot2::theme(axis.text.x = element_text(angle = 90),
+        ggplot2::theme(#axis.text.x = element_text(angle = 90),
                        axis.text.y = element_text(angle = 30),
                        legend.position = "bottom") +
         ggplot2::scale_fill_brewer(palette = "Set2") +
@@ -606,18 +607,78 @@ get_rmse_plots <- function(
         dplyr::mutate(empty = ifelse(is.na(target), "X", NA_character_)) %>%
         ggplot2::ggplot(., aes(y = estimator, x = target)) +
         ggplot2::geom_col(width = .2, position = "dodge", color = "black", size = .1) +
+        ggplot2::scale_x_continuous(trans = "sqrt") +
         ggplot2::facet_grid(sampling~study,
                             labeller = label_context,
                             scales = "free_y",
-                            space = "free") +
-        ggplot2::geom_text(aes(x = 0, label=empty), colour="red", size=4) +
-        ggplot2::geom_vline(xintercept=0, color = "red", size=.5) +
-        ggplot2::labs(x = "Log(1 + Normalized RMSE)", y = "") +
+                            space = "free_y") +
+        ggplot2::geom_text(aes(x = 0.1, label = empty), colour="red", size=4) +
+        ggplot2::geom_vline(xintercept = 0, color = "red", size=.5) +
+        ggplot2::labs(x = "Normalized RMSE", y = "") +
         ggplot2::theme_bw() +
-        ggplot2::theme(axis.text.x = element_text(angle = 90),
+        ggplot2::theme(#axis.text.x = element_text(angle = 90),
                        axis.text.y = element_text(angle = 30))
     ))
 
   }
+
+}
+
+#' Get Parameters and Design Features of Specific Study
+#'
+#' @param study Character string giving name of the study to pull. Have to match the names provided in Google Spreadsheet
+#' @param ss Character string giving ID of the Google spreadsheet
+#' @param sheet Character string giving name of the sheet in the Google spreadsheet to read
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @import googlesheets4 dplyr
+#' @importFrom magrittr `%>%`
+#' @importFrom stringr str_extract
+#' @importFrom DeclareDesign declare_population declare_sampling declare_inquiry declare_estimator
+get_single_study_design <- function(
+  study = "johnjay_tanzania",
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable") {
+
+  .type_map <-
+    list(population = DeclareDesign::declare_population,
+         sample     = DeclareDesign::declare_sampling,
+         inquiry    = DeclareDesign::declare_inquiry,
+         est        = DeclareDesign::declare_estimator)
+
+  .design_list <- read_study_params(ss, sheet)[[study]]
+
+  .declare_list <-
+    list(study_population   = .design_list$pop,
+         study_sample_rds   = .design_list$samples$rds,
+         study_sample_pps   = .design_list$samples$pps,
+         study_sample_tls   = .design_list$samples$tls,
+         study_estimands    = .design_list$inquiries,
+         est_sspse          = .design_list$estimators$rds$sspse,
+         est_chords         = .design_list$estimators$rds$chords,
+         est_multi          = .design_list$estimators$rds$multiplier,
+         est_ht_pps         = .design_list$estimators$pps$ht,
+         est_nsum_pps       = .design_list$estimators$pps$nsum,
+         est_recap_rds_pps  = .design_list$estimators$rds_pps$recap1,
+         est_ht_tls         = .design_list$estimators$tls$ht,
+         est_nsum_tls       = .design_list$estimators$tls$nsum,
+         est_recap_tls      = .design_list$estimators$tls$recap
+         )
+
+  for (i in seq_along(.declare_list)) {
+    if (!is.null(.declare_list[[i]])) {
+      .declare_fun <- .type_map[[stringr::str_extract(pattern = paste0(names(.type_map), collapse = "|"),
+                                                    string = names(.declare_list)[i])]]
+      assign(names(.declare_list)[i], eval(as.call(c(list(.declare_fun), .declare_list[[i]]))))
+    }
+  }
+
+  return(
+    eval(parse(text = paste0(names(.declare_list)[sapply(.declare_list, function(x) !is.null(x))], collapse = " + ")))
+  )
 
 }
