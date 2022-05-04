@@ -657,7 +657,7 @@ get_single_study_design <- function(
          study_sample_rds   = .design_list$samples$rds,
          study_sample_pps   = .design_list$samples$pps,
          study_sample_tls   = .design_list$samples$tls,
-         study_inquiry    = .design_list$inquiries,
+         study_inquiry      = .design_list$inquiries,
          est_sspse          = .design_list$estimators$rds$sspse,
          est_chords         = .design_list$estimators$rds$chords,
          est_multi          = .design_list$estimators$rds$multiplier,
