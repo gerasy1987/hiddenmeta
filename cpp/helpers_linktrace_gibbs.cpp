@@ -1,57 +1,6 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-
-// [[Rcpp::export]]
-NumericVector sv_math(NumericVector x, double num, String operation){
-  NumericVector ret(x.size());
-  for(int i = 0; i < ret.size(); i++){
-
-    if(operation == "multiply"){
-      ret[i] = x[i] * num;
-    }
-
-    if(operation == "add"){
-      ret[i] = x[i] + num;
-    }
-
-    if(operation == "subtract"){
-      ret[i] = x[i] - num;
-    }
-
-    if(operation == "divide"){
-      ret[i] = x[i] / num;
-    }
-
-  }
-  return ret;
-}
-
-// [[Rcpp::export]]
-IntegerVector sv_math_int(IntegerVector x, double num, String operation){
-  IntegerVector ret(x.size());
-  for(int i = 0; i < ret.size(); i++){
-
-    if(operation == "multiply"){
-      ret[i] = x[i] * num;
-    }
-
-    if(operation == "add"){
-      ret[i] = x[i] + num;
-    }
-
-    if(operation == "subtract"){
-      ret[i] = x[i] - num;
-    }
-
-    if(operation == "divide"){
-      ret[i] = x[i] / num;
-    }
-
-  }
-  return ret;
-}
-
 // [[Rcpp::export]]
 IntegerVector int_vec_insert(IntegerVector vec, IntegerVector vals, IntegerVector pos){
   for(int i = 0; i < vals.size(); i++){
