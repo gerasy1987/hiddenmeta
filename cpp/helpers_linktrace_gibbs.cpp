@@ -1,7 +1,4 @@
-#include <Rcpp.h>
-using namespace Rcpp;
-
-// [[Rcpp::export]]
+#// [[Rcpp::export]]
 IntegerVector int_vec_insert(IntegerVector vec, IntegerVector vals, IntegerVector pos){
   for(int i = 0; i < vals.size(); i++){
     int pos_i = pos[i];
@@ -84,8 +81,11 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
   // begin MCMC
   for(int t = 1; t < chain_samples; t++){
 
-    //# generate new N
-    //### get number of units in each strata
+    //##################
+    //# generate new N #
+    //##################
+
+    //get number of units in each strata
     IntegerVector data_p_strata = data_p["strata"];
     IntegerVector rows = c_unlist(head(data_p_waves, n_waves - 1));
     IntegerVector rows_pull = clone(rows) - 1;
@@ -98,7 +98,7 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
 
     IntegerVector strata_count = table(strata_t);
 
-    //### get p(no link between strata)
+    //get p(no link between strata)
     NumericVector no_link_init = rep(1, n_strata);
 
     for(int i = 0; i < n_strata; i++){
@@ -127,37 +127,44 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     NumericVector n_sample_prob = exp(n_sample_prob_vec - max(n_sample_prob_vec));
     n[t] = sample(n_post_range, 1, false, n_sample_prob)[0];
 
-    //### assign strata to non sampled units
 
-    IntegerVector data_p_reorder_unlist = c_unlist(data_p_reorder);
+    //#######################
+    //# generate new lambda #
+    //#######################
+
+    // assign strata to non sampled units
+
+    // get indices of non sampled units
     IntegerVector n_range = Range(1, n[t]);
-    IntegerVector not_sampled = setdiff(n_range, data_p_reorder_unlist);
-    not_sampled = clone(not_sampled) - 1;
+    IntegerVector not_sampled = setdiff(n_range, as<IntegerVector>(c_unlist(data_p_reorder))) - 1;
 
     IntegerVector stratum(n[t]);
 
-    IntegerVector ins_pos_us = clone(data_p_reorder_unlist) - 1;
-    IntegerVector data_p_waves_unlist = c_unlist(data_p_waves);
-    rows_pull = clone(data_p_waves_unlist) - 1;
+    //fill stratum vector with strata of sampled units
+    IntegerVector ins_pos_us = c_unlist(data_p_reorder) - 1;
+    IntegerVector rows_pull = as<IntegerVector>(c_unlist(data_p_waves)) - 1;
     IntegerVector ins_val_us(rows_pull.size());
 
     for(int i = 0; i < rows_pull.size(); i++){
-      int pos = rows_pull[i];
-      ins_val_us[i] = data_p_strata[pos];
+      ins_val_us[i] = data_p_strata[rows_pull[i]];
     }
 
     stratum = int_vec_insert(stratum, ins_val_us, ins_pos_us);
 
+    //fill stratum vector with strata of non sampled units
     IntegerVector strat = Range(1, n_strata);
     NumericVector pstrat = no_link_l / no_link;
     IntegerVector stratsamp = sample(strat, not_sampled.size(), true, pstrat);
-
     stratum = int_vec_insert(stratum, stratsamp, not_sampled);
+
+
+    // populate link matrix for reordered sample
     DataFrame link_comb = c_expand_grid(Range(0,n_waves - 1), Range(0,n_waves - 1));
     IntegerVector g1 = link_comb[0];
     g1 = clone(g1);
     IntegerVector g2 = link_comb[1];
     g2 = clone(g2);
+
 
     // for matrix replacement use matrix indeces of values (i.e. col 0 & row 2 == 2)
     // (col * nrow) + row (-1)?
@@ -171,6 +178,8 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
   ret[0] = n;
   return ret;
 }
+
+
 
 
 
