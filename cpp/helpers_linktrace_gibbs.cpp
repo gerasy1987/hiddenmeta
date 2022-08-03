@@ -64,43 +64,33 @@ IntegerVector int_vec_insert(IntegerVector vec, IntegerVector vals, IntegerVecto
 
 // [[Rcpp::export]]
 List lt_permute(DataFrame data){
+  Function c_unlist("unlist");
+
   NumericVector wave = data["rds_wave"];
-  LogicalVector n = wave == 1;
-  int n_inital = sum(n);
-  IntegerVector t = table(wave);
-  int n_waves = t.length();
+  int n_inital = sum(wave == 1);
+  int n_waves = table(wave).length();
 
   List wave_samples(n_waves);
-  NumericVector name = data["name"];
-  bool replace = false;
-  NumericVector s0 = sample(name, n_inital, replace);
+  NumericVector s0 = sample(as<NumericVector>(data["name"]), n_inital, false, R_NilValue);
   wave_samples[0] = s0;
-
-  Function c_unlist("unlist");
 
   for(int i = 1; i < n_waves; i++){
     List l = data["links_list"];
-    NumericVector prev_val =  wave_samples[i - 1];
-    LogicalVector get_elem =  in(name, prev_val);
+    LogicalVector get_elem =  in(as<NumericVector>(data["name"]),
+                                 as<NumericVector>(wave_samples[i - 1]));
     List l_i = l[get_elem];
-    NumericVector set1_temp = c_unlist(l_i);
-    NumericVector set1 = unique(set1_temp);
-    List set2_temp = wave_samples[Range(0,i - 1)];
-    NumericVector set2 = c_unlist(set2_temp);
-    NumericVector res_i = setdiff(set1,set2);
-    wave_samples[i] = res_i;
+    NumericVector set1 = unique(as<NumericVector>(c_unlist(l_i)));
+    NumericVector set2 = c_unlist(wave_samples[Range(0,i - 1)]);
+    wave_samples[i] = setdiff(set1,set2);
   }
   return wave_samples;
 }
 
 // [[Rcpp::export]]
-IntegerVector g(IntegerMatrix m, IntegerVector r, IntegerVector c){
-  IntegerVector s1 = sv_math_int(c,1,"subtract");
-  IntegerVector s2 = sv_math_int(s1, m.nrow(), "multiply");
-  IntegerVector ret = s2 + r;
-  ret = sv_math_int(ret, 1, "subtract");
-  return ret;
-}
+//IntegerVector g(IntegerMatrix m, IntegerVector r, IntegerVector c){
+//  IntegerVector ret = (((c - 1) * m.nrow()) + r) - 1;
+//  return ret;
+//}
 
 
 // [[Rcpp::export]]
@@ -109,17 +99,17 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
               List param_init) {
 
   Function c_unlist("unlist");
-  Function c_rep("rep");
   Function c_expand_grid("expand.grid");
 
+  // permute data
   List data_p_waves = lt_permute(data);
   DataFrame data_p = data;
 
+  // reordering samples to estimate N
   IntegerVector n_p(n_waves);
 
   for(int i = 0; i < n_waves; i++){
-    IntegerVector npi = data_p_waves[i];
-    n_p[i] = npi.size();
+    n_p[i] = as<IntegerVector>(data_p_waves[i]).size();
   }
 
   List data_p_reorder(n_waves);
@@ -129,6 +119,7 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     data_p_reorder[i] = Range(sum(head(n_p,i)) + 1, sum(head(n_p, i + 1)));
   }
 
+  //assign seeds
   NumericMatrix l(chain_samples,n_strata);
   List b(chain_samples);
   IntegerVector n(chain_samples);
@@ -141,10 +132,11 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
   NumericVector prior_l = as<NumericVector>(priors["p_l"]);
   int prior_b = as<int>(priors["p_b"]);
 
+  // begin MCMC
   for(int t = 1; t < chain_samples; t++){
 
-    // generate new N
-
+    //# generate new N
+    //### get number of units in each strata
     IntegerVector data_p_strata = data_p["strata"];
     IntegerVector rows = c_unlist(head(data_p_waves, n_waves - 1));
     IntegerVector rows_pull = clone(rows) - 1;
@@ -152,13 +144,13 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     IntegerVector strata_t(rows_pull.size());
 
     for(int i = 0; i < rows_pull.size(); i++){
-      int pos = rows_pull[i];
-      strata_t[i] = data_p_strata[pos];
+      strata_t[i] = data_p_strata[rows_pull[i]];
     }
 
     IntegerVector strata_count = table(strata_t);
 
-    NumericVector no_link_init = c_rep(1, n_strata);
+    //### get p(no link between strata)
+    NumericVector no_link_init = rep(1, n_strata);
 
     for(int i = 0; i < n_strata; i++){
       for(int j = 0; j < n_strata; j++){
@@ -170,10 +162,8 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     NumericVector no_link_l = l(t - 1,_) * no_link_init;
     double no_link = sum(no_link_l);
 
-    IntegerVector n_0 = data_p_waves[0];
-    int nn_0 = n_0.size();
-    IntegerVector nn_vec = c_unlist(data_p_waves);
-    int nn = nn_vec.size();
+    int nn_0 = as<IntegerVector>(data_p_waves[0]).size();
+    int nn = as<IntegerVector>(c_unlist(data_p_waves)).size();
 
     IntegerVector n_post_range = Range(nn, total * 5);
 
@@ -185,11 +175,10 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
        (n_post_range[i] - nn) * log(no_link) - prior_n * log(n_post_range[i]);
     }
 
-    double n_sample_prob_max = max(n_sample_prob_vec);
-    NumericVector n_sample_prob = exp(sv_math(n_sample_prob_vec, n_sample_prob_max, "subtract"));
+    NumericVector n_sample_prob = exp(n_sample_prob_vec - max(n_sample_prob_vec));
     n[t] = sample(n_post_range, 1, false, n_sample_prob)[0];
 
-    // assign strata to non sampled units
+    //### assign strata to non sampled units
 
     IntegerVector data_p_reorder_unlist = c_unlist(data_p_reorder);
     IntegerVector n_range = Range(1, n[t]);
