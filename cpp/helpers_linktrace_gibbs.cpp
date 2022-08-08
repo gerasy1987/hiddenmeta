@@ -1,5 +1,8 @@
-#// [[Rcpp::export]]
-IntegerVector int_vec_insert(IntegerVector vec, IntegerVector vals, IntegerVector pos){
+// [[Rcpp::export]]
+IntegerVector int_vec_insert(IntegerVector vec,
+                             IntegerVector vals,
+                             IntegerVector pos){
+
   for(int i = 0; i < vals.size(); i++){
     int pos_i = pos[i];
     vec[pos_i] = vals[i];
@@ -9,7 +12,25 @@ IntegerVector int_vec_insert(IntegerVector vec, IntegerVector vals, IntegerVecto
 
 
 // [[Rcpp::export]]
+IntegerMatrix int_mat_insert(IntegerMatrix old_m,
+                             IntegerMatrix new_m,
+                             IntegerVector new_rows,
+                             IntegerVector new_cols,
+                             IntegerVector old_rows,
+                             IntegerVector new_rows){
+
+  for(int i = 0; i < new_rows.lenght(); i++){
+    for(int j = 0; j < new_cols.length(); j++){
+      new_m(new_rows[i] - 1, new_cols[j] - 1) = old_m(old_rows[i] - 1, old_cols[j] - 1);
+    }
+  }
+  return new_m;
+}
+
+
+// [[Rcpp::export]]
 List lt_permute(DataFrame data){
+
   Function c_unlist("unlist");
 
   NumericVector wave = data["rds_wave"];
@@ -32,11 +53,6 @@ List lt_permute(DataFrame data){
   return wave_samples;
 }
 
-// [[Rcpp::export]]
-//IntegerVector g(IntegerMatrix m, IntegerVector r, IntegerVector c){
-//  IntegerVector ret = (((c - 1) * m.nrow()) + r) - 1;
-//  return ret;
-//}
 
 
 // [[Rcpp::export]]
@@ -160,11 +176,8 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
 
     // populate link matrix for reordered sample
     DataFrame link_comb = c_expand_grid(Range(0,n_waves - 1), Range(0,n_waves - 1));
-    IntegerVector g1 = link_comb[0];
-    g1 = clone(g1);
-    IntegerVector g2 = link_comb[1];
-    g2 = clone(g2);
-
+    IntegerVector g1 = clone(link_comb[0]);
+    IntegerVector g2 = clone(link_comb[1]);
 
     // for matrix replacement use matrix indeces of values (i.e. col 0 & row 2 == 2)
     // (col * nrow) + row (-1)?
@@ -178,7 +191,6 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
   ret[0] = n;
   return ret;
 }
-
 
 
 
