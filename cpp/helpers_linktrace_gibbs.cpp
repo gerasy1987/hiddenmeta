@@ -10,14 +10,16 @@ IntegerVector int_vec_insert(IntegerVector vec,
   return vec;
 }
 
+//[[Rcpp::export]]
+IntergerMatrix 
 
 // [[Rcpp::export]]
-IntegerMatrix int_mat_insert(IntegerMatrix old_m,
-                             IntegerMatrix new_m,
-                             IntegerVector new_rows,
-                             IntegerVector new_cols,
-                             IntegerVector old_rows,
-                             IntegerVector new_rows){
+IntegerMatrix mat_to_mat_insert(IntegerMatrix old_m,
+                                IntegerMatrix new_m,
+                                IntegerVector new_rows,
+                                IntegerVector new_cols,
+                                IntegerVector old_rows,
+                                IntegerVector new_rows){
 
   for(int i = 0; i < new_rows.lenght(); i++){
     for(int j = 0; j < new_cols.length(); j++){
@@ -27,6 +29,16 @@ IntegerMatrix int_mat_insert(IntegerMatrix old_m,
   return new_m;
 }
 
+// [[Rcpp::export]]
+NumericVector mat_by_mat(NumericMatrix m, IntegerVector row, IntegerVector col){
+  NumericVector res(row.length());
+
+  for(int i = 0; i < res.length(); i++){
+    res[i] = m(row[i] - 1, col[i] - 1);
+  }
+
+  return res;
+}
 
 // [[Rcpp::export]]
 List lt_permute(DataFrame data){
@@ -62,6 +74,9 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
 
   Function c_unlist("unlist");
   Function c_expand_grid("expand.grid");
+  Function c_combn("combn");
+  Function c_setdiff("setdiff");
+  Function c_which("which");
 
   // permute data
   List data_p_waves = lt_permute(data);
@@ -179,11 +194,29 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     IntegerVector g1 = clone(link_comb[0]);
     IntegerVector g2 = clone(link_comb[1]);
 
-    // for matrix replacement use matrix indeces of values (i.e. col 0 & row 2 == 2)
-    // (col * nrow) + row (-1)?
-    for(int i = 0; i < g1.size(); i++){
+    IntegerMatrix y(n[t],n[t]);
 
+    for(int i = 0; i < g1.size() - 1; i++){
+      y = mat_to_mat_insert(old_m = y_samp,
+                            new_m = y,
+                            new_rows = data_p_reorder[g1[i]],
+                            new_cols = data_p_reorder[g2[i]],
+                            old_rows = data_p_waves[g1[i]],
+                            old_cols = data_p_waves[g2[i]]);
     }
+
+    IntegerVector link_pairs_1 = c_unlist(data_p_reorder[Range(0,data_p_reorder.size() - 2)]);
+    IntegerVector link_pairs_2 = Range(1,n[t]);
+    IntegerMatrix link_pairs =  c_combn(c_setdiff(r_2,link_pairs_1),2);
+    link_pairs  = transpose(link_pairs);
+
+    int n_pairs = link_pairs.nrows();
+    NumericVector link_prob = runif(n_pairs);
+    
+    IntegerVector assigned = c_which(link_prob < mat_by_mat(m = b[t], 
+                                                            row = startum[link_pairs(_,0)],
+                                                            col = stratum[link_pairs(_,1)]));
+    
 
   }
 
