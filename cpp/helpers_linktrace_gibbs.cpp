@@ -1,3 +1,6 @@
+#include <Rcpp.h>
+using namespace Rcpp;
+
 // [[Rcpp::export]]
 IntegerVector int_vec_insert(IntegerVector vec,
                              IntegerVector vals,
@@ -10,8 +13,22 @@ IntegerVector int_vec_insert(IntegerVector vec,
   return vec;
 }
 
-//[[Rcpp::export]]
-IntergerMatrix 
+// [[Rcpp::export]]
+IntegerMatrix int_mat_insert(IntegerMatrix m,
+                             IntegerVector col,
+                             IntegerVector row,
+                             IntegerVector vals){
+
+  int nrow = m.nrow();
+  IntegerVector pos = ((col - 1) * nrow) + row - 1;
+
+  for(int i = 0; i < pos.length(); i++){
+    m[pos[i]] = vals[i];
+  }
+
+  return m;
+}
+
 
 // [[Rcpp::export]]
 IntegerMatrix mat_to_mat_insert(IntegerMatrix old_m,
@@ -19,9 +36,9 @@ IntegerMatrix mat_to_mat_insert(IntegerMatrix old_m,
                                 IntegerVector new_rows,
                                 IntegerVector new_cols,
                                 IntegerVector old_rows,
-                                IntegerVector new_rows){
+                                IntegerVector old_cols){
 
-  for(int i = 0; i < new_rows.lenght(); i++){
+  for(int i = 0; i < new_rows.length(); i++){
     for(int j = 0; j < new_cols.length(); j++){
       new_m(new_rows[i] - 1, new_cols[j] - 1) = old_m(old_rows[i] - 1, old_cols[j] - 1);
     }
@@ -30,7 +47,9 @@ IntegerMatrix mat_to_mat_insert(IntegerMatrix old_m,
 }
 
 // [[Rcpp::export]]
-NumericVector mat_by_mat(NumericMatrix m, IntegerVector row, IntegerVector col){
+NumericVector mat_by_mat(NumericMatrix m,
+                         IntegerVector row,
+                         IntegerVector col){
   NumericVector res(row.length());
 
   for(int i = 0; i < res.length(); i++){
@@ -68,8 +87,15 @@ List lt_permute(DataFrame data){
 
 
 // [[Rcpp::export]]
-List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_strata,
-              int n_waves, int total, int chain_samples, int chain_burnin, List priors,
+List lt_gibbs(DataFrame data,
+              IntegerMatrix y_samp,
+              IntegerVector strata,
+              int n_strata,
+              int n_waves,
+              int total,
+              int chain_samples,
+              int chain_burnin,
+              List priors,
               List param_init) {
 
   Function c_unlist("unlist");
@@ -77,6 +103,7 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
   Function c_combn("combn");
   Function c_setdiff("setdiff");
   Function c_which("which");
+  Function c_rdirichlet("rdirichlet");
 
   // permute data
   List data_p_waves = lt_permute(data);
@@ -97,17 +124,17 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
   }
 
   //assign seeds
-  NumericMatrix l(chain_samples,n_strata);
+  List l(chain_samples);
   List b(chain_samples);
   IntegerVector n(chain_samples);
 
-  l(0,_) = as<NumericVector>(param_init["l_0"]);
-  b[0] = as<NumericMatrix>(param_init["b_0"]);
-  n[0] = as<int>(param_init["n_0"]);
+  l(0) = as<NumericVector>(param_init["l_0"]);
+  b(0) = as<NumericMatrix>(param_init["b_0"]);
+  n[0] = param_init["n_0"];
 
-  int prior_n = as<int>(priors["p_n"]);
-  NumericVector prior_l = as<NumericVector>(priors["p_l"]);
-  int prior_b = as<int>(priors["p_b"]);
+  int prior_n = priors["p_n"];
+  NumericVector prior_l = priors["p_l"];
+  int prior_b = priors["p_b"];
 
   // begin MCMC
   for(int t = 1; t < chain_samples; t++){
@@ -119,7 +146,7 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     //get number of units in each strata
     IntegerVector data_p_strata = data_p["strata"];
     IntegerVector rows = c_unlist(head(data_p_waves, n_waves - 1));
-    IntegerVector rows_pull = clone(rows) - 1;
+    IntegerVector rows_pull = rows - 1;
 
     IntegerVector strata_t(rows_pull.size());
 
@@ -129,8 +156,9 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
 
     IntegerVector strata_count = table(strata_t);
 
-    //get p(no link between strata)
-    NumericVector no_link_init = rep(1, n_strata);
+    //get p(no link between strata
+    NumericVector one = {1};
+    NumericVector no_link_init =  rep(one,n_strata);
 
     for(int i = 0; i < n_strata; i++){
       for(int j = 0; j < n_strata; j++){
@@ -139,7 +167,7 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
       }
     }
 
-    NumericVector no_link_l = l(t - 1,_) * no_link_init;
+    NumericVector no_link_l = l[t-1] * no_link_init;
     double no_link = sum(no_link_l);
 
     int nn_0 = as<IntegerVector>(data_p_waves[0]).size();
@@ -172,8 +200,10 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
     IntegerVector stratum(n[t]);
 
     //fill stratum vector with strata of sampled units
-    IntegerVector ins_pos_us = c_unlist(data_p_reorder) - 1;
-    IntegerVector rows_pull = as<IntegerVector>(c_unlist(data_p_waves)) - 1;
+    IntegerVector ins_pos_us = c_unlist(data_p_reorder);
+    ins_pos_us = ins_pos_us - 1;
+    rows_pull = c_unlist(data_p_waves);
+    rows_pull = rows_pull - 1;
     IntegerVector ins_val_us(rows_pull.size());
 
     for(int i = 0; i < rows_pull.size(); i++){
@@ -191,37 +221,64 @@ List lt_gibbs(DataFrame data, IntegerMatrix y_samp, IntegerVector strata, int n_
 
     // populate link matrix for reordered sample
     DataFrame link_comb = c_expand_grid(Range(0,n_waves - 1), Range(0,n_waves - 1));
-    IntegerVector g1 = clone(link_comb[0]);
-    IntegerVector g2 = clone(link_comb[1]);
+    IntegerVector g1 = link_comb[0];
+    IntegerVector g2 = link_comb[1];
 
     IntegerMatrix y(n[t],n[t]);
 
     for(int i = 0; i < g1.size() - 1; i++){
-      y = mat_to_mat_insert(old_m = y_samp,
-                            new_m = y,
-                            new_rows = data_p_reorder[g1[i]],
-                            new_cols = data_p_reorder[g2[i]],
-                            old_rows = data_p_waves[g1[i]],
-                            old_cols = data_p_waves[g2[i]]);
+      y = mat_to_mat_insert(y_samp,
+                            y,
+                            data_p_reorder[g1[i]],
+                            data_p_reorder[g2[i]],
+                            data_p_waves[g1[i]],
+                            data_p_waves[g2[i]]);
     }
 
-    IntegerVector link_pairs_1 = c_unlist(data_p_reorder[Range(0,data_p_reorder.size() - 2)]);
-    IntegerVector link_pairs_2 = Range(1,n[t]);
-    IntegerMatrix link_pairs =  c_combn(c_setdiff(r_2,link_pairs_1),2);
+    IntegerVector lp_1 = c_unlist(data_p_reorder[Range(0,data_p_reorder.size() - 2)]);
+    IntegerVector lp_2 = Range(1,n[t]);
+    IntegerMatrix link_pairs =  c_combn(c_setdiff(lp_2,lp_1),2);
     link_pairs  = transpose(link_pairs);
 
-    int n_pairs = link_pairs.nrows();
+    int n_pairs = link_pairs.nrow();
     NumericVector link_prob = runif(n_pairs);
-    
-    IntegerVector assigned = c_which(link_prob < mat_by_mat(m = b[t], 
-                                                            row = startum[link_pairs(_,0)],
-                                                            col = stratum[link_pairs(_,1)]));
-    
+
+    IntegerVector assigned = c_which(link_prob < mat_by_mat(b[t],
+                                                            stratum[link_pairs(_,0)],
+                                                            stratum[link_pairs(_,1)]));
+
+    IntegerVector link_pairs_0 = link_pairs(_,0);
+    IntegerVector link_pairs_1 = link_pairs(_,1);
+    IntegerVector vals (link_pairs_0.length(),1);
+
+    y = int_mat_insert(y,
+                       link_pairs_1[assigned - 1],
+                       link_pairs_0[assigned - 1],
+                       vals);
+
+    y = int_mat_insert(y,
+                       link_pairs_0[assigned - 1],
+                       link_pairs_0[assigned - 1],
+                       vals);
+
+
+    // new lambda
+    NumericVector strata_count_num = as<NumericVector>(table(stratum));
+    IntegerVector strate_count_int = table(stratum);
+    NumericMatrix dirichlet = c_rdirichlet(1, strata_count_num + prior_l);
+    l(t) = dirichlet(0,_);
+
+    //#####################
+    //# generate new beta #
+    //#####################
+
+
 
   }
 
-  List ret(1);
+  List ret(2);
   ret[0] = n;
+  ret[1] = l;
   return ret;
 }
 
