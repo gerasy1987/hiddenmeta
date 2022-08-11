@@ -634,32 +634,43 @@ get_study_est_linktrace <- function(
   label = "link_trace"
 ){
 
-  data %<>%
-    dplyr::filter(., rds == 1) %>%
-    dplyr::mutate(rds_from = replace(rds_from, rds_from == -999, NA))%>%
-    dplyr::inner_join(.,
-                      {
-                        nodes <- dplyr::select(., name)
-                        edges <- tidyr::drop_na(dplyr::select(., c(rds_from, name)))
-                        igraph::graph_from_data_frame(edges, nodes, directed = FALSE) %>%
-                          igraph::as_adj_list() %>%
-                          lapply(., function(i) as.numeric(i$name))
-                      } %>%
-                        {
-                          links_list <- .
-                          data.frame(name = as.numeric(names(.))) %>%
-                            dplyr::mutate(links_list = links_list)
-                        }, by = "name")%>%
-    dplyr::mutate(strata_id = as.numeric(factor(.[[strata]])))
+data %<>%
+  dplyr::filter(., rds == 1) %>%
+  dplyr::mutate(rds_from = replace(rds_from, rds_from == -999, NA),
+                name = as.numeric(name))
 
-  y_samp <- data %>%
-    {
-      nodes <- dplyr::select(., name)
-      edges <- tidyr::drop_na(dplyr::select(., c(rds_from, name)))
-      igraph::graph_from_data_frame(edges, nodes, directed = FALSE) %>%
-        igraph::as_adjacency_matrix()%>%
-        as.matrix()
-    }
+name_old <- data$name
+name_new <- 1:nrow(data)
+
+for(i in 1:nrow(data)){
+  data$name[data$name == name_old[i]] <- name_new[i]
+  data$rds_from[data$rds_from == name_old[i]] <- name_new[i]
+}
+
+data %<>%
+  dplyr::inner_join(.,
+                    {
+                      nodes <- dplyr::select(., name)
+                      edges <- tidyr::drop_na(dplyr::select(., c(rds_from, name)))
+                      igraph::graph_from_data_frame(edges, nodes, directed = FALSE) %>%
+                        igraph::as_adj_list() %>%
+                        lapply(., function(i) as.numeric(i$name))
+                    } %>%
+                      {
+                        links_list <- .
+                        data.frame(name = as.numeric(names(.))) %>%
+                          dplyr::mutate(links_list = links_list)
+                      }, by = "name")%>%
+  dplyr::mutate(strata_id = as.numeric(factor(.[["strata"]])))
+
+y_samp <- data %>%
+  {
+    nodes <- dplyr::select(., name)
+    edges <- tidyr::drop_na(dplyr::select(., c(rds_from, name)))
+    igraph::graph_from_data_frame(edges, nodes, directed = FALSE) %>%
+      igraph::as_adjacency_matrix()%>%
+      as.matrix()
+  }
 
   strata <- "strata_id"
 
