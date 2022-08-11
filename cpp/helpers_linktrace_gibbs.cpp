@@ -64,22 +64,22 @@ List lt_permute(DataFrame data){
 
   Function c_unlist("unlist");
 
-  NumericVector wave = data["rds_wave"];
+  IntegerVector wave = data["rds_wave"];
   int n_inital = sum(wave == 1);
   int n_waves = table(wave).length();
 
   List wave_samples(n_waves);
-  NumericVector s0 = sample(as<NumericVector>(data["name"]), n_inital, false, R_NilValue);
-  wave_samples[0] = s0;
+  IntegerVector s0 = sample(as<IntegerVector>(data["name"]), n_inital, false, R_NilValue);
+  wave_samples(0) = s0;
 
   for(int i = 1; i < n_waves; i++){
     List l = data["links_list"];
-    LogicalVector get_elem =  in(as<NumericVector>(data["name"]),
-                                 as<NumericVector>(wave_samples[i - 1]));
+    LogicalVector get_elem =  in(as<IntegerVector>(data["name"]),
+                                 as<IntegerVector>(wave_samples[i - 1]));
     List l_i = l[get_elem];
-    NumericVector set1 = unique(as<NumericVector>(c_unlist(l_i)));
-    NumericVector set2 = c_unlist(wave_samples[Range(0,i - 1)]);
-    wave_samples[i] = setdiff(set1,set2);
+    IntegerVector set1 = unique(as<IntegerVector>(c_unlist(l_i)));
+    IntegerVector set2 = c_unlist(wave_samples[Range(0,i - 1)]);
+    wave_samples(i) = setdiff(set1,set2);
   }
   return wave_samples;
 }
@@ -136,8 +136,10 @@ List lt_gibbs(DataFrame data,
   NumericVector prior_l = priors["p_l"];
   int prior_b = priors["p_b"];
 
+  int t = 1;
+
   // begin MCMC
-  for(int t = 1; t < chain_samples; t++){
+//  for(int t = 1; t < chain_samples; t++){
 
     //##################
     //# generate new N #
@@ -167,7 +169,7 @@ List lt_gibbs(DataFrame data,
       }
     }
 
-    NumericVector no_link_l = l[t-1] * no_link_init;
+    NumericVector no_link_l = as<NumericVector>(l[t-1]) * no_link_init;
     double no_link = sum(no_link_l);
 
     int nn_0 = as<IntegerVector>(data_p_waves[0]).size();
@@ -200,9 +202,9 @@ List lt_gibbs(DataFrame data,
     IntegerVector stratum(n[t]);
 
     //fill stratum vector with strata of sampled units
-    IntegerVector ins_pos_us = c_unlist(data_p_reorder);
+    IntegerVector ins_pos_us = as<IntegerVector>(c_unlist(data_p_reorder));
     ins_pos_us = ins_pos_us - 1;
-    rows_pull = c_unlist(data_p_waves);
+    rows_pull = as<IntegerVector>(c_unlist(data_p_waves));
     rows_pull = rows_pull - 1;
     IntegerVector ins_val_us(rows_pull.size());
 
@@ -210,13 +212,20 @@ List lt_gibbs(DataFrame data,
       ins_val_us[i] = data_p_strata[rows_pull[i]];
     }
 
-    stratum = int_vec_insert(stratum, ins_val_us, ins_pos_us);
+    stratum = int_vec_insert(as<IntegerVector>(stratum),
+                             as<IntegerVector>(ins_val_us),
+                             as<IntegerVector>(ins_pos_us));
 
     //fill stratum vector with strata of non sampled units
-    IntegerVector strat = Range(1, n_strata);
+    IntegerVector strat = Range(1,n_strata);
     NumericVector pstrat = no_link_l / no_link;
-    IntegerVector stratsamp = sample(strat, not_sampled.size(), true, pstrat);
-    stratum = int_vec_insert(stratum, stratsamp, not_sampled);
+    IntegerVector stratsamp = sample(as<IntegerVector>(strat), not_sampled.size(),
+                                     true, as<NumericVector>(pstrat));
+
+    stratum = int_vec_insert(as<IntegerVector>(stratum),
+                             as<IntegerVector>(stratsamp),
+                             as<IntegerVector>(not_sampled));
+
 
 
     // populate link matrix for reordered sample
@@ -276,11 +285,13 @@ List lt_gibbs(DataFrame data,
 
   }
 
-  List ret(2);
-  ret[0] = n;
-  ret[1] = l;
+  List ret(3);
+  ret[0] = data_p_reorder;
+  ret[1] = data_p_waves;
+  ret[2] = ins_pos_us;
   return ret;
 }
+
 
 
 
