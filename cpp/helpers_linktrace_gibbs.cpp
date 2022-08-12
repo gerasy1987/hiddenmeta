@@ -59,30 +59,32 @@ NumericVector mat_by_mat(NumericMatrix m,
   return res;
 }
 
+// make entirely c++ based without return to R 
+// use array of integer vectors instead of lists to hold indices of units for each wave 
 // [[Rcpp::export]]
-List lt_permute(DataFrame data){
+List lt_permute(List link_list,
+                IntegerVector wave,
+                IntegerVector name){
 
   Function c_unlist("unlist");
 
-  IntegerVector wave = data["rds_wave"];
   int n_inital = sum(wave == 1);
   int n_waves = table(wave).length();
 
   List wave_samples(n_waves);
-  IntegerVector s0 = sample(as<IntegerVector>(data["name"]), n_inital, false, R_NilValue);
+  IntegerVector s0 = sample(as<IntegerVector>(name),n_inital, false, R_NilValue);
   wave_samples(0) = s0;
 
   for(int i = 1; i < n_waves; i++){
-    List l = data["links_list"];
-    LogicalVector get_elem =  in(as<IntegerVector>(data["name"]),
-                                 as<IntegerVector>(wave_samples[i - 1]));
-    List l_i = l[get_elem];
+    LogicalVector get_elem =  in(name,as<IntegerVector>(wave_samples[i-1]));
+    List l_i = link_list[get_elem];
     IntegerVector set1 = unique(as<IntegerVector>(c_unlist(l_i)));
     IntegerVector set2 = c_unlist(wave_samples[Range(0,i - 1)]);
     wave_samples(i) = setdiff(set1,set2);
   }
   return wave_samples;
 }
+
 
 
 
@@ -106,7 +108,7 @@ List lt_gibbs(DataFrame data,
   Function c_rdirichlet("rdirichlet");
 
   // permute data
-  List data_p_waves = lt_permute(data);
+  List data_p_waves = lt_permute(data["links_list"],data["rds_wave"],data["name"]);
   DataFrame data_p = data;
 
   // reordering samples to estimate N
