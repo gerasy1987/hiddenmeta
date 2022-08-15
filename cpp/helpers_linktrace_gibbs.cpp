@@ -59,8 +59,9 @@ NumericVector mat_by_mat(NumericMatrix m,
   return res;
 }
 
-// make entirely c++ based without return to R 
-// use array of integer vectors instead of lists to hold indices of units for each wave 
+// make entirely c++ based without return to R
+// use array of integer vectors instead of lists to hold indices of units for each wave
+//
 // [[Rcpp::export]]
 List lt_permute(List link_list,
                 IntegerVector wave,
