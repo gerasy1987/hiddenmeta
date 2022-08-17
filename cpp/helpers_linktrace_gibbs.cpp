@@ -59,30 +59,48 @@ NumericVector mat_by_mat(NumericMatrix m,
   return res;
 }
 
-// make entirely c++ based without return to R
-// use array of integer vectors instead of lists to hold indices of units for each wave
-//
+
 // [[Rcpp::export]]
-List lt_permute(List link_list,
-                IntegerVector wave,
-                IntegerVector name){
+std::vector<std::vector<int>> lt_permute(List link_list,
+                                         std::vector<int> wave,
+                                         std::vector<int> name){
 
-  Function c_unlist("unlist");
+  int n_inital = std::count(wave.begin(), wave.end(),1);
+  sort(wave.begin(), wave.end());
+  wave.erase(unique(wave.begin(), wave.end()), wave.end());
+  int n_waves = wave.size();
 
-  int n_inital = sum(wave == 1);
-  int n_waves = table(wave).length();
-
-  List wave_samples(n_waves);
-  IntegerVector s0 = sample(as<IntegerVector>(name),n_inital, false, R_NilValue);
-  wave_samples(0) = s0;
+  std::vector<std::vector<int>> wave_samples;
+  std::vector<int> s_0(name);
+  std::random_shuffle(s_0.begin(), s_0.end());
+  s_0.resize(n_inital);
+  wave_samples.push_back(s_0);
 
   for(int i = 1; i < n_waves; i++){
-    LogicalVector get_elem =  in(name,as<IntegerVector>(wave_samples[i-1]));
-    List l_i = link_list[get_elem];
-    IntegerVector set1 = unique(as<IntegerVector>(c_unlist(l_i)));
-    IntegerVector set2 = c_unlist(wave_samples[Range(0,i - 1)]);
-    wave_samples(i) = setdiff(set1,set2);
+    std::vector<int> set1;
+    std::vector<int> wave_samples_i = wave_samples[i-1];
+
+    for(int j = 0; j < wave_samples_i.size(); j++){
+      std::vector<int> l_j = link_list[wave_samples_i[j] - 1];
+      set1.insert(set1.end(), l_j.begin(), l_j.end());
+    }
+
+    set1.erase(unique(set1.begin(), set1.end()),set1.end());
+    sort(set1.begin(), set1.end());
+
+    std::vector<int> set2;
+    for(int k = 0; k < i; k++){
+      std::vector<int> wave_sample_k = wave_samples[k];
+      set2.insert(set2.end(), wave_sample_k.begin(), wave_sample_k.end());
+    }
+    sort(set2.begin(), set2.end());
+
+    std::vector<int> ret;
+    std::set_difference(set1.begin(),set1.end(),set2.begin(), set2.end(),
+                        std::inserter(ret, ret.end()));
+    wave_samples.push_back(ret);
   }
+
   return wave_samples;
 }
 
