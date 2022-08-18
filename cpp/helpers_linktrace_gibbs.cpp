@@ -59,6 +59,9 @@ NumericVector mat_by_mat(NumericMatrix m,
   return res;
 }
 
+
+
+// helper to generate range of integers
 // [[Rcpp::export]]
 std::vector<int> gen_range(int from,
                            int to){
@@ -72,6 +75,29 @@ std::vector<int> gen_range(int from,
   return ret;
 }
 
+
+// helper to turn R matrix into vector of vectors
+// [[Rcpp::export]]
+std::vector<std::vector<double>> m_to_v(NumericMatrix m){
+
+  std::vector<std::vector<double>> v;
+
+  for(int i = 0; i < m.nrow(); i++){
+
+    std::vector<double> row_i;
+
+    for(int j = 0; j < m.ncol(); j++){
+      row_i.push_back(m(i,j));
+    }
+
+    v.push_back(row_i);
+  }
+
+  return v;
+
+}
+
+// helper to permute sampling data
 // [[Rcpp::export]]
 std::vector<std::vector<int>> lt_permute(List link_list,
                                          std::vector<int> wave,
@@ -120,7 +146,7 @@ std::vector<std::vector<int>> lt_permute(List link_list,
 
 
 
-
+// gibbs sampler
 // [[Rcpp::export]]
 List lt_gibbs(DataFrame data,
               IntegerMatrix y_samp,
@@ -133,12 +159,12 @@ List lt_gibbs(DataFrame data,
               List priors,
               List param_init) {
 
-  Function c_unlist("unlist");
-  Function c_expand_grid("expand.grid");
-  Function c_combn("combn");
-  Function c_setdiff("setdiff");
-  Function c_which("which");
-  Function c_rdirichlet("rdirichlet");
+  //Function c_unlist("unlist");
+  //Function c_expand_grid("expand.grid");
+  //Function c_combn("combn");
+  //Function c_setdiff("setdiff");
+  //Function c_which("which");
+  //Function c_rdirichlet("rdirichlet");
 
   // permute data
   std::vector<std::vector<int>> data_p_waves = lt_permute(data["links_list"],data["rds_wave"],data["name"]);
@@ -162,16 +188,16 @@ List lt_gibbs(DataFrame data,
   }
 
   //assign seeds
-  List l(chain_samples);
-  List b(chain_samples);
-  IntegerVector n(chain_samples);
+  std::vector<std::vector<double>> l;
+  std::vector<std::vector<std::vector<double>>> b;
+  std::vector<int> n;
 
-  l(0) = as<NumericVector>(param_init["l_0"]);
-  b(0) = as<NumericMatrix>(param_init["b_0"]);
-  n[0] = param_init["n_0"];
+  l.push_back(param_init["l_0"]);
+  b.push_back(m_to_v(as<NumericMatrix>(param_init["b_0"])));
+  n.push_back(param_init["n_0"]);
 
   int prior_n = priors["p_n"];
-  NumericVector prior_l = priors["p_l"];
+  std::vector<double> prior_l = priors["p_l"];
   int prior_b = priors["p_b"];
 
   int t = 1;
