@@ -59,6 +59,18 @@ NumericVector mat_by_mat(NumericMatrix m,
   return res;
 }
 
+// [[Rcpp::export]]
+std::vector<int> gen_range(int from,
+                           int to){
+  std::vector<int> ret;
+  ret.push_back(from);
+
+  for(int i = 0; i < to - from; i++){
+    ret.push_back(ret[i] + 1);
+  }
+
+  return ret;
+}
 
 // [[Rcpp::export]]
 std::vector<std::vector<int>> lt_permute(List link_list,
@@ -98,6 +110,8 @@ std::vector<std::vector<int>> lt_permute(List link_list,
     std::vector<int> ret;
     std::set_difference(set1.begin(),set1.end(),set2.begin(), set2.end(),
                         std::inserter(ret, ret.end()));
+
+    ret.erase(unique(ret.begin(), ret.end()), ret.end());
     wave_samples.push_back(ret);
   }
 
@@ -110,7 +124,7 @@ std::vector<std::vector<int>> lt_permute(List link_list,
 // [[Rcpp::export]]
 List lt_gibbs(DataFrame data,
               IntegerMatrix y_samp,
-              IntegerVector strata,
+              std::vector<int> strata,
               int n_strata,
               int n_waves,
               int total,
@@ -127,21 +141,24 @@ List lt_gibbs(DataFrame data,
   Function c_rdirichlet("rdirichlet");
 
   // permute data
-  List data_p_waves = lt_permute(data["links_list"],data["rds_wave"],data["name"]);
-  DataFrame data_p = data;
+  std::vector<std::vector<int>> data_p_waves = lt_permute(data["links_list"],data["rds_wave"],data["name"]);
 
   // reordering samples to estimate N
-  IntegerVector n_p(n_waves);
+  std::vector<int> n_p;
 
   for(int i = 0; i < n_waves; i++){
-    n_p[i] = as<IntegerVector>(data_p_waves[i]).size();
+    n_p.push_back(data_p_waves[i].size());
   }
 
-  List data_p_reorder(n_waves);
-  data_p_reorder[0] = Range(1,n_p[0]);
+  std::vector<std::vector<int>>  data_p_reorder;
+  data_p_reorder.push_back(gen_range(1,n_p[0]));
 
+  //
   for(int i = 1; i < n_waves; i++){
-    data_p_reorder[i] = Range(sum(head(n_p,i)) + 1, sum(head(n_p, i + 1)));
+
+    int from_i = std::accumulate(n_p.begin(), n_p.begin() + i, 0) + 1;
+    int to_i = std::accumulate(n_p.begin(), n_p.begin() + i + 1, 0);
+    data_p_reorder.push_back(gen_range(from_i,to_i));
   }
 
   //assign seeds
