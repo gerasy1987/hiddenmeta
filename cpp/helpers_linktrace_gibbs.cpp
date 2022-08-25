@@ -200,27 +200,37 @@ List lt_gibbs(DataFrame data,
   std::vector<double> prior_l = priors["p_l"];
   int prior_b = priors["p_b"];
 
-  int t = 1;
-
   // begin MCMC
-//  for(int t = 1; t < chain_samples; t++){
+  for(int t = 1; t < chain_samples; t++){
 
     //##################
     //# generate new N #
     //##################
 
     //get number of units in each strata
-    IntegerVector data_p_strata = data_p["strata"];
-    IntegerVector rows = c_unlist(head(data_p_waves, n_waves - 1));
-    IntegerVector rows_pull = rows - 1;
+    std::vector<int> data_p_strata = data["strata"];
 
-    IntegerVector strata_t(rows_pull.size());
+    std::vector<int> strata_t;
 
-    for(int i = 0; i < rows_pull.size(); i++){
-      strata_t[i] = data_p_strata[rows_pull[i]];
+    for(int i = 0; i < data_p_waves.size(); i++){
+      std::vector<int> strata_ti;
+
+      for(int j = 0; j < data_p_waves[i].size(); j ++){
+        strata_ti.push_back(data_p_strata[data_p_waves[i][j] - 1]);
+      }
+
+      strata_t.insert(strata_t.end(), strata_ti.begin(), strata_ti.end());
     }
 
-    IntegerVector strata_count = table(strata_t);
+    std::vector<int> strat(strata_t);
+    sort(strat.begin(),strat.end());
+    strat.erase(unique(strat.begin(),strat.end() ),strat.end());
+
+    std::vector<int> strata_count;
+
+    for(int i = 0; i < strat.size(); i++){
+      strata_count.push_back(std::count(strata_t.begin(),strata_t.end(), strat[i]));
+    }
 
     //get p(no link between strata
     NumericVector one = {1};
