@@ -232,34 +232,54 @@ List lt_gibbs(DataFrame data,
       strata_count.push_back(std::count(strata_t.begin(),strata_t.end(), strat[i]));
     }
 
-    //get p(no link between strata
-    NumericVector one = {1};
-    NumericVector no_link_init =  rep(one,n_strata);
+    //get p(no link between strata)
+    std::vector<double> no_link_init(n_strata, 1);
 
     for(int i = 0; i < n_strata; i++){
       for(int j = 0; j < n_strata; j++){
-        NumericMatrix bi = b[t - 1];
-        no_link_init[i] = no_link_init[i] * pow((1 - bi(j,i)),strata_count[j]);
+        no_link_init[i] = no_link_init[i] * std::pow((1 - b[t-1][j][i]),strata_count[j]);
       }
     }
 
-    NumericVector no_link_l = as<NumericVector>(l[t-1]) * no_link_init;
-    double no_link = sum(no_link_l);
+    std::vector<double> no_link_l;
+    std::transform (l[t-1].begin(),l[t-1].end(),
+                    no_link_init.begin(),
+                    std::back_inserter(no_link_l),
+                    std::multiplies<double>());
 
-    int nn_0 = as<IntegerVector>(data_p_waves[0]).size();
-    int nn = as<IntegerVector>(c_unlist(data_p_waves)).size();
+    double no_link = std::accumulate(no_link_l.begin(), no_link_l.end(), 0.0);
 
-    IntegerVector n_post_range = Range(nn, total * 5);
+    int nn_0 = data_p_waves[0].size();
+    int nn = std::accumulate(n_p.begin(),n_p.end(),0);
 
-    NumericVector n_sample_prob_vec(n_post_range.size());
+    std::vector<int> n_post_range = gen_range(nn, total * 5);
+
+    std::vector<double> n_sample_prob_vec;
 
     for(int i = 0; i < n_post_range.size(); i++){
-     IntegerVector r_i = Range(n_post_range[i] + 1 - nn, n_post_range[i] - nn_0);
-     n_sample_prob_vec[i] =  sum(log(r_i)) +
-       (n_post_range[i] - nn) * log(no_link) - prior_n * log(n_post_range[i]);
+     std::vector<int> r_i = gen_range(n_post_range[i] + 1 - nn, n_post_range[i] - nn_0);
+
+     std::vector<double> log_r_i;
+     for(int j = 0; j < r_i.size(); j++){
+       log_r_i.push_back(log(r_i[j]));
+     }
+
+     double s_log_r_i = std::accumulate(log_r_i.begin(), log_r_i.end(), 0.0);
+
+     n_sample_prob_vec.push_back(
+       s_log_r_i + (n_post_range[i] - nn) * log(no_link) - prior_n * log(n_post_range[i])
+     );
     }
 
-    NumericVector n_sample_prob = exp(n_sample_prob_vec - max(n_sample_prob_vec));
+    double max_n_sample_prob_vec = *std::max_element(n_sample_prob_vec.begin(), n_sample_prob_vec.end());
+
+    std::vector<double> n_sample_prob;
+
+    for(int i = 0; i < n_sample_prob_vec.size(); i++){
+      n_sample_prob.push_back(exp(n_sample_prob_vec[i] - max_n_sample_prob_vec));
+    }
+
+    //
     n[t] = sample(n_post_range, 1, false, n_sample_prob)[0];
 
 
