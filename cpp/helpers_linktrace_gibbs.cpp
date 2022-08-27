@@ -2,16 +2,17 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-IntegerVector int_vec_insert(IntegerVector vec,
-                             IntegerVector vals,
-                             IntegerVector pos){
+std::vector<int> int_vec_insert(std::vector<int> vec,
+                                std::vector<int> vals,
+                                std::vector<int> pos){
 
   for(int i = 0; i < vals.size(); i++){
-    int pos_i = pos[i];
-    vec[pos_i] = vals[i];
+    vec[pos[i]] = vals[i];
   }
+
   return vec;
 }
+
 
 // [[Rcpp::export]]
 IntegerMatrix int_mat_insert(IntegerMatrix m,
@@ -165,9 +166,17 @@ List lt_gibbs(DataFrame data,
   //Function c_setdiff("setdiff");
   //Function c_which("which");
   //Function c_rdirichlet("rdirichlet");
+  Function c_sample("sample");
 
   // permute data
   std::vector<std::vector<int>> data_p_waves = lt_permute(data["links_list"],data["rds_wave"],data["name"]);
+  std::vector<int> data_p_waves_id;
+
+  for(int i = 0; i < data_p_waves.size(); i++){
+    for(int j = 0; j < data_p_waves[i].size(); j++){
+      data_p_waves_id.push_back(data_p_waves[i][j] - 1);
+    }
+  }
 
   // reordering samples to estimate N
   std::vector<int> n_p;
@@ -179,13 +188,21 @@ List lt_gibbs(DataFrame data,
   std::vector<std::vector<int>>  data_p_reorder;
   data_p_reorder.push_back(gen_range(1,n_p[0]));
 
-  //
   for(int i = 1; i < n_waves; i++){
 
     int from_i = std::accumulate(n_p.begin(), n_p.begin() + i, 0) + 1;
     int to_i = std::accumulate(n_p.begin(), n_p.begin() + i + 1, 0);
     data_p_reorder.push_back(gen_range(from_i,to_i));
   }
+
+  std::vector<int> data_p_reorder_id;
+
+  for(int i = 0; i < data_p_reorder.size(); i++){
+    for(int j = 0; j < data_p_reorder[i].size(); j++){
+      data_p_reorder_id.push_back(data_p_reorder[i][j] - 1);
+    }
+  }
+
 
   //assign seeds
   std::vector<std::vector<double>> l;
@@ -212,7 +229,7 @@ List lt_gibbs(DataFrame data,
 
     std::vector<int> strata_t;
 
-    for(int i = 0; i < data_p_waves.size(); i++){
+    for(int i = 0; i < data_p_waves.size() - 1; i++){
       std::vector<int> strata_ti;
 
       for(int j = 0; j < data_p_waves[i].size(); j ++){
@@ -279,9 +296,8 @@ List lt_gibbs(DataFrame data,
       n_sample_prob.push_back(exp(n_sample_prob_vec[i] - max_n_sample_prob_vec));
     }
 
-    //
-    n[t] = sample(n_post_range, 1, false, n_sample_prob)[0];
-
+    NumericVector nt = c_sample(n_post_range, 1, false, n_sample_prob);
+    n[t] = nt[0];
 
     //#######################
     //# generate new lambda #
@@ -290,10 +306,15 @@ List lt_gibbs(DataFrame data,
     // assign strata to non sampled units
 
     // get indices of non sampled units
-    IntegerVector n_range = Range(1, n[t]);
-    IntegerVector not_sampled = setdiff(n_range, as<IntegerVector>(c_unlist(data_p_reorder))) - 1;
+    std::vector<int> n_range = gen_range(0,n[t] - 1);
+    std::vector<int> not_sampled;
+    std::vector<int> data_p_waves_id_sort = data_p_waves_id;
+    sort(data_p_waves_id_sort.begin(),data_p_waves_id_sort.end());
+    std::set_difference(n_range.begin(),n_range.end(),data_p_waves_id_sort.begin(), data_p_waves_id_sort.end(),
+                        std::inserter(not_sampled, not_sampled.end()));
 
-    IntegerVector stratum(n[t]);
+    std::vector<int> stratum;
+    stratum.resize(n[t]);
 
     //fill stratum vector with strata of sampled units
     IntegerVector ins_pos_us = as<IntegerVector>(c_unlist(data_p_reorder));
@@ -305,6 +326,8 @@ List lt_gibbs(DataFrame data,
     for(int i = 0; i < rows_pull.size(); i++){
       ins_val_us[i] = data_p_strata[rows_pull[i]];
     }
+
+
 
     stratum = int_vec_insert(as<IntegerVector>(stratum),
                              as<IntegerVector>(ins_val_us),
