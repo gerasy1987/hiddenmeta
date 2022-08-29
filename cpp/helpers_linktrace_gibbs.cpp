@@ -296,7 +296,7 @@ List lt_gibbs(DataFrame data,
       n_sample_prob.push_back(exp(n_sample_prob_vec[i] - max_n_sample_prob_vec));
     }
 
-    NumericVector nt = c_sample(n_post_range, 1, false, n_sample_prob);
+    std::vector<int> nt = as<std::vector<int>>(c_sample(n_post_range, 1, false, n_sample_prob));
     n[t] = nt[0];
 
     //#######################
@@ -317,24 +317,20 @@ List lt_gibbs(DataFrame data,
     stratum.resize(n[t]);
 
     //fill stratum vector with strata of sampled units
-    IntegerVector ins_pos_us = as<IntegerVector>(c_unlist(data_p_reorder));
-    ins_pos_us = ins_pos_us - 1;
-    rows_pull = as<IntegerVector>(c_unlist(data_p_waves));
-    rows_pull = rows_pull - 1;
-    IntegerVector ins_val_us(rows_pull.size());
+    std::vector<int> ins_val_us;
 
-    for(int i = 0; i < rows_pull.size(); i++){
-      ins_val_us[i] = data_p_strata[rows_pull[i]];
+    for(int i = 0; i < data_p_waves_id.size(); i++){
+      ins_val_us.push_back(data_p_strata[data_p_waves_id[i]]);
     }
 
+    stratum = int_vec_insert(stratum,
+                             ins_val_us,
+                             data_p_reorder_id);
 
-
-    stratum = int_vec_insert(as<IntegerVector>(stratum),
-                             as<IntegerVector>(ins_val_us),
-                             as<IntegerVector>(ins_pos_us));
+    /////////////////////////////////////////////////////////////////////////////////////////////////
 
     //fill stratum vector with strata of non sampled units
-    IntegerVector strat = Range(1,n_strata);
+    std::vector<int> strat = gen_range(1,n_strata);
     NumericVector pstrat = no_link_l / no_link;
     IntegerVector stratsamp = sample(as<IntegerVector>(strat), not_sampled.size(),
                                      true, as<NumericVector>(pstrat));
