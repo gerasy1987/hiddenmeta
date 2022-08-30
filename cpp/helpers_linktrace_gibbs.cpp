@@ -1,6 +1,50 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+
+// pass matrices in a lists of rows to easily convert to std::vector<std::vector<>> structure
+
+
+// [[Rcpp::export]]
+std::vector<int> rep_times(std::vector<int> x, int n){
+
+  std::vector<int> ret;
+
+  for(int i = 0; i < n; i++){
+    ret.insert(ret.end(),x.begin(),x.end());
+  }
+
+  return ret;
+}
+
+// [[Rcpp::export]]
+std::vector<int> rep_each(std::vector<int> x, int n){
+
+  std::vector<int> ret;
+
+  for(int i = 0; i < x.size(); i++){
+    for(int j = 0; j < n; j++){
+      ret.push_back(x[i]);
+    }
+  }
+
+  return ret;
+}
+
+// helper to generate range of integers
+// [[Rcpp::export]]
+std::vector<int> gen_range(int from,
+                           int to){
+  std::vector<int> ret;
+  ret.push_back(from);
+
+  for(int i = 0; i < to - from; i++){
+    ret.push_back(ret[i] + 1);
+  }
+
+  return ret;
+}
+
 // [[Rcpp::export]]
 std::vector<int> int_vec_insert(std::vector<int> vec,
                                 std::vector<int> vals,
@@ -61,25 +105,9 @@ NumericVector mat_by_mat(NumericMatrix m,
 }
 
 
-
-// helper to generate range of integers
+// helper to turn R matrix into double vector of vectors
 // [[Rcpp::export]]
-std::vector<int> gen_range(int from,
-                           int to){
-  std::vector<int> ret;
-  ret.push_back(from);
-
-  for(int i = 0; i < to - from; i++){
-    ret.push_back(ret[i] + 1);
-  }
-
-  return ret;
-}
-
-
-// helper to turn R matrix into vector of vectors
-// [[Rcpp::export]]
-std::vector<std::vector<double>> m_to_v(NumericMatrix m){
+std::vector<std::vector<double>> m_to_v_double(NumericMatrix m){
 
   std::vector<std::vector<double>> v;
 
@@ -97,6 +125,7 @@ std::vector<std::vector<double>> m_to_v(NumericMatrix m){
   return v;
 
 }
+
 
 // helper to permute sampling data
 // [[Rcpp::export]]
@@ -210,7 +239,7 @@ List lt_gibbs(DataFrame data,
   std::vector<int> n;
 
   l.push_back(param_init["l_0"]);
-  b.push_back(m_to_v(as<NumericMatrix>(param_init["b_0"])));
+  b.push_back(m_to_v_double(as<NumericMatrix>(param_init["b_0"])));
   n.push_back(param_init["n_0"]);
 
   int prior_n = priors["p_n"];
@@ -341,14 +370,14 @@ List lt_gibbs(DataFrame data,
                              stratsamp,
                              not_sampled);
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // populate link matrix for reordered sample
-    DataFrame link_comb = c_expand_grid(Range(0,n_waves - 1), Range(0,n_waves - 1));
-    IntegerVector g1 = link_comb[0];
-    IntegerVector g2 = link_comb[1];
+    std::vector<int> g1 = rep_times(gen_range(0,n_waves - 1), n_waves);
+    std::vector<int> g2 = rep_each(gen_range(0, n_waves - 1), n_waves);
 
-    IntegerMatrix y(n[t],n[t]);
+    std::vector<std::vector<int>> y(n[t],std::vector<int>(n[t]));
+
+    ////////////////////////////////////////////////////////////////////////////
 
     for(int i = 0; i < g1.size() - 1; i++){
       y = mat_to_mat_insert(y_samp,
