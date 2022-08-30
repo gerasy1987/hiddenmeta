@@ -327,19 +327,21 @@ List lt_gibbs(DataFrame data,
                              ins_val_us,
                              data_p_reorder_id);
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-
     //fill stratum vector with strata of non sampled units
-    std::vector<int> strat = gen_range(1,n_strata);
-    NumericVector pstrat = no_link_l / no_link;
-    IntegerVector stratsamp = sample(as<IntegerVector>(strat), not_sampled.size(),
-                                     true, as<NumericVector>(pstrat));
+    std::vector<int> strat_s = gen_range(1,n_strata);
+    std::vector<double> pstrat;
 
-    stratum = int_vec_insert(as<IntegerVector>(stratum),
-                             as<IntegerVector>(stratsamp),
-                             as<IntegerVector>(not_sampled));
+    for(int i = 0; i < no_link_l.size(); i++){
+      pstrat.push_back(no_link_l[i]/no_link);
+    }
 
+    std::vector<int> stratsamp = as<std::vector<int>>(c_sample(strat_s, not_sampled.size(), true, pstrat));
 
+    stratum = int_vec_insert(stratum,
+                             stratsamp,
+                             not_sampled);
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // populate link matrix for reordered sample
     DataFrame link_comb = c_expand_grid(Range(0,n_waves - 1), Range(0,n_waves - 1));
