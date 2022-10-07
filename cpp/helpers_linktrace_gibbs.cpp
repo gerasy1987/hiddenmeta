@@ -1,10 +1,40 @@
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
+// n choose k helper
+// [[Rcpp::export]]
+uint64_t choose_cpp(uint64_t n, uint64_t k) {
+  if(k == 0) return 1;
+  return (n * choose_cpp(n - 1, k - 1)) / k;
+}
 
-// pass matrices in a lists of rows to easily convert to std::vector<std::vector<>> structure
+// helper to generate combinations of x k at a time (cpp implementation of combn)
+// [[Rcpp::export]]
+arma::mat combn_cpp(std::vector<int> x, int K) {
+  int N = x.size();
+
+  std::string bitmask(K, 1);
+  bitmask.resize(N, 0);
+
+  uint64_t n_combos = choose_cpp(N,K);
+  arma::mat results = arma::mat(n_combos, K);
+  uint64_t row_position = 0;
+  do {
+    uint64_t col_position = 0;
+    for (int i = 0; i < N; ++i)  {
+      if (bitmask[i]) {
+        results(row_position, col_position) = x[i];
+        col_position++;
+      }
+    }
+    row_position++;
+  } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+  return results;
+}
 
 
+// cpp implementation of rep
 // [[Rcpp::export]]
 std::vector<int> rep_times(std::vector<int> x, int n){
 
@@ -17,6 +47,7 @@ std::vector<int> rep_times(std::vector<int> x, int n){
   return ret;
 }
 
+// cpp implementation of rep with each argument
 // [[Rcpp::export]]
 std::vector<int> rep_each(std::vector<int> x, int n){
 
@@ -45,6 +76,7 @@ std::vector<int> gen_range(int from,
   return ret;
 }
 
+// helper to do random access insertion for vectors
 // [[Rcpp::export]]
 std::vector<int> int_vec_insert(std::vector<int> vec,
                                 std::vector<int> vals,
@@ -57,7 +89,7 @@ std::vector<int> int_vec_insert(std::vector<int> vec,
   return vec;
 }
 
-
+// helper to do random access insertions of vector elements into matrix
 // [[Rcpp::export]]
 IntegerMatrix int_mat_insert(IntegerMatrix m,
                              IntegerVector col,
@@ -75,22 +107,24 @@ IntegerMatrix int_mat_insert(IntegerMatrix m,
 }
 
 
+// helper to do random access insertion of matrix into another matrix
 // [[Rcpp::export]]
-IntegerMatrix mat_to_mat_insert(IntegerMatrix old_m,
-                                IntegerMatrix new_m,
-                                IntegerVector new_rows,
-                                IntegerVector new_cols,
-                                IntegerVector old_rows,
-                                IntegerVector old_cols){
+arma::mat mat_to_mat_insert(arma::mat old_m,
+                            arma::mat new_m,
+                            std::vector<int> new_rows,
+                            std::vector<int> new_cols,
+                            std::vector<int> old_rows,
+                            std::vector<int> old_cols){
 
-  for(int i = 0; i < new_rows.length(); i++){
-    for(int j = 0; j < new_cols.length(); j++){
+  for(int i = 0; i < new_rows.size(); i++){
+    for(int j = 0; j < new_cols.size(); j++){
       new_m(new_rows[i] - 1, new_cols[j] - 1) = old_m(old_rows[i] - 1, old_cols[j] - 1);
     }
   }
   return new_m;
 }
 
+// helper to flatten matrix
 // [[Rcpp::export]]
 NumericVector mat_by_mat(NumericMatrix m,
                          IntegerVector row,
@@ -179,7 +213,7 @@ std::vector<std::vector<int>> lt_permute(List link_list,
 // gibbs sampler
 // [[Rcpp::export]]
 List lt_gibbs(DataFrame data,
-              IntegerMatrix y_samp,
+              arma::mat y_samp,
               std::vector<int> strata,
               int n_strata,
               int n_waves,
@@ -375,9 +409,7 @@ List lt_gibbs(DataFrame data,
     std::vector<int> g1 = rep_times(gen_range(0,n_waves - 1), n_waves);
     std::vector<int> g2 = rep_each(gen_range(0, n_waves - 1), n_waves);
 
-    std::vector<std::vector<int>> y(n[t],std::vector<int>(n[t]));
-
-    ////////////////////////////////////////////////////////////////////////////
+    arma::mat y = arma::mat(n[t],n[t]);
 
     for(int i = 0; i < g1.size() - 1; i++){
       y = mat_to_mat_insert(y_samp,
@@ -387,6 +419,9 @@ List lt_gibbs(DataFrame data,
                             data_p_waves[g1[i]],
                             data_p_waves[g2[i]]);
     }
+
+
+    std::vector<int>
 
     IntegerVector lp_1 = c_unlist(data_p_reorder[Range(0,data_p_reorder.size() - 2)]);
     IntegerVector lp_2 = Range(1,n[t]);
