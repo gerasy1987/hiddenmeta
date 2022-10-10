@@ -2,7 +2,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
-// n choose k helper
+// n choose k helper for combn_cpp
 // [[Rcpp::export]]
 uint64_t choose_cpp(uint64_t n, uint64_t k) {
   if(k == 0) return 1;
@@ -33,8 +33,45 @@ arma::mat combn_cpp(std::vector<int> x, int K) {
   return results;
 }
 
+// helper to generate single draw from dirichlet distribution
+// [[Rcpp::export]]
+std::vector<double> rdirichlet_cpp(std::vector<double> alpha){
 
-// cpp implementation of rep
+  std::vector<double> vec(alpha.size());
+
+  double sum = 0.0;
+
+  for(int i = 0; i < alpha.size(); i++){
+    vec[i] = as<double>(Rcpp::rgamma(1,alpha[i],(1/alpha[i])));
+    sum += vec[i];
+  }
+
+  for(int i = 0; i < vec.size(); i++){
+    vec[i] = vec[i]/sum;
+  }
+
+  return vec;
+}
+
+// cpp implementation of R table
+// [[Rcpp::export]]
+
+std::vector<int> table_cpp(std::vector<int> x){
+
+  std::vector<int> vec(x);
+  sort(vec.begin(),vec.end());
+  vec.erase(unique(vec.begin(),vec.end()),vec.end());
+
+  std::vector<int> vec_count;
+
+  for(int i = 0; i < vec.size(); i++){
+    vec_count.push_back(std::count(x.begin(),x.end(), vec[i]));
+  }
+
+  return vec_count;
+}
+
+// cpp implementation of standard R rep
 // [[Rcpp::export]]
 std::vector<int> rep_times(std::vector<int> x, int n){
 
@@ -47,7 +84,7 @@ std::vector<int> rep_times(std::vector<int> x, int n){
   return ret;
 }
 
-// cpp implementation of rep with each argument
+// cpp implementation of R rep with each argument
 // [[Rcpp::export]]
 std::vector<int> rep_each(std::vector<int> x, int n){
 
@@ -62,20 +99,17 @@ std::vector<int> rep_each(std::vector<int> x, int n){
   return ret;
 }
 
-// helper to generate range of integers
+// helper to generate range of consecutive integers
 // [[Rcpp::export]]
 std::vector<int> gen_range(int from,
                            int to){
-  std::vector<int> ret;
-  ret.push_back(from);
 
-  for(int i = 0; i < to - from; i++){
-    ret.push_back(ret[i] + 1);
-  }
+  int l = (to - from) + 1;
+  std::vector<int> vec(l);
+  std::iota(vec.begin(),vec.end(),from);
+  return vec;
 
-  return ret;
 }
-
 // helper to do random access insertion for vectors
 // [[Rcpp::export]]
 std::vector<int> int_vec_insert(std::vector<int> vec,
@@ -229,7 +263,7 @@ List lt_gibbs(DataFrame data,
   //Function c_setdiff("setdiff");
   //Function c_which("which");
   //Function c_rdirichlet("rdirichlet");
-  Function c_sample("sample");
+  Function cpp_sample("sample");
 
   // permute data
   std::vector<std::vector<int>> data_p_waves = lt_permute(data["links_list"],data["rds_wave"],data["name"]);
@@ -268,12 +302,14 @@ List lt_gibbs(DataFrame data,
 
 
   //assign seeds
-  std::vector<std::vector<double>> l;
-  std::vector<std::vector<std::vector<double>>> b;
+  arma::mat l(chain_samples,n_strata);
+  arma::cube b(n_strata,n_strata,chain_samples);
   std::vector<int> n;
 
-  l.push_back(param_init["l_0"]);
-  b.push_back(m_to_v_double(as<NumericMatrix>(param_init["b_0"])));
+  l.row(0) = arma::conv_to<arma::rowvec>::from(param_init["l_0"]);
+  //l.push_back(param_init["l_0"]);
+  b.slice(0) = as<arma::mat>(param_init["b_0"]);
+  //b.push_back(m_to_v_double(as<NumericMatrix>(param_init["b_0"])));
   n.push_back(param_init["n_0"]);
 
   int prior_n = priors["p_n"];
@@ -302,27 +338,20 @@ List lt_gibbs(DataFrame data,
       strata_t.insert(strata_t.end(), strata_ti.begin(), strata_ti.end());
     }
 
-    std::vector<int> strat(strata_t);
-    sort(strat.begin(),strat.end());
-    strat.erase(unique(strat.begin(),strat.end() ),strat.end());
-
-    std::vector<int> strata_count;
-
-    for(int i = 0; i < strat.size(); i++){
-      strata_count.push_back(std::count(strata_t.begin(),strata_t.end(), strat[i]));
-    }
+    std::vector<int> strata_count = table_cpp(strata_t);
 
     //get p(no link between strata)
     std::vector<double> no_link_init(n_strata, 1);
 
     for(int i = 0; i < n_strata; i++){
       for(int j = 0; j < n_strata; j++){
-        no_link_init[i] = no_link_init[i] * std::pow((1 - b[t-1][j][i]),strata_count[j]);
+        no_link_init[i] = no_link_init[i] * std::pow((1 - b.slice(t-1)(j,i)),strata_count[j]);
       }
     }
 
     std::vector<double> no_link_l;
-    std::transform (l[t-1].begin(),l[t-1].end(),
+    std::vector<double> lt = arma::conv_to<std::vector<double>>::from(l.row(t-1));
+    std::transform (lt.begin(),lt.end(),
                     no_link_init.begin(),
                     std::back_inserter(no_link_l),
                     std::multiplies<double>());
@@ -359,7 +388,7 @@ List lt_gibbs(DataFrame data,
       n_sample_prob.push_back(exp(n_sample_prob_vec[i] - max_n_sample_prob_vec));
     }
 
-    std::vector<int> nt = as<std::vector<int>>(c_sample(n_post_range, 1, false, n_sample_prob));
+    std::vector<int> nt = as<std::vector<int>>(cpp_sample(n_post_range, 1, false, n_sample_prob));
     n[t] = nt[0];
 
     //#######################
@@ -398,7 +427,7 @@ List lt_gibbs(DataFrame data,
       pstrat.push_back(no_link_l[i]/no_link);
     }
 
-    std::vector<int> stratsamp = as<std::vector<int>>(c_sample(strat_s, not_sampled.size(), true, pstrat));
+    std::vector<int> stratsamp = as<std::vector<int>>(cpp_sample(strat_s, not_sampled.size(), true, pstrat));
 
     stratum = int_vec_insert(stratum,
                              stratsamp,
@@ -406,6 +435,8 @@ List lt_gibbs(DataFrame data,
 
 
     // populate link matrix for reordered sample
+
+    // generate empty matrix and fill known link pairs
     std::vector<int> g1 = rep_times(gen_range(0,n_waves - 1), n_waves);
     std::vector<int> g2 = rep_each(gen_range(0, n_waves - 1), n_waves);
 
@@ -420,41 +451,51 @@ List lt_gibbs(DataFrame data,
                             data_p_waves[g2[i]]);
     }
 
+    // generate unkown pairs
+    std::vector<int> lp_1;
+    for(int i = 0; i < data_p_reorder.size() - 1; i++){
+      lp_1.insert(lp_1.end(), data_p_reorder[i].begin(), data_p_reorder[i].end());
+    }
+    sort(lp_1.begin(),lp_1.end());
 
-    std::vector<int>
+    std::vector<int> lp_2 = gen_range(1,n[t]);
 
-    IntegerVector lp_1 = c_unlist(data_p_reorder[Range(0,data_p_reorder.size() - 2)]);
-    IntegerVector lp_2 = Range(1,n[t]);
-    IntegerMatrix link_pairs =  c_combn(c_setdiff(lp_2,lp_1),2);
-    link_pairs  = transpose(link_pairs);
+    std::vector<int> lp;
+    std::set_difference(lp_2.begin(),lp_2.end(),lp_1.begin(),lp_2.end(),
+                        std::inserter(lp,lp.end()));
 
-    int n_pairs = link_pairs.nrow();
-    NumericVector link_prob = runif(n_pairs);
+    arma::mat link_pairs =  combn_cpp(lp,2);
+    int n_pairs = link_pairs.n_rows;
 
-    IntegerVector assigned = c_which(link_prob < mat_by_mat(b[t],
-                                                            stratum[link_pairs(_,0)],
-                                                            stratum[link_pairs(_,1)]));
+    std::vector<double> link_prob(n_pairs);
+    std::generate(link_prob.begin(), link_prob.end(), [](){
+        return (double)std::rand() / (double)RAND_MAX;
+      });
 
-    IntegerVector link_pairs_0 = link_pairs(_,0);
-    IntegerVector link_pairs_1 = link_pairs(_,1);
-    IntegerVector vals (link_pairs_0.length(),1);
+    // add link between unkown pairs based on link probability
+    for(int i = 0; i < n_pairs; i++){
 
-    y = int_mat_insert(y,
-                       link_pairs_1[assigned - 1],
-                       link_pairs_0[assigned - 1],
-                       vals);
+      int id_1 = link_pairs(i,0) - 1;
+      int id_2 = link_pairs(i,1) - 1;
 
-    y = int_mat_insert(y,
-                       link_pairs_0[assigned - 1],
-                       link_pairs_0[assigned - 1],
-                       vals);
+      double link_prob_i = b.slice(t)(stratum[id_1], stratum[id_2]);
 
+      if(link_prob_i > link_prob[i]){
+        y(id_1,id_2) = 1;
+        y(id_2,id_1) = 1;
+      }
+
+    }
 
     // new lambda
-    NumericVector strata_count_num = as<NumericVector>(table(stratum));
-    IntegerVector strate_count_int = table(stratum);
-    NumericMatrix dirichlet = c_rdirichlet(1, strata_count_num + prior_l);
-    l(t) = dirichlet(0,_);
+    std::vector<int> strata_count_int = table_cpp(stratum);
+
+    std::vector<double> alphas;
+    std::transform(strata_count_int.begin(), strata_count_int.end(),
+                   prior_l.begin(),std::back_inserter(alphas),
+                   std::plus<double>());
+
+    l.row(t) = arma::conv_to<arma::rowvec>::from(rdirichlet_cpp(alphas));
 
     //#####################
     //# generate new beta #
