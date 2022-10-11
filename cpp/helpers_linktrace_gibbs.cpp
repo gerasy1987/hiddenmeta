@@ -55,7 +55,6 @@ std::vector<double> rdirichlet_cpp(std::vector<double> alpha){
 
 // cpp implementation of R table
 // [[Rcpp::export]]
-
 std::vector<int> table_cpp(std::vector<int> x){
 
   std::vector<int> vec(x);
@@ -69,6 +68,19 @@ std::vector<int> table_cpp(std::vector<int> x){
   }
 
   return vec_count;
+}
+
+// cpp helper to move vector elements to new indices
+// [[Rcpp::export]]
+std::vector<int> move_elements(std::vector<int> x, int old_index, int new_index){
+
+  if(old_index > new_index){
+    std::rotate(x.rend() - old_index - 1, x.rend() - old_index, x.rend() - new_index);
+  } else {
+    std::rotate(x.begin() + old_index, x.begin() + old_index + 1, x.begin() + new_index + 1);
+  }
+
+  return x;
 }
 
 // cpp implementation of standard R rep
@@ -155,6 +167,7 @@ arma::mat mat_to_mat_insert(arma::mat old_m,
       new_m(new_rows[i] - 1, new_cols[j] - 1) = old_m(old_rows[i] - 1, old_cols[j] - 1);
     }
   }
+
   return new_m;
 }
 
@@ -257,12 +270,6 @@ List lt_gibbs(DataFrame data,
               List priors,
               List param_init) {
 
-  //Function c_unlist("unlist");
-  //Function c_expand_grid("expand.grid");
-  //Function c_combn("combn");
-  //Function c_setdiff("setdiff");
-  //Function c_which("which");
-  //Function c_rdirichlet("rdirichlet");
   Function cpp_sample("sample");
 
   // permute data
@@ -306,11 +313,11 @@ List lt_gibbs(DataFrame data,
   arma::cube b(n_strata,n_strata,chain_samples);
   std::vector<int> n;
 
-  l.row(0) = arma::conv_to<arma::rowvec>::from(param_init["l_0"]);
+  l.row(0) = arma::conv_to<arma::rowvec>::from(as<std::vector<double>>(param_init["l_0"]));
   //l.push_back(param_init["l_0"]);
   b.slice(0) = as<arma::mat>(param_init["b_0"]);
   //b.push_back(m_to_v_double(as<NumericMatrix>(param_init["b_0"])));
-  n.push_back(param_init["n_0"]);
+  n.push_back(as<int>(param_init["n_0"]));
 
   int prior_n = priors["p_n"];
   std::vector<double> prior_l = priors["p_l"];
@@ -435,7 +442,6 @@ List lt_gibbs(DataFrame data,
 
 
     // populate link matrix for reordered sample
-
     // generate empty matrix and fill known link pairs
     std::vector<int> g1 = rep_times(gen_range(0,n_waves - 1), n_waves);
     std::vector<int> g2 = rep_each(gen_range(0, n_waves - 1), n_waves);
@@ -501,14 +507,59 @@ List lt_gibbs(DataFrame data,
     //# generate new beta #
     //#####################
 
+    // count links between strata
+    arma::mat strata_link_count(n_strata,n_strata);
+    arma::mat node_pairs = combn_cpp(gen_range(1,n[t]),2);
+    n_pairs = node_pairs.n_rows;
 
+    std::vector<int> stratum_unique(stratum);
+    sort(stratum_unique.begin(),stratum_unique.end());
+    stratum_unique.erase(unique(stratum_unique.begin(),stratum_unique.end()),stratum_unique.end());
+
+    for(int i = 0; i < n_pairs; i++){
+
+      int np_1 = node_pairs(i,0) - 1;
+      int np_2 = node_pairs(i,1) - 1;
+
+      int c_1 = y(np_1,np_2);
+      int c_2 = y(np_2,np_1);
+
+      int stratum_1 = stratum[np_1] - 1;
+      int stratum_2 = stratum[np_2] - 1;
+
+      strata_link_count(stratum_1,stratum_2) = strata_link_count(stratum_1,stratum_2) + c_1;
+      strata_link_count(stratum_2,stratum_1) = strata_link_count(stratum_2,stratum_1) + c_2;
+
+    }
+
+    arma::mat b_i(n_strata,n_strata);
+
+    for(int i = 0; i < n_strata; i++){
+
+      double shape_1 = strata_link_count(i,i) + prior_b;
+      double shape_2 = choose_cpp(strata_count_int[i],2) - strata_link_count(i,i) + prior_b;
+      b_i(i,i) = as<double>(Rcpp::rbeta(1,shape_1,shape_2));
+
+    }
+
+    for(int i = 0; i < n_strata - 1; i++){
+      for(int j = i + 1; j < n_strata; j++){
+
+        double shape_1 = strata_link_count(i,j) + strata_link_count(j,i) + prior_b;
+        double shape_2 = strata_count_int[i] * strata_count_int[j] - strata_link_count(i,j) - strata_link_count(j,i) + prior_b;
+        double beta_i = as<double>(Rcpp::rbeta(1,shape_1,shape_2));
+
+        b_i(i,j) = beta_i;
+        b_i(j,i) = beta_i;
+
+      }
+    }
+
+  b.slice(t) = b_i;
 
   }
 
-  List ret(3);
-  ret[0] = data_p_reorder;
-  ret[1] = data_p_waves;
-  ret[2] = ins_pos_us;
+  List ret = List::create(n,l,b);
   return ret;
 }
 
