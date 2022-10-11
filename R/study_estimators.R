@@ -55,6 +55,7 @@ get_study_est_sspse <- function(data,
                burnin = mcmc_params$burnin,
                mean.prior.size = prior_mean,
                verbose = FALSE,
+               K = round(stats::quantile(.,0.80)),
                # visibility = TRUE,
                max.coupons = n_coupons),
           additional_params)
@@ -583,7 +584,7 @@ get_study_est_recapture <- function(
   .est_out <-
     data %>%
     dplyr::filter(if_any(all_of(capture_vars), ~ . == 1),
-                  across(all_of(hidden_variable), ~ . == 1))
+                  if_any(all_of(hidden_variable), ~ . == 1))
 
   if (nrow(.est_out) == 0) {
     warning("There were no hidden population member recaptures in the sample!")
