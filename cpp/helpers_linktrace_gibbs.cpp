@@ -2,6 +2,20 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
+// cpp helper to move vector elements to new indices
+// [[Rcpp::export]]
+std::vector<int> move_elements(std::vector<int> x, int old_index, int new_index){
+
+  if(old_index > new_index){
+    std::rotate(x.rend() - old_index - 1, x.rend() - old_index, x.rend() - new_index);
+  } else {
+    std::rotate(x.begin() + old_index, x.begin() + old_index + 1, x.begin() + new_index + 1);
+  }
+
+  return x;
+}
+
+
 // n choose k helper for combn_cpp
 // [[Rcpp::export]]
 uint64_t choose_cpp(uint64_t n, uint64_t k) {
@@ -42,7 +56,12 @@ std::vector<double> rdirichlet_cpp(std::vector<double> alpha){
   double sum = 0.0;
 
   for(int i = 0; i < alpha.size(); i++){
-    vec[i] = as<double>(Rcpp::rgamma(1,alpha[i],(1/alpha[i])));
+
+    if(alpha[i] > 0.0){
+      vec[i] = as<double>(Rcpp::rgamma(1,alpha[i],(1/alpha[i])));
+    } else {
+      vec[i] = 0.0;
+    }
     sum += vec[i];
   }
 
@@ -68,19 +87,6 @@ std::vector<int> table_cpp(std::vector<int> x){
   }
 
   return vec_count;
-}
-
-// cpp helper to move vector elements to new indices
-// [[Rcpp::export]]
-std::vector<int> move_elements(std::vector<int> x, int old_index, int new_index){
-
-  if(old_index > new_index){
-    std::rotate(x.rend() - old_index - 1, x.rend() - old_index, x.rend() - new_index);
-  } else {
-    std::rotate(x.begin() + old_index, x.begin() + old_index + 1, x.begin() + new_index + 1);
-  }
-
-  return x;
 }
 
 // cpp implementation of standard R rep
@@ -164,7 +170,7 @@ arma::mat mat_to_mat_insert(arma::mat old_m,
 
   for(int i = 0; i < new_rows.size(); i++){
     for(int j = 0; j < new_cols.size(); j++){
-      new_m(new_rows[i] - 1, new_cols[j] - 1) = old_m(old_rows[i] - 1, old_cols[j] - 1);
+      new_m(new_rows[i] - 1 , new_cols[j] - 1) = old_m(old_rows[i] - 1 , old_cols[j] - 1);
     }
   }
 
@@ -256,8 +262,6 @@ std::vector<std::vector<int>> lt_permute(List link_list,
 }
 
 
-
-// gibbs sampler
 // [[Rcpp::export]]
 List lt_gibbs(DataFrame data,
               arma::mat y_samp,
@@ -273,7 +277,16 @@ List lt_gibbs(DataFrame data,
   Function cpp_sample("sample");
 
   // permute data
-  std::vector<std::vector<int>> data_p_waves = lt_permute(data["links_list"],data["rds_wave"],data["name"]);
+  std::vector<std::vector<int>> data_p_waves;
+  int last_wave = 0;
+
+  while(last_wave < 1){
+
+    data_p_waves = lt_permute(data["links_list"],data["rds_wave"],data["name"]);
+    last_wave = data_p_waves[n_waves - 1].size();
+
+  }
+
   std::vector<int> data_p_waves_id;
 
   for(int i = 0; i < data_p_waves.size(); i++){
@@ -373,18 +386,18 @@ List lt_gibbs(DataFrame data,
     std::vector<double> n_sample_prob_vec;
 
     for(int i = 0; i < n_post_range.size(); i++){
-     std::vector<int> r_i = gen_range(n_post_range[i] + 1 - nn, n_post_range[i] - nn_0);
+      std::vector<int> r_i = gen_range(n_post_range[i] + 1 - nn, n_post_range[i] - nn_0);
 
-     std::vector<double> log_r_i;
-     for(int j = 0; j < r_i.size(); j++){
-       log_r_i.push_back(log(r_i[j]));
-     }
+      std::vector<double> log_r_i;
+      for(int j = 0; j < r_i.size(); j++){
+        log_r_i.push_back(log(r_i[j]));
+      }
 
-     double s_log_r_i = std::accumulate(log_r_i.begin(), log_r_i.end(), 0.0);
+      double s_log_r_i = std::accumulate(log_r_i.begin(), log_r_i.end(), 0.0);
 
-     n_sample_prob_vec.push_back(
-       s_log_r_i + (n_post_range[i] - nn) * log(no_link) - prior_n * log(n_post_range[i])
-     );
+      n_sample_prob_vec.push_back(
+        s_log_r_i + (n_post_range[i] - nn) * log(no_link) - prior_n * log(n_post_range[i])
+      );
     }
 
     double max_n_sample_prob_vec = *std::max_element(n_sample_prob_vec.begin(), n_sample_prob_vec.end());
@@ -396,7 +409,7 @@ List lt_gibbs(DataFrame data,
     }
 
     std::vector<int> nt = as<std::vector<int>>(cpp_sample(n_post_range, 1, false, n_sample_prob));
-    n[t] = nt[0];
+    n.push_back(nt[0]);
 
     //#######################
     //# generate new lambda #
@@ -452,12 +465,12 @@ List lt_gibbs(DataFrame data,
       y = mat_to_mat_insert(y_samp,
                             y,
                             data_p_reorder[g1[i]],
-                            data_p_reorder[g2[i]],
-                            data_p_waves[g1[i]],
-                            data_p_waves[g2[i]]);
+                                          data_p_reorder[g2[i]],
+                                                        data_p_waves[g1[i]],
+                                                                    data_p_waves[g2[i]]);
     }
 
-    // generate unkown pairs
+    //generate unkown pairs
     std::vector<int> lp_1;
     for(int i = 0; i < data_p_reorder.size() - 1; i++){
       lp_1.insert(lp_1.end(), data_p_reorder[i].begin(), data_p_reorder[i].end());
@@ -467,34 +480,60 @@ List lt_gibbs(DataFrame data,
     std::vector<int> lp_2 = gen_range(1,n[t]);
 
     std::vector<int> lp;
-    std::set_difference(lp_2.begin(),lp_2.end(),lp_1.begin(),lp_2.end(),
+    std::set_difference(lp_2.begin(),lp_2.end(),lp_1.begin(),lp_1.end(),
                         std::inserter(lp,lp.end()));
 
-    arma::mat link_pairs =  combn_cpp(lp,2);
-    int n_pairs = link_pairs.n_rows;
 
-    std::vector<double> link_prob(n_pairs);
-    std::generate(link_prob.begin(), link_prob.end(), [](){
+    // if an unknown pair exists add links based on link probability
+    if(lp.size() > 1){
+
+      arma::mat link_pairs =  combn_cpp(lp,2);
+      int n_pairs = link_pairs.n_rows;
+
+      std::vector<double> link_prob(n_pairs);
+      std::generate(link_prob.begin(), link_prob.end(), [](){
         return (double)std::rand() / (double)RAND_MAX;
       });
 
-    // add link between unkown pairs based on link probability
-    for(int i = 0; i < n_pairs; i++){
+      for(int i = 0; i < n_pairs; i++){
 
-      int id_1 = link_pairs(i,0) - 1;
-      int id_2 = link_pairs(i,1) - 1;
+        int id_1 = link_pairs(i,0) - 1;
+        int id_2 = link_pairs(i,1) - 1;
 
-      double link_prob_i = b.slice(t)(stratum[id_1], stratum[id_2]);
+        double link_prob_i = b.slice(t - 1)(stratum[id_1] - 1, stratum[id_2] - 1);
 
-      if(link_prob_i > link_prob[i]){
-        y(id_1,id_2) = 1;
-        y(id_2,id_1) = 1;
+        if(link_prob_i > link_prob[i]){
+          y(id_1,id_2) = 1;
+          y(id_2,id_1) = 1;
+        }
+
       }
 
     }
 
     // new lambda
     std::vector<int> strata_count_int = table_cpp(stratum);
+
+    // if a certain stratum was not sampled we need to add 0 to the count
+    if(strata_count_int.size() < n_strata){
+
+      std::vector<int> s = gen_range(1,n_strata);
+      std::vector<int> s_new(stratum);
+      sort(s_new.begin(),s_new.end());
+      std::vector<int> s_miss;
+      std::set_difference(s.begin(),s.end(),s_new.begin(),s_new.end(),
+                          std::inserter(s_miss, s_miss.end()));
+
+      for(int i = 0; i < s_miss.size(); i++){
+        strata_count_int.push_back(0);
+      }
+
+      for(int i = 0; i < s_miss.size(); i++){
+        strata_count_int = move_elements(strata_count_int,
+                                         strata_count_int.size() - (s_miss.size() - i),
+                                         s_miss[i] - 1);
+      }
+    }
 
     std::vector<double> alphas;
     std::transform(strata_count_int.begin(), strata_count_int.end(),
@@ -510,13 +549,9 @@ List lt_gibbs(DataFrame data,
     // count links between strata
     arma::mat strata_link_count(n_strata,n_strata);
     arma::mat node_pairs = combn_cpp(gen_range(1,n[t]),2);
-    n_pairs = node_pairs.n_rows;
+    int n_pairs_b = node_pairs.n_rows;
 
-    std::vector<int> stratum_unique(stratum);
-    sort(stratum_unique.begin(),stratum_unique.end());
-    stratum_unique.erase(unique(stratum_unique.begin(),stratum_unique.end()),stratum_unique.end());
-
-    for(int i = 0; i < n_pairs; i++){
+    for(int i = 0; i < n_pairs_b; i++){
 
       int np_1 = node_pairs(i,0) - 1;
       int np_2 = node_pairs(i,1) - 1;
@@ -555,14 +590,12 @@ List lt_gibbs(DataFrame data,
       }
     }
 
-  b.slice(t) = b_i;
-
+    b.slice(t) = b_i;
   }
 
   List ret = List::create(n,l,b);
   return ret;
 }
-
 
 
 
