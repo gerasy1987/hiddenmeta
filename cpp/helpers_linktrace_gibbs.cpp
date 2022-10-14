@@ -336,6 +336,10 @@ List lt_gibbs(DataFrame data,
   std::vector<double> prior_l = priors["p_l"];
   int prior_b = priors["p_b"];
 
+
+  std::vector<std::vector<double>> no_link_l_out;
+  std::vector<double> no_link_out;
+
   // begin MCMC
   for(int t = 1; t < chain_samples; t++){
 
@@ -410,6 +414,9 @@ List lt_gibbs(DataFrame data,
 
     std::vector<int> nt = as<std::vector<int>>(cpp_sample(n_post_range, 1, false, n_sample_prob));
     n.push_back(nt[0]);
+
+    no_link_l_out.push_back(no_link_l);
+    no_link_out.push_back(no_link);
 
     //#######################
     //# generate new lambda #
@@ -593,11 +600,253 @@ List lt_gibbs(DataFrame data,
     b.slice(t) = b_i;
   }
 
-  List ret = List::create(n,l,b);
+  List ret = List::create(n,l,b,data_p_waves,data_p_reorder,data_p_waves_id,data_p_reorder_id,
+                          no_link_l_out,no_link_out);
   return ret;
 }
 
 
+
+
+
+
+
+// [[Rcpp::export]]
+arma::mat l_step(int n,
+                 std::vector<std::vector<int>> data_p_waves,
+                 int n_strata,
+                 std::vector<std::vector<int>> data_p_reorder,
+                 std::vector<int> data_p_waves_id,
+                 std::vector<int> data_p_reorder_id,
+                 std::vector<double> no_link_l,
+                 double no_link,
+                 std::vector<int> data_p_strata,
+                 int n_waves,
+                 arma::mat b,
+                 arma::mat y_samp,
+                 std::vector<double> prior_l){
+
+  Function cpp_sample("sample");
+
+  // assign strata to non sampled units
+
+  // get indices of non sampled units
+  std::vector<int> n_range = gen_range(0,n - 1);
+  std::vector<int> not_sampled;
+  std::vector<int> data_p_waves_id_sort = data_p_waves_id;
+  sort(data_p_waves_id_sort.begin(),data_p_waves_id_sort.end());
+  std::set_difference(n_range.begin(),n_range.end(),data_p_waves_id_sort.begin(), data_p_waves_id_sort.end(),
+                      std::inserter(not_sampled, not_sampled.end()));
+
+  std::vector<int> stratum;
+  stratum.resize(n);
+
+  //fill stratum vector with strata of sampled units
+  std::vector<int> ins_val_us;
+
+  for(int i = 0; i < data_p_waves_id.size(); i++){
+    ins_val_us.push_back(data_p_strata[data_p_waves_id[i]]);
+  }
+
+  stratum = int_vec_insert(stratum,
+                           ins_val_us,
+                           data_p_reorder_id);
+
+  //fill stratum vector with strata of non sampled units
+  std::vector<int> strat_s = gen_range(1,n_strata);
+  std::vector<double> pstrat;
+
+  for(int i = 0; i < no_link_l.size(); i++){
+    pstrat.push_back(no_link_l[i]/no_link);
+  }
+
+  std::vector<int> stratsamp = as<std::vector<int>>(cpp_sample(strat_s, not_sampled.size(), true, pstrat));
+
+  stratum = int_vec_insert(stratum,
+                           stratsamp,
+                           not_sampled);
+
+
+  // populate link matrix for reordered sample
+  // generate empty matrix and fill known link pairs
+  std::vector<int> g1 = rep_times(gen_range(0,n_waves - 1), n_waves);
+  std::vector<int> g2 = rep_each(gen_range(0, n_waves - 1), n_waves);
+
+  arma::mat y = arma::mat(n,n);
+
+  for(int i = 0; i < g1.size() - 1; i++){
+    y = mat_to_mat_insert(y_samp,
+                          y,
+                          data_p_reorder[g1[i]],
+                                        data_p_reorder[g2[i]],
+                                                      data_p_waves[g1[i]],
+                                                                  data_p_waves[g2[i]]);
+  }
+
+  //generate unkown pairs
+  std::vector<int> lp_1;
+  for(int i = 0; i < data_p_reorder.size() - 1; i++){
+    lp_1.insert(lp_1.end(), data_p_reorder[i].begin(), data_p_reorder[i].end());
+  }
+  sort(lp_1.begin(),lp_1.end());
+
+  std::vector<int> lp_2 = gen_range(1,n);
+
+  std::vector<int> lp;
+  std::set_difference(lp_2.begin(),lp_2.end(),lp_1.begin(),lp_1.end(),
+                      std::inserter(lp,lp.end()));
+
+
+  // if an unknown pair exists add links based on link probability
+  if(lp.size() > 1){
+
+    arma::mat link_pairs =  combn_cpp(lp,2);
+    int n_pairs = link_pairs.n_rows;
+
+    std::vector<double> link_prob(n_pairs);
+    std::generate(link_prob.begin(), link_prob.end(), [](){
+      return (double)std::rand() / (double)RAND_MAX;
+    });
+
+    for(int i = 0; i < n_pairs; i++){
+
+      int id_1 = link_pairs(i,0) - 1;
+      int id_2 = link_pairs(i,1) - 1;
+
+      double link_prob_i = b(stratum[id_1] - 1, stratum[id_2] - 1);
+
+      if(link_prob_i > link_prob[i]){
+        y(id_1,id_2) = 1;
+        y(id_2,id_1) = 1;
+      }
+
+    }
+
+  }
+
+  // new lambda
+  std::vector<int> strata_count_int = table_cpp(stratum);
+
+  // if a certain stratum was not sampled we need to add 0 to the count
+  if(strata_count_int.size() < n_strata){
+
+    std::vector<int> s = gen_range(1,n_strata);
+    std::vector<int> s_new(stratum);
+    sort(s_new.begin(),s_new.end());
+    std::vector<int> s_miss;
+    std::set_difference(s.begin(),s.end(),s_new.begin(),s_new.end(),
+                        std::inserter(s_miss, s_miss.end()));
+
+    for(int i = 0; i < s_miss.size(); i++){
+      strata_count_int.push_back(0);
+    }
+
+    for(int i = 0; i < s_miss.size(); i++){
+      strata_count_int = move_elements(strata_count_int,
+                                       strata_count_int.size() - (s_miss.size() - i),
+                                       s_miss[i] - 1);
+    }
+  }
+
+  std::vector<double> alphas;
+  std::transform(strata_count_int.begin(), strata_count_int.end(),
+                 prior_l.begin(),std::back_inserter(alphas),
+                 std::plus<double>());
+
+  arma::mat ret(1,n_strata);
+  ret.row(0) = arma::conv_to<arma::rowvec>::from(rdirichlet_cpp(alphas));
+  return ret;
+}
+
+
+
+
+
+
+
+
+
+// [[Rcpp::export]]
+
+int n_step(DataFrame data,
+           std::vector<std::vector<int>> data_p_waves,
+           int n_strata,
+           arma::mat b,
+           std::vector<double> l,
+           std::vector<int> n_p,
+           int total,
+           int prior_n){
+
+  Function cpp_sample("sample");
+  //get number of units in each strata
+  std::vector<int> data_p_strata = data["strata"];
+
+  std::vector<int> strata_t;
+
+  for(int i = 0; i < data_p_waves.size() - 1; i++){
+    std::vector<int> strata_ti;
+
+    for(int j = 0; j < data_p_waves[i].size(); j ++){
+      strata_ti.push_back(data_p_strata[data_p_waves[i][j] - 1]);
+    }
+
+    strata_t.insert(strata_t.end(), strata_ti.begin(), strata_ti.end());
+  }
+
+  std::vector<int> strata_count = table_cpp(strata_t);
+
+  //get p(no link between strata)
+  std::vector<double> no_link_init(n_strata, 1);
+
+  for(int i = 0; i < n_strata; i++){
+    for(int j = 0; j < n_strata; j++){
+      no_link_init[i] = no_link_init[i] * std::pow((1 - b(j,i)),strata_count[j]);
+    }
+  }
+
+  std::vector<double> no_link_l;
+  std::vector<double> lt(l);
+  std::transform (lt.begin(),lt.end(),
+                  no_link_init.begin(),
+                  std::back_inserter(no_link_l),
+                  std::multiplies<double>());
+
+  double no_link = std::accumulate(no_link_l.begin(), no_link_l.end(), 0.0);
+
+  int nn_0 = data_p_waves[0].size();
+  int nn = std::accumulate(n_p.begin(),n_p.end(),0);
+
+  std::vector<int> n_post_range = gen_range(nn, total * 5);
+
+  std::vector<double> n_sample_prob_vec;
+
+  for(int i = 0; i < n_post_range.size(); i++){
+    std::vector<int> r_i = gen_range(n_post_range[i] + 1 - nn, n_post_range[i] - nn_0);
+
+    std::vector<double> log_r_i;
+    for(int j = 0; j < r_i.size(); j++){
+      log_r_i.push_back(log(r_i[j]));
+    }
+
+    double s_log_r_i = std::accumulate(log_r_i.begin(), log_r_i.end(), 0.0);
+
+    n_sample_prob_vec.push_back(
+      s_log_r_i + (n_post_range[i] - nn) * log(no_link) - prior_n * log(n_post_range[i])
+    );
+  }
+
+  double max_n_sample_prob_vec = *std::max_element(n_sample_prob_vec.begin(), n_sample_prob_vec.end());
+
+  std::vector<double> n_sample_prob;
+
+  for(int i = 0; i < n_sample_prob_vec.size(); i++){
+    n_sample_prob.push_back(exp(n_sample_prob_vec[i] - max_n_sample_prob_vec));
+  }
+
+  std::vector<int> nt = as<std::vector<int>>(cpp_sample(n_post_range, 1, false, n_sample_prob));
+  return nt[0];
+
+}
 
 
 
