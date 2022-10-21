@@ -39,7 +39,11 @@ Imports:
     MultiRNG,
     doParallel,
     testthat, 
-    methods
+    methods,
+    Rcpp (>= 1.0.9)
+LinkingTo: 
+  Rcpp, 
+  RcppArmadillo
 Suggests: 
     covr (>= 3.5.0),
     DeclareDesign (>= 0.20.0),
@@ -51,7 +55,7 @@ Suggests:
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr
 URL: https://gsyunyaev.com/hiddenmeta/
 BugReports: https://github.com/gerasy1987/hiddenmeta/issues

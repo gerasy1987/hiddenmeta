@@ -9,8 +9,8 @@ read_study_params(
   ss,
   sheet,
   col_spec = "ciiiiiiiciciiiiiiiiciiiiiiiciiiccccccccccccccc",
-  priors_map = tibble(label = c("low", "medium", "high"), int = c(10, 20, 40), p =
-    c(0.1, 0.5, 0.9), phigh = c(0.7, 0.8, 0.9), plow = c(0.1, 0.2, 0.3))
+  priors_map = tibble(label = c("low", "medium", "high"), int = c(10, 20, 40), p = c(0.1,
+    0.5, 0.9), phigh = c(0.7, 0.8, 0.9), plow = c(0.1, 0.2, 0.3))
 )
 }
 \arguments{
@@ -24,12 +24,6 @@ read_study_params(
 
 \item{priors_map}{Data frame giving mapping between simple priors and full prior specification}
 }
-\value{
-
-}
 \description{
 Read Study Designs from Google Spreadsheet
-}
-\examples{
-
 }
