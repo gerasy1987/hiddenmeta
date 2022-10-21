@@ -209,16 +209,16 @@ std::vector<std::vector<int>> lt_permute(List link_list,
 
 
 // [[Rcpp::export]]
-List lt_gibbs(DataFrame data,
-              arma::mat y_samp,
-              std::vector<int> strata,
-              int n_strata,
-              int n_waves,
-              int total,
-              int chain_samples,
-              int chain_burnin,
-              List priors,
-              List param_init) {
+std::vector<int> lt_gibbs(DataFrame data,
+                          arma::mat y_samp,
+                          std::vector<int> strata,
+                          int n_strata,
+                          int n_waves,
+                          int total,
+                          int chain_samples,
+                          int chain_burnin,
+                          List priors,
+                          List param_init) {
 
   Function cpp_sample("sample");
 
@@ -534,8 +534,7 @@ List lt_gibbs(DataFrame data,
     b.slice(t) = b_i;
   }
 
-  List ret = List::create(n,l,b);
-  return ret;
+  return n;
 }
 
 
