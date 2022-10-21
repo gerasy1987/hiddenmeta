@@ -352,29 +352,26 @@ std::vector<int> lt_gibbs(DataFrame data,
   std::vector<double> prior_l = priors["p_l"];
   int prior_b = priors["p_b"];
 
+
+  //get number of units in each strata
+  std::vector<int> data_p_strata = data["strata"];
+  std::vector<int> strata_t;
+
+  for(int i = 0; i < data_p_waves.size() - 1; i++){
+    std::vector<int> strata_ti;
+    for(int j = 0; j < data_p_waves[i].size(); j ++){
+      strata_ti.push_back(data_p_strata[data_p_waves[i][j] - 1]);
+    }
+    strata_t.insert(strata_t.end(), strata_ti.begin(), strata_ti.end());
+  }
+  std::vector<int> strata_count = table_cpp(strata_t);
+
   // begin MCMC
   for(int t = 1; t < chain_samples; t++){
 
     //##################
     //# generate new N #
     //##################
-
-    //get number of units in each strata
-    std::vector<int> data_p_strata = data["strata"];
-
-    std::vector<int> strata_t;
-
-    for(int i = 0; i < data_p_waves.size() - 1; i++){
-      std::vector<int> strata_ti;
-
-      for(int j = 0; j < data_p_waves[i].size(); j ++){
-        strata_ti.push_back(data_p_strata[data_p_waves[i][j] - 1]);
-      }
-
-      strata_t.insert(strata_t.end(), strata_ti.begin(), strata_ti.end());
-    }
-
-    std::vector<int> strata_count = table_cpp(strata_t);
 
     //get p(no link between strata)
     std::vector<double> no_link_init(n_strata, 1);
