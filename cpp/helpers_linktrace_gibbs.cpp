@@ -2,7 +2,13 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
-// cpp helper to move vector elements to new indices
+//' cpp helper to move vector elements to new indices
+//'
+//' @param x integer vector of elements to be shuffled
+//' @param old_index integer original index of element to be moved
+//' @param new_index integer index element should be moved to
+//' @return shuffled vector
+//' @keywords internal
 // [[Rcpp::export]]
 std::vector<int> move_elements(std::vector<int> x, int old_index, int new_index){
 
@@ -15,14 +21,24 @@ std::vector<int> move_elements(std::vector<int> x, int old_index, int new_index)
   return x;
 }
 
-// n choose k helper for combn_cpp
+//' n choose k helper for combn_cpp
+//'
+//' @param n integer number of elements to choose from
+//' @param k integer number of elements to choose
+//' @return integer number of ways to choose k items out of n
+//' @keywords internal
 // [[Rcpp::export]]
 uint64_t choose_cpp(uint64_t n, uint64_t k) {
   if(k == 0) return 1;
   return (n * choose_cpp(n - 1, k - 1)) / k;
 }
 
-// helper to generate combinations of x k at a time (cpp implementation of combn)
+//' helper to generate combinations of x k at a time (cpp implementation of combn)
+//'
+//' @param x integer vector of elements to combine
+//' @param K integer order of combinations
+//' @return a matrix of k-wise combinations of elements in x
+//' @keywords internal
 // [[Rcpp::export]]
 arma::mat combn_cpp(std::vector<int> x, int K) {
   int N = x.size();
@@ -46,7 +62,11 @@ arma::mat combn_cpp(std::vector<int> x, int K) {
   return results;
 }
 
-// helper to generate single draw from dirichlet distribution
+//' helper to generate single draw from dirichlet distribution
+//'
+//' @param alpha double vector of alpha parameters
+//' @return a double vector containing a single draw from a dirichlet distribution
+//' @keywords internal
 // [[Rcpp::export]]
 std::vector<double> rdirichlet_cpp(std::vector<double> alpha){
 
@@ -71,7 +91,11 @@ std::vector<double> rdirichlet_cpp(std::vector<double> alpha){
   return vec;
 }
 
-// cpp implementation of R table
+//' cpp implementation of R table
+//'
+//' @param x an integer vector of elements to be counted
+//' @return an integer vector of counts of unique elements in x (sorted in ascending order of elements in x)
+//' @keywords internal
 // [[Rcpp::export]]
 std::vector<int> table_cpp(std::vector<int> x){
 
@@ -88,7 +112,12 @@ std::vector<int> table_cpp(std::vector<int> x){
   return vec_count;
 }
 
-// cpp implementation of standard R rep
+//' cpp implementation of standard R rep
+//'
+//' @param x integer vector to be repeated
+//' @param n integer number of repetitions
+//' @return integer vector x repeated n times
+//' @keywords internal
 // [[Rcpp::export]]
 std::vector<int> rep_times(std::vector<int> x, int n){
 
@@ -101,7 +130,12 @@ std::vector<int> rep_times(std::vector<int> x, int n){
   return ret;
 }
 
-// cpp implementation of R rep with each argument
+//' cpp implementation of R rep with each argument
+//'
+//' @param x integer vector of elements to be repeated
+//' @param n integer number of repetitions
+//' @return integer vector with each element in x repeated n times in order
+//' @keywords internal
 // [[Rcpp::export]]
 std::vector<int> rep_each(std::vector<int> x, int n){
 
@@ -116,7 +150,12 @@ std::vector<int> rep_each(std::vector<int> x, int n){
   return ret;
 }
 
-// helper to generate range of consecutive integers
+//' helper to generate range of consecutive integers
+//'
+//' @param from integer first integer
+//' @param to last integer
+//' @return integer vector of consecutive integers between from and to inclusive
+//' @keywords internal
 // [[Rcpp::export]]
 std::vector<int> gen_range(int from,
                            int to){
@@ -127,7 +166,14 @@ std::vector<int> gen_range(int from,
   return vec;
 
 }
-// helper to do random access insertion for vectors
+
+//' helper to do random access insertion for vectors
+//'
+//' @param vec integer vector to insert values into
+//' @param vals integer vector of values to insert into vec
+//' @param pos integer vector of index positions in vec to insert vals into
+//' @return integer vector with vals inserted at pos
+//' @keywords internal
 // [[Rcpp::export]]
 std::vector<int> int_vec_insert(std::vector<int> vec,
                                 std::vector<int> vals,
@@ -141,7 +187,16 @@ std::vector<int> int_vec_insert(std::vector<int> vec,
 }
 
 
-// helper to do random access insertion of matrix into another matrix
+//' helper to do random access insertion of matrix into another matrix
+//'
+//' @param old_m matrix to take values from
+//' @param new_m matrix to insert values into
+//' @param new_rows integer vector of row indeces of new_m to insert values into
+//' @param new_cols integer vector of column indeces of new_m to insert values into
+//' @param old_rows integer vector of row indeces of old_m to take values from
+//' @param old_cols integer vector of column indeces of old_m to take values from
+//' @return matrix new_m with values from old_m in specified positions
+//' @keywords internal
 // [[Rcpp::export]]
 arma::mat mat_to_mat_insert(arma::mat old_m,
                             arma::mat new_m,
@@ -160,7 +215,13 @@ arma::mat mat_to_mat_insert(arma::mat old_m,
 }
 
 
-// helper to permute sampling data
+//' helper to permute sampling data
+//'
+//' @param link_list List holding indices of linked units for each unit
+//' @param wave integer vector holding the sampling wave of each unit
+//' @param name integer vector holding the name of each unit
+//' @return vector of integer vectors holding permuted sampling waves
+//' @keywords internal
 // [[Rcpp::export]]
 std::vector<std::vector<int>> lt_permute(List link_list,
                                          std::vector<int> wave,
@@ -208,6 +269,18 @@ std::vector<std::vector<int>> lt_permute(List link_list,
 }
 
 
+//' Link-tracing Gibbs sampler
+//' @param data DataFrame pass through of sammple data created in get_study_est_linktrace
+//' @param y_samp matrix pass through of adjecency matrix generated in get_study_est_linktrace
+//' @param strata integer stratum id of each unit
+//' @param n_strata integer number of unique strata
+//' @param n_waves integer number of sampling waves
+//' @param total integer total size of the population
+//' @param chain_samples integer number of samples per MCMC chain
+//' @param priors List of priors for n, lambda and beta
+//' @param param_init List of initial values for n,lambda and beta
+//' @return integer vector of samples from the n distribution
+//' @keywords internal
 // [[Rcpp::export]]
 std::vector<int> lt_gibbs(DataFrame data,
                           arma::mat y_samp,
@@ -216,7 +289,6 @@ std::vector<int> lt_gibbs(DataFrame data,
                           int n_waves,
                           int total,
                           int chain_samples,
-                          int chain_burnin,
                           List priors,
                           List param_init) {
 
@@ -406,9 +478,9 @@ std::vector<int> lt_gibbs(DataFrame data,
       y = mat_to_mat_insert(y_samp,
                             y,
                             data_p_reorder[g1[i]],
-                            data_p_reorder[g2[i]],
-                            data_p_waves[g1[i]],
-                            data_p_waves[g2[i]]);
+                                          data_p_reorder[g2[i]],
+                                                        data_p_waves[g1[i]],
+                                                                    data_p_waves[g2[i]]);
     }
 
     //generate unkown pairs
