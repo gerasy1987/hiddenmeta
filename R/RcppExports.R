@@ -9,7 +9,7 @@
 #' @return shuffled vector
 #' @keywords internal
 move_elements <- function(x, old_index, new_index) {
-    .Call('_hiddenmeta_move_elements', PACKAGE = 'hiddenmeta', x, old_index, new_index)
+    .Call(`_hiddenmeta_move_elements`, x, old_index, new_index)
 }
 
 #' n choose k helper for combn_cpp
@@ -19,7 +19,7 @@ move_elements <- function(x, old_index, new_index) {
 #' @return integer number of ways to choose k items out of n
 #' @keywords internal
 choose_cpp <- function(n, k) {
-    .Call('_hiddenmeta_choose_cpp', PACKAGE = 'hiddenmeta', n, k)
+    .Call(`_hiddenmeta_choose_cpp`, n, k)
 }
 
 #' helper to generate combinations of x k at a time (cpp implementation of combn)
@@ -29,7 +29,7 @@ choose_cpp <- function(n, k) {
 #' @return a matrix of k-wise combinations of elements in x
 #' @keywords internal
 combn_cpp <- function(x, K) {
-    .Call('_hiddenmeta_combn_cpp', PACKAGE = 'hiddenmeta', x, K)
+    .Call(`_hiddenmeta_combn_cpp`, x, K)
 }
 
 #' helper to generate single draw from dirichlet distribution
@@ -38,7 +38,7 @@ combn_cpp <- function(x, K) {
 #' @return a double vector containing a single draw from a dirichlet distribution
 #' @keywords internal
 rdirichlet_cpp <- function(alpha) {
-    .Call('_hiddenmeta_rdirichlet_cpp', PACKAGE = 'hiddenmeta', alpha)
+    .Call(`_hiddenmeta_rdirichlet_cpp`, alpha)
 }
 
 #' cpp implementation of R table
@@ -47,7 +47,7 @@ rdirichlet_cpp <- function(alpha) {
 #' @return an integer vector of counts of unique elements in x (sorted in ascending order of elements in x)
 #' @keywords internal
 table_cpp <- function(x) {
-    .Call('_hiddenmeta_table_cpp', PACKAGE = 'hiddenmeta', x)
+    .Call(`_hiddenmeta_table_cpp`, x)
 }
 
 #' cpp implementation of standard R rep
@@ -57,7 +57,7 @@ table_cpp <- function(x) {
 #' @return integer vector x repeated n times
 #' @keywords internal
 rep_times <- function(x, n) {
-    .Call('_hiddenmeta_rep_times', PACKAGE = 'hiddenmeta', x, n)
+    .Call(`_hiddenmeta_rep_times`, x, n)
 }
 
 #' cpp implementation of R rep with each argument
@@ -67,7 +67,7 @@ rep_times <- function(x, n) {
 #' @return integer vector with each element in x repeated n times in order
 #' @keywords internal
 rep_each <- function(x, n) {
-    .Call('_hiddenmeta_rep_each', PACKAGE = 'hiddenmeta', x, n)
+    .Call(`_hiddenmeta_rep_each`, x, n)
 }
 
 #' helper to generate range of consecutive integers
@@ -77,7 +77,7 @@ rep_each <- function(x, n) {
 #' @return integer vector of consecutive integers between from and to inclusive
 #' @keywords internal
 gen_range <- function(from, to) {
-    .Call('_hiddenmeta_gen_range', PACKAGE = 'hiddenmeta', from, to)
+    .Call(`_hiddenmeta_gen_range`, from, to)
 }
 
 #' helper to do random access insertion for vectors
@@ -88,7 +88,7 @@ gen_range <- function(from, to) {
 #' @return integer vector with vals inserted at pos
 #' @keywords internal
 int_vec_insert <- function(vec, vals, pos) {
-    .Call('_hiddenmeta_int_vec_insert', PACKAGE = 'hiddenmeta', vec, vals, pos)
+    .Call(`_hiddenmeta_int_vec_insert`, vec, vals, pos)
 }
 
 #' helper to do random access insertion of matrix into another matrix
@@ -102,7 +102,7 @@ int_vec_insert <- function(vec, vals, pos) {
 #' @return matrix new_m with values from old_m in specified positions
 #' @keywords internal
 mat_to_mat_insert <- function(old_m, new_m, new_rows, new_cols, old_rows, old_cols) {
-    .Call('_hiddenmeta_mat_to_mat_insert', PACKAGE = 'hiddenmeta', old_m, new_m, new_rows, new_cols, old_rows, old_cols)
+    .Call(`_hiddenmeta_mat_to_mat_insert`, old_m, new_m, new_rows, new_cols, old_rows, old_cols)
 }
 
 #' helper to permute sampling data
@@ -113,7 +113,7 @@ mat_to_mat_insert <- function(old_m, new_m, new_rows, new_cols, old_rows, old_co
 #' @return vector of integer vectors holding permuted sampling waves
 #' @keywords internal
 lt_permute <- function(link_list, wave, name) {
-    .Call('_hiddenmeta_lt_permute', PACKAGE = 'hiddenmeta', link_list, wave, name)
+    .Call(`_hiddenmeta_lt_permute`, link_list, wave, name)
 }
 
 #' Link-tracing Gibbs sampler
@@ -129,6 +129,6 @@ lt_permute <- function(link_list, wave, name) {
 #' @return integer vector of samples from the n distribution
 #' @keywords internal
 lt_gibbs_cpp <- function(data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init) {
-    .Call('_hiddenmeta_lt_gibbs_cpp', PACKAGE = 'hiddenmeta', data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init)
+    .Call(`_hiddenmeta_lt_gibbs_cpp`, data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init)
 }
 
