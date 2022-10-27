@@ -677,9 +677,9 @@ y_samp <- data %>%
       as.matrix()
   }
 
-  strata <- "strata_id"
+  strata <- as.integer(data[["strata_id"]])
 
-  n_strata <- length(unique(data[[strata]]))
+  n_strata <- length(unique(strata))
 
   if(length(priors$p_l) == 1){
     priors$p_l <- rep(priors$p_l, n_strata)
