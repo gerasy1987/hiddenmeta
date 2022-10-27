@@ -24,7 +24,9 @@ get_study_est_sspse <- function(data,
                                 prior_mean = .1 * nrow(data),
                                 n_coupons = 3,
                                 total = 2000,
-                                mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+                                mcmc_params = list(interval = 5,
+                                                   burnin = 2000,
+                                                   samplesize = 500),
                                 additional_params = list(),
                                 rds_prefix = "rds",
                                 label = "sspse") {
@@ -35,13 +37,15 @@ get_study_est_sspse <- function(data,
     data %>%
     dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
     dplyr::select(name, hidden_visible_out, starts_with(rds_prefix), total) %>%
-    RDS::as.rds.data.frame(df = .,
-                           id = "name",
-                           recruiter.id = paste0(rds_prefix, "_from"),
-                           network.size = "hidden_visible_out",
-                           time = paste0(rds_prefix, "_t"),
-                           population.size = total,
-                           max.coupons = n_coupons) %>%
+    dplyr::arrange(get(paste0(rds_prefix, "_t"))) %>%
+    dplyr::pull("hidden_visible_out") %>%
+    # RDS::as.rds.data.frame(df = .,
+    #                        id = "name",
+    #                        recruiter.id = paste0(rds_prefix, "_from"),
+    #                        network.size = "hidden_visible_out",
+    #                        time = paste0(rds_prefix, "_t"),
+    #                        # population.size = total,
+    #                        max.coupons = n_coupons) %>%
     {
       do.call(
         .quiet_sspse,
@@ -51,6 +55,7 @@ get_study_est_sspse <- function(data,
                burnin = mcmc_params$burnin,
                mean.prior.size = prior_mean,
                verbose = FALSE,
+               K = round(stats::quantile(.,0.80)),
                # visibility = TRUE,
                max.coupons = n_coupons),
           additional_params)
@@ -233,7 +238,7 @@ get_study_est_chords <- function(data,
 
   .data_mod <-
     data %>%
-    dplyr::filter(dplyr::across(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
+    dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
     dplyr::mutate(
       NS1 = apply(.[,grep(pattern = .pattern, x = names(data))], 1, sum),
       refCoupNum = get(paste0(rds_prefix, "_own_coupon")),
@@ -457,7 +462,7 @@ get_study_est_multiplier <- function(data,
 
   .data_mod <-
     data %>%
-    dplyr::filter(dplyr::across(dplyr::all_of(rds_prefix), ~ . == 1))
+    dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1))
 
   .est_out <-
     total_service/mean(.data_mod[[service_var]])
@@ -579,7 +584,7 @@ get_study_est_recapture <- function(
   .est_out <-
     data %>%
     dplyr::filter(if_any(all_of(capture_vars), ~ . == 1),
-                  across(all_of(hidden_variable), ~ . == 1))
+                  if_any(all_of(hidden_variable), ~ . == 1))
 
   if (nrow(.est_out) == 0) {
     warning("There were no hidden population member recaptures in the sample!")

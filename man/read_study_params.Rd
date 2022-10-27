@@ -5,25 +5,21 @@
 \title{Read Study Designs from Google Spreadsheet}
 \usage{
 read_study_params(
-  auth_email,
-  ss,
-  sheet,
-  col_spec = "ciiiiiiiciciiiiiiiiciiiiiiiciiiccccccccccccccc",
-  priors_map = tibble(label = c("low", "medium", "high"), int = c(10, 20, 40), p = c(0.1,
-    0.5, 0.9), phigh = c(0.7, 0.8, 0.9), plow = c(0.1, 0.2, 0.3))
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable"
 )
 }
 \arguments{
-\item{auth_email}{Character string giving e-mail to use for Google authentication}
-
 \item{ss}{Character string giving ID of the Google spreadsheet}
 
 \item{sheet}{Character string giving name of the sheet in the Google spreadsheet to read}
+}
+\value{
 
-\item{col_spec}{Character string giving column specifications (in readr-style short codes) for the study parameters spreadsheet}
-
-\item{priors_map}{Data frame giving mapping between simple priors and full prior specification}
 }
 \description{
 Read Study Designs from Google Spreadsheet
+}
+\examples{
+
 }

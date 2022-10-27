@@ -1,105 +1,138 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//index.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/404.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/gen_block_matrix.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/gen_group_sizes.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/articles/background.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_meta_estimands.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/articles/diagnose-studies.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_meta_estimates.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/articles/hiddenmeta-base.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_meta_population.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/articles/index.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_meta_sample.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/articles/meta-example.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_multi_estimands.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/articles/read-study-params.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_multi_estimates.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/authors.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_multi_populations.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/index.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_multi_samples.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/news/index.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_rds_boot.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/gen_block_matrix.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_rescaled_boot.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/gen_group_sizes.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_est_chords.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_meta_estimands.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_est_gnsum.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_meta_estimates.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_est_ht.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_meta_population.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_est_multiplier.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_meta_sample.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_est_nsum.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_multi_estimands.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_est_rds_ss.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_multi_estimates.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_est_recapture.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_multi_populations.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_est_sspse.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_multi_samples.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_estimands.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_rds_boot.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/get_study_population.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_required_data.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/rbeta_mod.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_rescaled_boot.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/read_study_params.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_rmse_plots.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/sample_pps.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_single_study_design.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/sample_rds.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_chords.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/sample_tls.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_gnsum.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/sim_block_network.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_ht.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//reference/sim_ergm_network.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_multiplier.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//articles/background.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_nsum.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//articles/hiddenmeta-base.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_rds_ss.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//articles/meta-example.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_recapture.html</loc>
   </url>
   <url>
-    <loc>https://gsyunyaev.com/hiddenmeta//articles/read-study-params.html</loc>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_sspse.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_estimands.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_population.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/rbeta_mod.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/read_single_study_params.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/read_study_params.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/sample_pps.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/sample_rds.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/sample_tls.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/sim_block_network.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/sim_ergm_network.html</loc>
   </url>
 </urlset>

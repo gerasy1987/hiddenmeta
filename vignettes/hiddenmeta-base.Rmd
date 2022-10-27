@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = TRUE,
+  eval = FALSE,
   echo = TRUE,
   fig.path = "vignette-",
   message = FALSE,
@@ -112,7 +112,7 @@ study_1 <-
                             rds_prefix = "rds", 
                             label = "rds_sspse"),
                chords = list(handler = get_study_est_chords, 
-                             type = "mle",
+                             type = "jeffreys",
                              seed_condition = "rds_from == -999",
                              n_boot = 100,
                              rds_prefix = "rds",
@@ -307,10 +307,11 @@ est_recap_rds_tls <-
 set.seed(872312)
 draw_estimates(study_population +
                  study_sample_rds + study_sample_pps + study_sample_tls +
-                 study_estimands +
-                 est_sspse + est_chords + est_multi +
-                 est_nsum_pps + est_ht_pps +
-                 est_nsum_tls + est_ht_tls + est_recap_tls +
+                 # study_estimands +
+                 # est_sspse +
+                 # est_chords + est_multi +
+                 # est_nsum_pps + est_ht_pps +
+                 # est_nsum_tls + est_ht_tls + est_recap_tls +
                  est_recap_rds_pps + est_recap_rds_tls
                ) %>%
   kable(digits = 2)
@@ -370,7 +371,7 @@ study1_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-saveRDS(study1_simulations, "vignettes/study1_sim.rds")
+saveRDS(study1_simulations, here::here("inst/extdata/study1_sim.rds"))
 
 ```
 
@@ -387,7 +388,8 @@ study_diagnosands <-
     rmse = sqrt(mean((estimate - estimand) ^ 2))
   )
 
-study1_simulations <- readRDS(here::here("vignettes/study1_sim.rds"))
+study1_simulations <- 
+  readRDS(system.file("extdata", "study1_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = study1_simulations, 
                 diagnosands = study_diagnosands) %>% 
@@ -441,6 +443,7 @@ study_2 <-
                    hidden_var = "hidden",
                    n_seed = 100,
                    n_coupons = 3,
+                   n_waves = 2,
                    target_type = "waves",
                    target_n_rds = 2),
         tls = list(handler = sample_tls,
@@ -471,7 +474,7 @@ study_2 <-
                             total = 5000,
                             rds_prefix = "rds"),
                chords = list(handler = get_study_est_chords, 
-                             type = "mle",
+                             type = "jeffreys",
                              label = "rds_chords",
                              seed_condition = "rds_from == -999",
                              n_boot = 100,
@@ -590,7 +593,7 @@ study_3 <-
                             rds_prefix = "rds", 
                             label = "rds_sspse"),
                chords = list(handler = get_study_est_chords, 
-                             type = "mle",
+                             type = "jeffreys",
                              seed_condition = "rds_from == -999",
                              n_boot = 100,
                              rds_prefix = "rds",
@@ -654,25 +657,25 @@ study_3 <-
 multi_population <- 
   declare_population(handler = get_multi_populations, 
                      pops_args = list(study_1 = study_1$pop,
-                                      study_2 = study_2$pop,
+                                      # study_2 = study_2$pop,
                                       study_3 = study_3$pop))
 
 multi_sampling <- 
   declare_sampling(handler = get_multi_samples, 
                    samples_args = list(study_1 = study_1$sample,
-                                       study_2 = study_2$sample,
+                                       # study_2 = study_2$sample,
                                        study_3 = study_3$sample)) 
 
 multi_inquiry <- 
   declare_inquiry(handler = get_multi_estimands, 
                   inquiries_args = list(study_1 = study_1$inquiries,
-                                        study_2 = study_2$inquiries,
+                                        # study_2 = study_2$inquiries,
                                         study_3 = study_3$inquiries)) 
 
 multi_estimators <-
   declare_estimator(handler = get_multi_estimates,
                     estimators_args = list(study_1 = study_1$estimators,
-                                           study_2 = study_2$estimators,
+                                           # study_2 = study_2$estimators,
                                            study_3 = study_3$estimators))
 
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
@@ -693,7 +696,7 @@ multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimat
 # multi_simulations <- simulate_design(multi_study, sims = 2)
 
 requireNamespace(c("doParallel", "parallel"))
-doParallel::registerDoParallel(cores = 20)
+doParallel::registerDoParallel(cores = 40)
 
 set.seed(872312)
 multi_simulations <-
@@ -711,13 +714,14 @@ multi_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-saveRDS(multi_simulations, file = "vignettes/multi_sim.rds")
+saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim.rds"))
 
 ```
 
-```{r multi_study_diagnose, eval = TRUE}
+```{r multi_study_diagnose, eval = FALSE}
 
-multi_simulations <- readRDS(here::here("vignettes/multi_sim.rds"))
+multi_simulations <- 
+  readRDS(system.file("extdata", "multi_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = multi_simulations, 
                 diagnosands = study_diagnosands) %>% 
@@ -807,13 +811,14 @@ meta_simulations <-
   ) %>%
   dplyr::bind_rows()
 
-saveRDS(meta_simulations, file = "vignettes/meta_sim.rds")
+saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim.rds"))
 
 ```
 
 ```{r meta_study_diagnose, eval = TRUE}
 
-meta_simulations <- readRDS(here::here("vignettes/meta_sim.rds"))
+meta_simulations <- 
+  readRDS(system.file("extdata", "meta_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = meta_simulations, 
                 diagnosands = study_diagnosands) %>% 

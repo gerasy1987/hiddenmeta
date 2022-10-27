@@ -20,10 +20,12 @@ navbar:
     href: articles/hiddenmeta-base.html
   - text: Articles
     menu:
-      - text: Read study design
-        href: https://declaredesign.org/r/randomizr/
+      - text: Reading study parameters
+        href: articles/read-study-params.html
       - text: Simple meta-analysis
         href: articles/meta-example.html
+      - text: Diagnosing study robustness
+        href: articles/diagnose-studies.html
   right:
   - text: Background
     href: articles/background.html
@@ -77,3 +79,7 @@ reference:
   - get_rds_boot
   - get_rescaled_boot
   - read_study_params
+  - read_single_study_params
+  - get_single_study_design
+  - get_required_data
+  - get_rmse_plots

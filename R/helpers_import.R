@@ -1,10 +1,7 @@
 #' Read Study Designs from Google Spreadsheet
 #'
-#' @param auth_email Character string giving e-mail to use for Google authentication
 #' @param ss Character string giving ID of the Google spreadsheet
 #' @param sheet Character string giving name of the sheet in the Google spreadsheet to read
-#' @param col_spec Character string giving column specifications (in readr-style short codes) for the study parameters spreadsheet
-#' @param priors_map Data frame giving mapping between simple priors and full prior specification
 #'
 #' @return
 #' @export
@@ -16,37 +13,25 @@
 #' @importFrom purrr map_chr
 #' @importFrom plyr mapvalues
 read_study_params <- function(
-  auth_email,
-  ss,
-  sheet,
-  col_spec = "ciiiiiiiciciiiiiiiiciiiiiiiciiiccccccccccccccc",
-  priors_map =
-    tibble(
-      label      = c("low", "medium", "high"),
-      int        = c(10,    20,       40),
-      p          = c(0.1,   0.5,      0.9),
-      phigh     = c(0.7,   0.8,      0.9),
-      plow      = c(0.1,   0.2,      0.3)
-    )
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable"
 ) {
-
-  googlesheets4::gs4_auth(email = auth_email)
 
   labels <-
     googlesheets4::read_sheet(
       ss = ss,
       sheet = sheet,
       skip = 0,
-      n_max = 3,
+      n_max = 4,
       col_names = FALSE,
       .name_repair = "minimal") %>%
     unname %>%
     t %>%
-    `colnames<-`(c("family", "name", "description")) %>%
+    `colnames<-`(c("family", "type", "name", "description")) %>%
     dplyr::as_tibble() %>%
     dplyr::mutate(
-      prior_type = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][2]),
-      family = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][1]),
+      # prior_type = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][2]),
+      # family = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][1]),
       colnames = dplyr::if_else(is.na(family), name, paste0(family, "_", name))
     )
 
@@ -57,22 +42,10 @@ read_study_params <- function(
       sheet = sheet,
       col_names = FALSE,
       na = "NA",
-      col_types = col_spec,
+      col_types = paste0(labels$type, collapse = ""),
       .name_repair = "minimal",
-      skip = 3) %>%
+      skip = 4) %>%
     `names<-`(dplyr::pull(labels, colnames))
-
-  prior_types <- na.omit(unique(labels$prior_type))
-
-  for (pr in prior_types) {
-    spread_sheet %<>%
-      dplyr::mutate(across(
-        dplyr::all_of(labels$colnames[which(labels$prior_type == pr)]),
-        ~ as.numeric(plyr::mapvalues(., warn_missing = FALSE,
-                                     from = priors_map$label,
-                                     to = priors_map[[pr]]))
-      ))
-  }
 
   .out <-
     sapply(
@@ -143,8 +116,7 @@ read_study_params <- function(
           .pop$add_groups <-
             c(
               .pop$add_groups,
-              service_use =
-                paste0("rbinom(n(), 1, ", .row$prior_p_service_use, ")")
+              service_use = .row$prior_p_service_use
             )
         }
 
@@ -158,8 +130,20 @@ read_study_params <- function(
               paste0("purrr::map_df(hidden, ~ sapply( `names<-`(rep(",
                      .row$prior_p_showup, ", times = ",
                      .row$tls_n_time_locations, "), paste0('loc_', 1:",
-                     .row$tls_n_time_locations, ")), function(add) rbinom(length(.x), 1, 0.05 + .x * add)))")
+                     .row$tls_n_time_locations, ")), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))")
             )
+        }
+
+        if (.row$pps == 1) {
+          if (!is.na(.row$pps_cluster)) {
+            .pop$add_groups <-
+              c(
+                .pop$add_groups,
+                cluster_for_pps =
+                  paste0("sample(rep(1:ceiling(n() /", .row$pps_n_per_cluster ,
+                         "), times = ", .row$pps_n_per_cluster, ")[1:n()])")
+              )
+          }
         }
 
         # add known groups that are not correlated with hidden group membership
@@ -192,6 +176,8 @@ read_study_params <- function(
                                       hidden_var = "hidden", # default
                                       n_seed = .row$rds_n_seeds,
                                       n_coupons = .row$rds_n_coupons,
+                                      n_waves =
+                                        if (!is.na(.row$rds_target_n_waves)) .row$rds_target_n_waves,
                                       add_seeds = .row$rds_allow_add_seeds,
                                       target_type = .row$rds_target_type,
                                       target_n_rds = .row$rds_target_n_sample),
@@ -207,10 +193,12 @@ read_study_params <- function(
               if (.row$pps == 1) list(handler = sample_pps,
                                       sampling_variable = "pps",
                                       sampling_frame = NULL,
-                                      strata =
-                                        if (!is.na(.row$pps_strata)) .row$pps_strata,
-                                      cluster =
+                                      n_clusters =
                                         if (!is.na(.row$pps_cluster)) .row$pps_cluster,
+                                      strata =
+                                        if (!is.na(.row$pps_strata)) "strata_for_pps",
+                                      cluster =
+                                        if (!is.na(.row$pps_cluster)) "cluster_for_pps",
                                       target_n_pps = .row$pps_target_n_pps)
           ) %>%
           {.[sapply(., function(x) !is.null(x))]}
@@ -222,35 +210,23 @@ read_study_params <- function(
                                 prior_mean = .row$prior_hidden_prev * .row$observed_n,
                                 mcmc_params = list(interval = 5,
                                                    burnin = 2000,
-                                                   samplesize = 500),
+                                                   samplesize = 1000),
                                 total = .row$observed_n,
+                                n_coupons = .row$rds_n_coupons,
                                 rds_prefix = "rds",
-                                label = "rds_sspse"),
-                   chords = list(handler = get_study_est_chords,
-                                 type = "mle",
-                                 seed_condition = "rds_from == -999",
-                                 n_boot = 100,
-                                 rds_prefix = "rds",
-                                 label = "rds_chords"),
-                   multiplier =
-                     if (!is.na(.row$multiplier_n_service_use))
-                       list(handler = get_study_est_multiplier,
-                            service_var = "service_use",
-                            total_service =
-                              .row$prior_p_service_use * .row$multiplier_n_service_use,
-                            seed_condition = "rds_from == -999",
-                            n_boot = 100,
-                            rds_prefix = "rds",
-                            label = "rds_multi")),
+                                additional_params = list(alpha = 5),
+                                label = "rds_sspse")
+                   ),
             tls =
               list(ht = list(handler = get_study_est_ht,
                              weight_var = "tls_weight",
+                             survey_design = ~ tls_loc_sampled,
                              prefix = "tls",
                              label = "tls_ht"),
                    nsum = list(handler = get_study_est_nsum,
                                known = paste0("known", 1:.row$observed_k_known),
                                hidden = "hidden_visible_out",
-                               survey_design = ~ tls_cluster,
+                               survey_design = ~ tls_loc_sampled,
                                n_boot = 100,
                                prefix = "tls",
                                label = "tls_nsum"),
@@ -288,6 +264,30 @@ read_study_params <- function(
                                  label = "rds_tls_recap"))
           )
 
+        # add service multiplier method where applicable
+        if (!is.na(.row$multiplier_n_service_use)) {
+          .estimators$rds$multiplier <-
+            list(handler = get_study_est_multiplier,
+                 service_var = "service_use",
+                 total_service =
+                   .row$prior_p_service_use * .row$observed_n * .row$prior_hidden_prev,
+                 seed_condition = "rds_from == -999",
+                 n_boot = 100,
+                 rds_prefix = "rds",
+                 label = "rds_multi")
+        }
+
+        # add chords estimator for regular RDS samples
+        if ((.row$rds == 1) & (.row$rds_seed_selection_type == "rds")) {
+          .estimators$rds$chords <-
+            list(handler = get_study_est_chords,
+                 type = "jeffreys",
+                 seed_condition = "rds_from == -999",
+                 n_boot = 100,
+                 rds_prefix = "rds",
+                 label = "rds_chords")
+        }
+
         .estimators <-
           .estimators[sapply(strsplit(names(.estimators), "_"),
                              function(x) all(x %in% names(.samples)))]
@@ -303,4 +303,382 @@ read_study_params <- function(
       })
 
   return(.out)
+}
+
+
+#' Generate Data Frame With Required Data by Study
+#'
+#' @param multi_study_data tibble with two columns, study (character identifier of the study) and population (list of population data frames/tibbles). This can be directly generated by multi-study design declaration
+#' @param study_map named character vector of mapping between study labels and names used in the plot
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @import dplyr
+#' @importFrom magrittr `%>%`
+#' @importFrom plyr mapvalues
+get_required_data <- function(
+  multi_study_data,
+  study_map = c("Brazil (FF)" = "ff_brazil",
+                "Tunisia (UMass)" = "umass_tunisia",
+                "Brazil (Stanford)" = "stanford_brazil",
+                "Pakistan (JHU)" = "jhu_pakistan",
+                "Costa Rica (John Jay)" = "johnjay_costarica",
+                "Tanzania (John Jay)" = "johnjay_tanzania",
+                "Morocco (NORC)" = "norc_marocco",
+                "USA (RTI)" = "rti_usa")) {
+
+  .out <-
+    lapply(1:nrow(multi_study_data), function(i) {
+      multi_study_data$population[[i]] %>%
+        dplyr::select(
+          name,
+          starts_with(c("known", "hidden", "rds", "pps", "tls", "total"))) %>%
+        {
+          cbind(
+            gsub(names(.), pattern = "[0-9]{1,2}", replacement = "XX"),
+            sapply(unname(.), class),
+            sapply(unname(.), function(x) {
+              if (class(x) == "numeric") {
+                paste0(format(sample(x = na.omit(x), size = 1), scientific = FALSE), collapse = ";")
+              } else {
+                paste0(na.omit(sample(x = x, size = 1)), collapse = ";")
+              }
+            }))
+        } %>%
+        {
+          `names<-`(suppressMessages(
+            as_tibble(., .name_repair = "universal")),
+            c("variable", "type", "example"))
+        } %>%
+        dplyr::distinct(variable, type, .keep_all = TRUE) %>%
+        dplyr::rename(
+          "{ multi_study_data$study[i] }" := example
+        )
+    }) %>%
+    purrr::reduce(., full_join, by = c("variable", "type")) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      example = paste0(na.omit(unique(c_across(-c(variable,type)))), collapse = ";"),
+      example = gsub("\\;{2,}", "", example)
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      across(all_of(multi_study_data$study), ~ ifelse(is.na(.), "", "X")),
+      label =
+        plyr::mapvalues(
+          warn_missing = FALSE,
+          variable,
+          from = c(
+            "name",
+            "knownX", "knownX_visible_out", "knownX_visible_in",
+            "hidden", "hidden_visible_out", "hidden_visible_in",
+
+            "rds", "rds_from", "rds_t", "rds_wave", "rds_hidden",
+            "rds_own_coupon", "rds_coupon_X",
+
+            "pps", "pps_frame", "pps_weight", "pps_cluster", "pps_strata",
+
+            "tls", "tls_loc_present", "tls_loc_sampled",
+            "tls_weight",
+
+            "total", "total_knownX", "total_service_use", "total_loc_X"),
+          to = c("Respondent ID",
+                 "Known group X member",
+                 "Knows how many members of known group X",
+                 "Known to be member of known group X to how many people",
+                 "Hidden group member",
+                 "Knows how many members of hidden group",
+                 "Known to be member of hidden group to how many people",
+                 "RDS: Sampled",
+                 "RDS: ID of recruiting respondent",
+                 "RDS: Time of recruitment",
+                 "RDS: Wave",
+                 "RDS: Member of hidden group",
+                 "RDS: Own coupon ID",
+                 "RDS: ID of recruitment coupon X",
+                 "PPS: Sampled",
+                 "PPS: Sampling frame indicator",
+                 "PPS: Sampling weight",
+                 "PPS: Cluster ID",
+                 "PPS: Strata ID",
+                 "TLS: Sampled",
+                 "TLS: Time-locations that can be visited",
+                 "TLS: Time-location at which sampled",
+                 "TLS: Sampling weight (including probability of sampling location)",
+                 "Total size of population (denominator for prevalence)",
+                 "Total size of known groups",
+                 "Total service use by hidden group members over time",
+                 "Total size of time-locations included in sampling frame"
+          ))
+    ) %>%
+    dplyr::select("Variable" = variable, "Label" = label, "Type" = type, "Example" = example, everything()) %>%
+    dplyr::rename_with(~ plyr::mapvalues(., from = unname(study_map), to = names(study_map))) %>%
+    dplyr::filter(Variable != Label)
+
+  return(.out)
+
+}
+
+#' Get Parameters and Design Features of Specific Study
+#'
+#' @param study Character string giving name of the study to pull. Have to match the names provided in Google Spreadsheet
+#' @param ss Character string giving ID of the Google spreadsheet
+#' @param sheet Character string giving name of the sheet in the Google spreadsheet to read
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @import googlesheets4 dplyr
+#' @importFrom magrittr `%>%`
+read_single_study_params <- function(
+  study,
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable"
+) {
+
+  labels <-
+    suppressMessages(
+      googlesheets4::read_sheet(
+        ss = ss,
+        sheet = sheet,
+        skip = 0,
+        n_max = 4,
+        col_names = FALSE,
+        .name_repair = "minimal")
+    ) %>%
+    unname %>%
+    t %>%
+    `colnames<-`(c("family", "type", "name", "description")) %>%
+    dplyr::as_tibble() %>%
+    dplyr::mutate(
+      # prior_type = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][2]),
+      # family = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][1]),
+      colnames = dplyr::if_else(is.na(family), name, paste0(family, "_", name))
+    )
+
+
+  study_data <-
+    suppressMessages(
+      googlesheets4::read_sheet(
+        ss = ss,
+        sheet = sheet,
+        col_names = FALSE,
+        na = "NA",
+        col_types = paste0(labels$type, collapse = ""),
+        .name_repair = "minimal",
+        skip = 4) %>%
+        `names<-`(dplyr::pull(labels, colnames))
+    ) %>%
+    dplyr::filter(study_id == study) %>%
+    {dplyr::tibble(colnames = colnames(.), params := t(.)[,1])}
+
+  .out <- dplyr::left_join(labels, study_data, by = "colnames")
+
+  for (i in c("rds", "pps", "tls")) {
+    if (.out$params[which(.out$colnames == i)] == 0) {
+      .out <- dplyr::filter(.out, is.na(family) | (family != i))
+    }
+  }
+
+  return(
+    dplyr::select(.out,
+                  "Name" = name,
+                  "Description" = description,
+                  "Value" = params)
+  )
+
+}
+
+#' Create Diagnosis Plot of Log Normalized RMSE Across Studies
+#'
+#' @param diagnosands_df diagnosands data frame produced by \code{diagnose_design()}
+#' @param study_map named character vector of mapping between study labels and names used in the plot
+#' @param sampling_map named character vector of mapping between sampling strategies and names used in the plot
+#' @param estimator_map named character vector of mapping between estimators and names used in the plot
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @import dplyr ggplot2
+#' @importFrom magrittr `%>%`
+#' @importFrom plyr mapvalues
+#' @importFrom purrr map2_chr map_chr
+#' @importFrom tidyr nesting expand
+get_rmse_plots <- function(
+  diagnosands_df,
+  study_map = c("Brazil (FF)" = "ff_brazil",
+                "Brazil (Stanford)" = "stanford_brazil",
+                "Costa Rica (John Jay)" = "johnjay_costarica",
+                "Morocco (NORC)" = "norc_marocco",
+                "Pakistan (JHU)" = "jhu_pakistan",
+                "Tanzania (John Jay)" = "johnjay_tanzania",
+                "Tunisia (UMass)" = "umass_tunisia",
+                "USA (RTI)" = "rti_usa"),
+  sampling_map = c("PPS" = "pps",
+                   "RDS" = "rds",
+                   "TLS" = "tls",
+                   "RDS/TLS" = "rds_tls",
+                   "RDS/PPS" = "rds_pps"),
+  estimator_map = c("NSUM" = "nsum",
+                    "HT" = "ht",
+                    "Recapture" = "recap",
+                    "SS-PSE" = "sspse",
+                    "Service Multiplier" = "multi",
+                    "Chords" = "chords")) {
+
+  plot_df <-
+    diagnosands_df %>%
+    dplyr::filter(!is.na(estimator)) %>%
+    dplyr::mutate(
+      study = purrr::map_chr(inquiry, ~ sapply(.x, function(x) {
+        unname(study_map)[sapply(unname(study_map), function(stud) grepl(stud, x, fixed = TRUE))]
+      })),
+      inquiry =
+        purrr::map2_chr(study, inquiry, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
+      estimator =
+        purrr::map2_chr(inquiry, estimator, ~ gsub(pattern = paste0(.x, "_"), replacement = "", x = .y, fixed = TRUE)),
+      target = rmse/mean_estimand,
+      estimator_full = estimator,
+      estimator = purrr::map_chr(estimator_full,
+                                 ~ tail(strsplit(.x, "_")[[1]], 1)),
+      sampling =
+        purrr::map2_chr(estimator, estimator_full,
+                        ~ gsub(pattern = paste0("_", .x), replacement = "", x = .y, fixed = TRUE)),
+      study = plyr::mapvalues(study, from = unname(study_map), to = names(study_map),
+                              warn_missing = FALSE),
+      sampling = factor(
+        levels = names(sampling_map),
+        ordered = TRUE,
+        x = plyr::mapvalues(sampling, from = unname(sampling_map), to = names(sampling_map),
+                            warn_missing = FALSE)),
+      estimator =
+        plyr::mapvalues(estimator, from = unname(estimator_map), to = names(estimator_map),
+                        warn_missing = FALSE)
+    )
+
+  if ("sim_type" %in% names(plot_df)) {
+
+    suppressMessages(suppressWarnings(
+      plot_df %>%
+        dplyr::select(sim_type, study, inquiry, estimator_full, sampling, estimator, target) %>%
+        {
+          dplyr::left_join(
+            x = tidyr::expand(., sim_type, study, tidyr::nesting(sampling, estimator)),
+            y = .)
+        } %>%
+        dplyr::mutate(empty = ifelse(is.na(target), "X", NA_character_)) %>%
+        ggplot2::ggplot(., aes(y = estimator, x = target, fill = sim_type)) +
+        ggplot2::geom_col(width = .6, position = "dodge", color = "black", size = .1) +
+        ggplot2::scale_x_continuous(trans = "sqrt") +
+        ggplot2::facet_grid(sampling~study,
+                            labeller = label_context,
+                            scales = "free_y",
+                            space = "free_y") +
+        ggplot2::geom_text(aes(x = 0.1, label=empty), colour="red", size=4) +
+        ggplot2::geom_vline(xintercept=0, color = "red", size=.5) +
+        ggplot2::labs(x = "Normalized RMSE", y = "") +
+        ggplot2::theme_bw() +
+        ggplot2::theme(#axis.text.x = element_text(angle = 90),
+                       axis.text.y = element_text(angle = 30),
+                       legend.position = "bottom") +
+        ggplot2::scale_fill_brewer(palette = "Set2") +
+        ggplot2::guides(fill = guide_legend(title = "Simulation type",
+                                            label.position = "right",
+                                            keywidth = unit(.2, "cm")))
+    ))
+
+  } else {
+
+    suppressMessages(suppressWarnings(
+      plot_df %>%
+        dplyr::select(study, inquiry, estimator_full, sampling, estimator, target) %>%
+        {
+          dplyr::left_join(
+            x = tidyr::expand(., study, tidyr::nesting(sampling, estimator)),
+            y = .)
+        } %>%
+        dplyr::mutate(empty = ifelse(is.na(target), "X", NA_character_)) %>%
+        ggplot2::ggplot(., aes(y = estimator, x = target)) +
+        ggplot2::geom_col(width = .2, position = "dodge", color = "black", size = .1) +
+        ggplot2::scale_x_continuous(trans = "sqrt") +
+        ggplot2::facet_grid(sampling~study,
+                            labeller = label_context,
+                            scales = "free_y",
+                            space = "free_y") +
+        ggplot2::geom_text(aes(x = 0.1, label = empty), colour="red", size=4) +
+        ggplot2::geom_vline(xintercept = 0, color = "red", size=.5) +
+        ggplot2::labs(x = "Normalized RMSE", y = "") +
+        ggplot2::theme_bw() +
+        ggplot2::theme(#axis.text.x = element_text(angle = 90),
+                       axis.text.y = element_text(angle = 30))
+    ))
+
+  }
+
+}
+
+#' Get Parameters and Design Features of Specific Study
+#'
+#' @param study Character string giving name of the study to pull. Have to match the names provided in Google Spreadsheet
+#' @param ss Character string giving ID of the Google spreadsheet
+#' @param sheet Character string giving name of the sheet in the Google spreadsheet to read
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' @import googlesheets4 dplyr
+#' @importFrom magrittr `%>%`
+#' @importFrom stringr str_extract
+#' @importFrom DeclareDesign declare_population declare_sampling declare_inquiry declare_estimator
+get_single_study_design <- function(
+  study = "johnjay_tanzania",
+  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
+  sheet = "study_params_readable") {
+
+  .type_map <-
+    list(population = DeclareDesign::declare_population,
+         sample     = DeclareDesign::declare_sampling,
+         inquiry    = DeclareDesign::declare_inquiry,
+         est        = DeclareDesign::declare_estimator)
+
+  .design_list <- read_study_params(ss, sheet)[[study]]
+
+  .declare_list <-
+    list(study_population   = .design_list$pop,
+         study_sample_rds   = .design_list$samples$rds,
+         study_sample_pps   = .design_list$samples$pps,
+         study_sample_tls   = .design_list$samples$tls,
+         study_inquiry      = .design_list$inquiries,
+         est_sspse          = .design_list$estimators$rds$sspse,
+         est_chords         = .design_list$estimators$rds$chords,
+         est_multi          = .design_list$estimators$rds$multiplier,
+         est_ht_pps         = .design_list$estimators$pps$ht,
+         est_nsum_pps       = .design_list$estimators$pps$nsum,
+         est_recap_rds_pps  = .design_list$estimators$rds_pps$recap1,
+         est_ht_tls         = .design_list$estimators$tls$ht,
+         est_nsum_tls       = .design_list$estimators$tls$nsum,
+         est_recap_tls      = .design_list$estimators$tls$recap
+         )
+
+  for (i in seq_along(.declare_list)) {
+    if (!is.null(.declare_list[[i]])) {
+      .declare_fun <- .type_map[[stringr::str_extract(pattern = paste0(names(.type_map), collapse = "|"),
+                                                    string = names(.declare_list)[i])]]
+      assign(names(.declare_list)[i], eval(as.call(c(list(.declare_fun), .declare_list[[i]]))))
+    }
+  }
+
+  return(
+    eval(parse(text = paste0(names(.declare_list)[sapply(.declare_list, function(x) !is.null(x))], collapse = " + ")))
+  )
+
 }

@@ -1,13 +1,14 @@
-pandoc: 2.14.2
-pkgdown: 1.6.1
+pandoc: 2.17.1.1
+pkgdown: 2.0.2
 pkgdown_sha: ~
 articles:
   background: background.html
+  diagnose-studies: diagnose-studies.html
   hiddenmeta-base: hiddenmeta-base.html
   meta-example: meta-example.html
   read-study-params: read-study-params.html
-last_built: 2021-10-08T12:23Z
+last_built: 2022-03-09T15:05Z
 urls:
-  reference: https://gsyunyaev.com/hiddenmeta//reference
-  article: https://gsyunyaev.com/hiddenmeta//articles
+  reference: https://gsyunyaev.com/hiddenmeta/reference
+  article: https://gsyunyaev.com/hiddenmeta/articles
 

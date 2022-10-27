@@ -92,7 +92,7 @@ sample_tls <-
     data %<>%
       dplyr::filter(if_any(.cols = all_of(sampled_locs), ~ . == 1)) %>%
       purrr::when(
-        !is.null(hidden_var) ~ dplyr::filter(., across(all_of(hidden_var), ~ .x == 1)),
+        !is.null(hidden_var) ~ dplyr::filter(., if_all(all_of(hidden_var), ~ .x == 1)),
         ~ .) %>%
       {
         dplyr::bind_rows(

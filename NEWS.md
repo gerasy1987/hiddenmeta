@@ -17,3 +17,14 @@
 
 -   Fixed meta-estimation handler to allow specification of custom Stan code
 -   Added option to provide more controls over Stan fit call
+
+# hiddenmeta 0.2.0
+
+## Enhancements
+
+-   Significantly reworked RDS sampling procedure
+-   Full support of import and diagnosis of study designs from Google Spreadsheets
+
+## Bug Fixes
+
+-   Numerous bug fixes

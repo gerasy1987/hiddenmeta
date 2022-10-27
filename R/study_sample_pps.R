@@ -98,13 +98,14 @@ sample_pps <-
                     ~ dplyr::mutate(.x,
                                     sampled = sample(c(rep(1,min(n(), nmax_per_cluster)),
                                                        rep(0,max(0, n() - nmax_per_cluster)))),
-                                    weight = n()/(sum(sampled) * cluster_prop)))
+                                    weight = n()/(sum(sampled) * .y)))
               ) %>%
               tidyr::unnest(cols = c(dat)) %>%
               dplyr::bind_rows(dplyr::filter(strat_df, frame != 1), .) %>%
               dplyr::mutate(
-                across(c(sampled_cluster, sampled), ~ ifelse(is.na(.), 0, 1)),
-                weight = cluster_prop * weight)
+                across(c(sampled_cluster, sampled), ~ ifelse(is.na(.), 0, .)),
+                sampled = dplyr::if_else(sampled_cluster == 0, 0, sampled),
+                weight = weight * cluster_prop)
           } else {
             strat_df %>%
               dplyr::mutate(cluster_id = 1:n(),
@@ -126,7 +127,7 @@ sample_pps <-
         temp_data %>%
           dplyr::rename_with(.cols = c(frame, cluster_prop, strata_prop, sampled_cluster, weight),
                              ~ paste0(sampling_variable, "_", gsub("^sampled$", "", x = .))) %>%
-          dplyr::rename("{ sampling_variable }" := sampled,
+          dplyr::mutate("{ sampling_variable }" := sampled,
                         "{ sampling_variable }_cluster" := cluster_id,
                         "{ sampling_variable }_strata" := strata_id) %>%
           dplyr::select(temp_id, starts_with(sampling_variable)) %>%
@@ -135,7 +136,7 @@ sample_pps <-
       )
 
     if (drop_nonsampled) {
-      data %<>% dplyr::filter(dplyr::across(dplyr::all_of(sampling_variable), ~ . == 1))
+      data %<>% dplyr::filter(dplyr::if_all(dplyr::all_of(sampling_variable), ~ . == 1))
     }
 
     return(data)

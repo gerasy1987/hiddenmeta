@@ -1,8 +1,9 @@
 Package: hiddenmeta
 Title: Diagnosis and meta-analysis of hard-to-reach population studies
-Version: 0.1.9
+Version: 0.2.0
 Authors@R: c(person("Georgiy", "Syunyaev", email = "gs2716@columbia.edu", role = c("aut", "cre"), , comment = c(ORCID = "0000-0002-4391-6313")),
-             person("Macartan", "Humphreys", email = "macartan@gmail.com", role = c("aut"), comment = c(ORCID = "0000-0001-7029-2326")))
+             person("Macartan", "Humphreys", email = "macartan@gmail.com", role = c("aut"), comment = c(ORCID = "0000-0001-7029-2326")),
+             person("Till", "Tietz", email = "ttietz2014@gmail.com", role = c("ctb")))
 Maintainer: Georgiy Syunyaev <gs2716@columbia.edu>
 Description: Package allows analysis of individual and multiple studies of 
     hidden population size and prevalence using RDS, TLS or PPS samples. 
@@ -47,6 +48,7 @@ LinkingTo:
 Suggests: 
     covr (>= 3.5.0),
     DeclareDesign (>= 0.20.0),
+    ggplot2 (>= 3.3.0),
     knitr,
     rmarkdown,
     here,

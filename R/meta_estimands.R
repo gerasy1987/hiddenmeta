@@ -25,27 +25,30 @@ get_meta_estimands <-
                              estimand = unique(estimand)) %>%
             dplyr::mutate(inquiry = paste0(study, "_", study_estimand)) %>%
             dplyr::select(sim_ID, inquiry = inquiry, estimand),
-          # sample-estimator level absolute estimands
-          dplyr::group_by(., sim_ID, sample, estimator) %>%
-            dplyr::summarise(.groups = "drop",
-                             bias = mean(estimate - estimand),
-                             bias_sd = sd(estimate - estimand)) %>%
-            tidyr::pivot_longer(cols = c(bias, bias_sd),
-                                values_to = "estimand", names_to = "inquiry") %>%
-            dplyr::arrange(inquiry) %>%
-            dplyr::mutate(
-              inquiry =
-                purrr::pmap_chr(
-                  list(x = sample, y = inquiry, z = estimator),
-                  function(x,y,z) paste0(y, "_", paste0(x, collapse = "_"), "_", z)
-                )) %>%
-            dplyr::select(sim_ID, inquiry, estimand),
+          # # sample-estimator level absolute estimands
+          # dplyr::group_by(., sim_ID, sample, estimator) %>%
+          #   dplyr::summarise(.groups = "drop",
+          #                    bias = mean(estimate - estimand),
+          #                    bias_sd = sd(estimate - estimand)) %>%
+          #   tidyr::pivot_longer(cols = c(bias, bias_sd),
+          #                       values_to = "estimand", names_to = "inquiry") %>%
+          #   dplyr::arrange(inquiry) %>%
+          #   dplyr::mutate(
+          #     inquiry =
+          #       purrr::pmap_chr(
+          #         list(x = sample, y = inquiry, z = estimator),
+          #         function(x,y,z) paste0(y, "_", paste0(x, collapse = "_"), "_", z)
+          #       )) %>%
+          #   dplyr::select(sim_ID, inquiry, estimand),
           # sample-estimator level ratio estimands
           dplyr::group_by(., sim_ID, sample, estimator) %>%
             dplyr::summarise(.groups = "drop",
-                             rel_bias = mean(estimate/estimand),
-                             rel_bias_sd = sd(estimate/estimand)) %>%
-            tidyr::pivot_longer(cols = c(rel_bias, rel_bias_sd),
+                             rel_bias = mean(estimate/estimand)#,
+                             # rel_bias_sd = sd(estimate/estimand)
+                             ) %>%
+            tidyr::pivot_longer(cols = c(rel_bias #,
+                                         # rel_bias_sd
+                                         ),
                                 values_to = "estimand", names_to = "inquiry") %>%
             dplyr::mutate(
               samp_est =

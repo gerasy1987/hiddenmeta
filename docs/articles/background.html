@@ -25,6 +25,8 @@
 </script>
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -37,7 +39,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.9</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -47,17 +49,20 @@
   <a href="../articles/hiddenmeta-base.html">Get started</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="https://declaredesign.org/r/randomizr/">Read study design</a>
+      <a href="../articles/read-study-params.html">Reading study parameters</a>
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
+    </li>
+    <li>
+      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul>
 </li>
@@ -82,42 +87,56 @@
 
       
 
-      </header><script src="background_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
+      </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Methodological details</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/gerasy1987/hiddenmeta/blob/master/vignettes/background.Rmd"><code>vignettes/background.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/gerasy1987/hiddenmeta/blob/HEAD/vignettes/background.Rmd" class="external-link"><code>vignettes/background.Rmd</code></a></small>
       <div class="hidden name"><code>background.Rmd</code></div>
 
     </div>
 
     
     
-<div id="rdsrds-methods" class="section level2">
-<h2 class="hasAnchor">
-<a href="#rdsrds-methods" class="anchor"></a>RDS/RDS+ methods</h2>
+<div class="section level2">
+<h2 id="rdsrds-methods">RDS/RDS+ methods<a class="anchor" aria-label="anchor" href="#rdsrds-methods"></a>
+</h2>
 <ul>
-<li><p>Use the coupons, the timing of surveys and the structure of recruitment network to approximate the size of the population</p></li>
-<li><p>Relies on network connectedness, i.e. if the seeds are within a “small world” the method will likely depart significantly from the truth</p></li>
-<li><p>Do not rely on proportional sampling and likely are cheaper</p></li>
+<li><p>Use the coupons, the timing of surveys and the structure of
+recruitment network to approximate the size of the population</p></li>
+<li><p>Relies on network connectedness, i.e. if the seeds are within a
+“small world” the method will likely depart significantly from the
+truth</p></li>
+<li><p>Do not rely on proportional sampling and likely are
+cheaper</p></li>
 </ul>
-<div id="crawford2018" class="section level3">
-<h3 class="hasAnchor">
-<a href="#crawford2018" class="anchor"></a><span class="citation">Crawford, Wu, and Heimer (<a href="#ref-crawford2018" role="doc-biblioref">2018</a>)</span>
+<div class="section level3">
+<h3 id="crawford2018">
+<span class="citation">Crawford, Wu, and Heimer (<a href="#ref-crawford2018" role="doc-biblioref">2018</a>)</span><a class="anchor" aria-label="anchor" href="#crawford2018"></a>
 </h3>
 <ul>
-<li>Use data from RDS <span class="math inline">\(\mathbf{Y} = (G_{R}, \mathbf{d}, \mathbf{t}, \mathbf{C})\)</span>, where:
+<li>Use data from RDS <span class="math inline">\(\mathbf{Y} = (G_{R},
+\mathbf{d}, \mathbf{t}, \mathbf{C})\)</span>, where:
 <ul>
 <li>
-<span class="math inline">\(G_{R}\)</span> – Directly observed recrutiment graph with <span class="math inline">\(n\)</span> (out of <span class="math inline">\(N\)</span>) vertices (not the same as <span class="math inline">\(G_{S}\)</span> – full subgraph of graph of hidden population <span class="math inline">\(G\)</span> induced by recruitment)</li>
+<span class="math inline">\(G_{R}\)</span> – Directly observed
+recrutiment graph with <span class="math inline">\(n\)</span> (out of
+<span class="math inline">\(N\)</span>) vertices (not the same as <span class="math inline">\(G_{S}\)</span> – full subgraph of graph of hidden
+population <span class="math inline">\(G\)</span> induced by
+recruitment)</li>
 <li>
-<span class="math inline">\(\mathbf{d}\)</span> – vector of number of connections of each recruited respondents in hidden population <span class="math inline">\(G\)</span> from survey</li>
+<span class="math inline">\(\mathbf{d}\)</span> – vector of number
+of connections of each recruited respondents in hidden population <span class="math inline">\(G\)</span> from survey</li>
 <li>
-<span class="math inline">\(\mathbf{t}\)</span> – directly observed vector of recruitment timings</li>
+<span class="math inline">\(\mathbf{t}\)</span> – directly observed
+vector of recruitment timings</li>
 <li>
-<span class="math inline">\(\mathbf{C}\)</span> – coupon matrix in which <span class="math inline">\(C_{ij} = 1\)</span> iff subject <span class="math inline">\(i\)</span> has at least one coupon just before the <span class="math inline">\(j\)</span>-th subject recruitment event, and zero otherwise</li>
+<span class="math inline">\(\mathbf{C}\)</span> – coupon matrix in
+which <span class="math inline">\(C_{ij} = 1\)</span> iff subject <span class="math inline">\(i\)</span> has at least one coupon just before the
+<span class="math inline">\(j\)</span>-th subject recruitment event, and
+zero otherwise</li>
 </ul>
 </li>
 <li>Using this data we are trying to estimate <span class="math inline">\(N\)</span> using the likelihood of <span class="math inline">\(N | G_{S}\)</span> marginalizing over all <span class="math inline">\(G_{S}\)</span> consistent with <span class="math inline">\(G_{R}\)</span>
@@ -125,64 +144,117 @@
 <li>Assumptions:
 <ol style="list-style-type: decimal">
 <li>
-<span class="math inline">\(G\)</span> is finite graph with no self-loops</li>
-<li>Use Erdos-Renyi Model assumptions for hidden population graph <span class="math inline">\(G\)</span>: assume <span class="math inline">\(d_{i} \sim \mathrm{B} (N-1, p)\)</span> (similar to <span class="citation">(<a href="#ref-killworth1998" role="doc-biblioref">Killworth et al. 1998</a>)</span> and thus to <span class="citation">(<a href="#ref-maltiel2015" role="doc-biblioref">Maltiel et al. 2015</a>)</span>)</li>
-<li>The edges connecting the newly recruited respondent <span class="math inline">\(i\)</span> to other unrecruited respondents do not affect <span class="math inline">\(i\)</span>’s probability of being recruited <em>[this is very strong assumption]</em>
+<span class="math inline">\(G\)</span> is finite graph with no
+self-loops</li>
+<li>Use Erdos-Renyi Model assumptions for hidden population graph <span class="math inline">\(G\)</span>: assume <span class="math inline">\(d_{i} \sim \mathrm{B} (N-1, p)\)</span> (similar
+to <span class="citation">(<a href="#ref-killworth1998" role="doc-biblioref">Killworth et al. 1998</a>)</span> and thus to <span class="citation">(<a href="#ref-maltiel2015" role="doc-biblioref">Maltiel et al. 2015</a>)</span>)</li>
+<li>The edges connecting the newly recruited respondent <span class="math inline">\(i\)</span> to other unrecruited respondents do not
+affect <span class="math inline">\(i\)</span>’s probability of being
+recruited <em>[this is very strong assumption]</em>
 </li>
-<li>Vertices become recruiters immediately upon entering the study and receiving one or more coupons. They remain recruiters until their coupons or susceptible neighbors are depleted, whichever happens first <em>[this is very strong assumption]</em>
+<li>Vertices become recruiters immediately upon entering the study and
+receiving one or more coupons. They remain recruiters until their
+coupons or susceptible neighbors are depleted, whichever happens first
+<em>[this is very strong assumption]</em>
 </li>
-<li>When a susceptible neighbor <span class="math inline">\(j\)</span> of a recruiter <span class="math inline">\(i\)</span> is recruited by any recruiter, the edge connecting <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> is immediately no longer susceptible <em>[this is very strong assumption]</em>
+<li>When a susceptible neighbor <span class="math inline">\(j\)</span>
+of a recruiter <span class="math inline">\(i\)</span> is recruited by
+any recruiter, the edge connecting <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> is immediately no longer susceptible
+<em>[this is very strong assumption]</em>
 </li>
-<li>The time to recruitment along an edge connecting a recruiter to a susceptible neighbor has exponential distribution with rate <span class="math inline">\(\lambda\)</span>, independent of the identity of the recruiter, neighbor, and all other waiting times</li>
+<li>The time to recruitment along an edge connecting a recruiter to a
+susceptible neighbor has exponential distribution with rate <span class="math inline">\(\lambda\)</span>, independent of the identity of
+the recruiter, neighbor, and all other waiting times</li>
 </ol>
 </li>
-<li>Assumptions 2 and 3 imply that the “unrecruited degree” of subject recruited in <span class="math inline">\(i\)</span>-th order can be represented as <span class="math inline">\(d^{u}_{i} \sim \mathrm{B} (N - i, p)\)</span>
+<li>Assumptions 2 and 3 imply that the “unrecruited degree” of subject
+recruited in <span class="math inline">\(i\)</span>-th order can be
+represented as <span class="math inline">\(d^{u}_{i} \sim \mathrm{B} (N
+- i, p)\)</span>
 </li>
-<li>This in turns allows us to write <span class="math inline">\(\mathcal{L} (N, p \,|\, G_{S}, \mathbf{Y}) = \prod_{i}^{n} {N - i \choose d^{u}_{i}} p^{d^{u}_{i}} (1-p)^{N-i-d^{u}_{i}}\)</span>
+<li>This in turns allows us to write <span class="math inline">\(\mathcal{L} (N, p \,|\, G_{S}, \mathbf{Y}) =
+\prod_{i}^{n} {N - i \choose d^{u}_{i}} p^{d^{u}_{i}}
+(1-p)^{N-i-d^{u}_{i}}\)</span>
 </li>
-<li>Assumptions 4-6 imply <span class="math inline">\(\mathcal{L} (G_{S}, \lambda \,|\, \mathbf{Y}) = \left( \prod_{j \notin M} \lambda \mathbf{s}_{j} \right) \exp (-\lambda \mathbf{s}' \mathbf{w})\)</span>, where <span class="math inline">\(s = \mathrm{lowerTri} (\mathbf{AC})'\mathbb{1} + \mathbf{C}'u\)</span> – vector of the number of susceptible edges just before each recruitment event</li>
-<li>Appendix also has very useful ideas on network structure simulation using <em>block</em> approach similar to <span class="citation">(<a href="#ref-feehan2016" role="doc-biblioref">Feehan and Salganik 2016</a>)</span>
+<li>Assumptions 4-6 imply <span class="math inline">\(\mathcal{L}
+(G_{S}, \lambda \,|\, \mathbf{Y}) = \left( \prod_{j \notin M} \lambda
+\mathbf{s}_{j} \right) \exp (-\lambda \mathbf{s}'
+\mathbf{w})\)</span>, where <span class="math inline">\(s =
+\mathrm{lowerTri} (\mathbf{AC})'\mathbb{1} +
+\mathbf{C}'u\)</span> – vector of the number of susceptible edges
+just before each recruitment event</li>
+<li>Appendix also has very useful ideas on network structure simulation
+using <em>block</em> approach similar to <span class="citation">(<a href="#ref-feehan2016" role="doc-biblioref">Feehan and Salganik
+2016</a>)</span>
 </li>
 </ul>
 </div>
-<div id="handcock2014" class="section level3">
-<h3 class="hasAnchor">
-<a href="#handcock2014" class="anchor"></a><span class="citation">Handcock, Gile, and Mar (<a href="#ref-handcock2014" role="doc-biblioref">2014</a>)</span>
+<div class="section level3">
+<h3 id="handcock2014">
+<span class="citation">Handcock, Gile, and Mar (<a href="#ref-handcock2014" role="doc-biblioref">2014</a>)</span><a class="anchor" aria-label="anchor" href="#handcock2014"></a>
 </h3>
 <ul>
-<li>Uses the same RDS data (no need for supplementary data from general population)</li>
-<li>Models degrees of un-sampled vertices as being drawn independently from a pre-specified parametric distribution</li>
+<li>Uses the same RDS data (no need for supplementary data from general
+population)</li>
+<li>Models degrees of un-sampled vertices as being drawn independently
+from a pre-specified parametric distribution</li>
 <li>Does not follow strict topological rules on <span class="math inline">\(G_{S}\)</span> as the ones imposed by <span class="citation">(<a href="#ref-crawford2018" role="doc-biblioref">Crawford, Wu, and Heimer 2018</a>)</span>
 </li>
-<li>This lack of graphical constraints in the SS-size model suggests a view of RDS recruitment that is not network-based: subjects’ reported degrees might be regarded as surrogate measures of “visibility” in the population which in turn refers to <span class="citation">(<a href="#ref-maltiel2015" role="doc-biblioref">Maltiel et al. 2015</a>)</span> and standard HT estimator</li>
-<li>The SS-size model also assumes that the degrees of recruited subjects should decrease over time as the sample accrues <span class="citation">(<a href="#ref-johnston2017" role="doc-biblioref">Johnston et al. 2017</a>)</span>
+<li>This lack of graphical constraints in the SS-size model suggests a
+view of RDS recruitment that is not network-based: subjects’ reported
+degrees might be regarded as surrogate measures of “visibility” in the
+population which in turn refers to <span class="citation">(<a href="#ref-maltiel2015" role="doc-biblioref">Maltiel et al.
+2015</a>)</span> and standard HT estimator</li>
+<li>The SS-size model also assumes that the degrees of recruited
+subjects should decrease over time as the sample accrues <span class="citation">(<a href="#ref-johnston2017" role="doc-biblioref">Johnston et al. 2017</a>)</span>
 </li>
-<li>We can basically estimate this approach and the one in <span class="citation">(<a href="#ref-crawford2018" role="doc-biblioref">Crawford, Wu, and Heimer 2018</a>)</span> at the same time: While the models are very different the data used is very similar. It seems that the NSUM methods and specifically <span class="citation">(<a href="#ref-maltiel2015" role="doc-biblioref">Maltiel et al. 2015</a>)</span> model has a better “compatibility” with <span class="citation">(<a href="#ref-handcock2014" role="doc-biblioref">Handcock, Gile, and Mar 2014</a>)</span>
+<li>We can basically estimate this approach and the one in <span class="citation">(<a href="#ref-crawford2018" role="doc-biblioref">Crawford, Wu, and Heimer 2018</a>)</span> at the
+same time: While the models are very different the data used is very
+similar. It seems that the NSUM methods and specifically <span class="citation">(<a href="#ref-maltiel2015" role="doc-biblioref">Maltiel et al. 2015</a>)</span> model has a better
+“compatibility” with <span class="citation">(<a href="#ref-handcock2014" role="doc-biblioref">Handcock, Gile, and Mar 2014</a>)</span>
 </li>
 </ul>
 </div>
-<div id="berchenko2017" class="section level3">
-<h3 class="hasAnchor">
-<a href="#berchenko2017" class="anchor"></a><span class="citation">Berchenko, Rosenblatt, and Frost (<a href="#ref-berchenko2017" role="doc-biblioref">2017</a>)</span>
+<div class="section level3">
+<h3 id="berchenko2017">
+<span class="citation">Berchenko, Rosenblatt, and Frost (<a href="#ref-berchenko2017" role="doc-biblioref">2017</a>)</span><a class="anchor" aria-label="anchor" href="#berchenko2017"></a>
 </h3>
 <ul>
-<li>Current RDS estimators resort to modeling recruitment as a homogeneous random walk, which culminates in the assumption that the sampling probability is proportional to degree, that is, <span class="math inline">\(\pi_{k} \propto k\)</span> which in turns allows for use of HT estimator</li>
-<li>Uses the same RDS data (no need for supplementary data from general population) in the context of epidemiological model setup in <span class="citation">(<a href="#ref-andersson2000" role="doc-biblioref">Andersson and Britton 2000</a>)</span>
+<li>Current RDS estimators resort to modeling recruitment as a
+homogeneous random walk, which culminates in the assumption that the
+sampling probability is proportional to degree, that is, <span class="math inline">\(\pi_{k} \propto k\)</span> which in turns allows
+for use of HT estimator</li>
+<li>Uses the same RDS data (no need for supplementary data from general
+population) in the context of epidemiological model setup in <span class="citation">(<a href="#ref-andersson2000" role="doc-biblioref">Andersson and Britton 2000</a>)</span>
 </li>
 <li>Assumptions:
 <ol style="list-style-type: decimal">
-<li>Sampling is done without replacement, with <span class="math inline">\(n_{k,t}\)</span> being the (right-continuous) counting process representing the number of people with degree <span class="math inline">\(k\)</span> recruited by time <span class="math inline">\(t\)</span>.</li>
-<li>Between times <span class="math inline">\(t\)</span> and <span class="math inline">\(t + \Delta t\)</span>, an individual with degree <span class="math inline">\(k\)</span> is sampled with probability <span class="math display">\[\lambda_{k,t} = \frac{\beta_{k}}{N} I_{t} (N_{k} - n_{k,t}) \Delta t + \mathcal{o} (\Delta t)\]</span> where <span class="math inline">\(I_{t}\)</span> is the number of people actively trying to recruit new individuals, and the constant <span class="math inline">\(\beta_{k}\)</span> is a degree-dependent recruitment rate</li>
-<li>The multivariate counting process <span class="math inline">\(n_{t} \equiv (n_{1,t}, \dots, n_{k_{\max}, t})\)</span> has intensity <span class="math display">\[\lambda_{t} = N^{-1} \left( \beta_{1} I^{-}_{t} (N_{1} - n^{-}_{1,t} ), \dots, \beta_{k_{\max}} I^{-}_{t} (N_{k_{\max}} - n^{-}_{k_{\max},t} ) \right)\]</span> such that <span class="math inline">\(m_{t} \equiv n_{t} - \int_{0}^{t} \lambda_s \mathrm{d} s\)</span> is a multivariate martingale.</li>
+<li>Sampling is done without replacement, with <span class="math inline">\(n_{k,t}\)</span> being the (right-continuous)
+counting process representing the number of people with degree <span class="math inline">\(k\)</span> recruited by time <span class="math inline">\(t\)</span>.</li>
+<li>Between times <span class="math inline">\(t\)</span> and <span class="math inline">\(t + \Delta t\)</span>, an individual with degree
+<span class="math inline">\(k\)</span> is sampled with probability <span class="math display">\[\lambda_{k,t} = \frac{\beta_{k}}{N} I_{t} (N_{k}
+- n_{k,t}) \Delta t + \mathcal{o} (\Delta t)\]</span> where <span class="math inline">\(I_{t}\)</span> is the number of people actively
+trying to recruit new individuals, and the constant <span class="math inline">\(\beta_{k}\)</span> is a degree-dependent
+recruitment rate</li>
+<li>The multivariate counting process <span class="math inline">\(n_{t}
+\equiv (n_{1,t}, \dots, n_{k_{\max}, t})\)</span> has intensity <span class="math display">\[\lambda_{t} = N^{-1} \left( \beta_{1} I^{-}_{t}
+(N_{1} - n^{-}_{1,t} ), \dots, \beta_{k_{\max}} I^{-}_{t} (N_{k_{\max}}
+- n^{-}_{k_{\max},t} ) \right)\]</span> such that <span class="math inline">\(m_{t} \equiv n_{t} - \int_{0}^{t} \lambda_s
+\mathrm{d} s\)</span> is a multivariate martingale.</li>
 </ol>
 </li>
-<li>We are interested in the estimator <span class="math inline">\(\hat{P}_{CP} = \sum_{k \geq 1} \hat{f}_{k} \hat{p}_{k}\)</span> where <span class="math inline">\(\hat{f}_{k}\)</span> is the estimate of proportion of degree <span class="math inline">\(k\)</span> in the population and <span class="math inline">\(\hat{p}_{k}\)</span> is the estimate of prevalence in the degree <span class="math inline">\(k\)</span> group</li>
+<li>We are interested in the estimator <span class="math inline">\(\hat{P}_{CP} = \sum_{k \geq 1} \hat{f}_{k}
+\hat{p}_{k}\)</span> where <span class="math inline">\(\hat{f}_{k}\)</span> is the estimate of proportion
+of degree <span class="math inline">\(k\)</span> in the population and
+<span class="math inline">\(\hat{p}_{k}\)</span> is the estimate of
+prevalence in the degree <span class="math inline">\(k\)</span>
+group</li>
 </ul>
 </div>
 </div>
-<div id="tls-methods" class="section level2">
-<h2 class="hasAnchor">
-<a href="#tls-methods" class="anchor"></a>TLS methods</h2>
+<div class="section level2">
+<h2 id="tls-methods">TLS methods<a class="anchor" aria-label="anchor" href="#tls-methods"></a>
+</h2>
 <ul>
 <li><span class="citation">Karon and Wejnert (<a href="#ref-karon2012statistical" role="doc-biblioref">2012</a>)</span></li>
 <li><span class="citation">Raymond et al. (<a href="#ref-raymond2007resource" role="doc-biblioref">2007</a>)</span></li>
@@ -190,161 +262,509 @@
 <li><span class="citation">MacKellar et al. (<a href="#ref-mackellar1996young" role="doc-biblioref">1996</a>)</span></li>
 </ul>
 </div>
-<div id="pps-methods" class="section level2">
-<h2 class="hasAnchor">
-<a href="#pps-methods" class="anchor"></a>PPS methods</h2>
-<div id="horvotz-thomson" class="section level3">
-<h3 class="hasAnchor">
-<a href="#horvotz-thomson" class="anchor"></a>Horvotz-Thomson</h3>
+<div class="section level2">
+<h2 id="pps-methods">PPS methods<a class="anchor" aria-label="anchor" href="#pps-methods"></a>
+</h2>
+<div class="section level3">
+<h3 id="horvotz-thomson">Horvotz-Thomson<a class="anchor" aria-label="anchor" href="#horvotz-thomson"></a>
+</h3>
 </div>
-<div id="nsum" class="section level3">
-<h3 class="hasAnchor">
-<a href="#nsum" class="anchor"></a>NSUM</h3>
+<div class="section level3">
+<h3 id="nsum">NSUM<a class="anchor" aria-label="anchor" href="#nsum"></a>
+</h3>
 <ul>
-<li>The NSUM approach is based on the idea that for all individuals, the probability that someone they know is in a given subpopulation is the size of that subpopulation divided by the overall population size. The estimate of the sub population size is then based on the share of the subpopulation in the respondent’s network. For example, if a respondent knows <span class="math inline">\(100\)</span> people total and knows <span class="math inline">\(2\)</span> intravenous drug users, then it is inferred that <span class="math inline">\(2\%\)</span> of the total population are intravenous drug users. The <em>number</em> of people in a given subpopulation that the respondent knows is assumed to follow a binomial distribution.</li>
-<li>However, the total number of people known by a respondent, also called his or her degree or personal network size, also needs to be estimated. <em>[why can’t we ask about this directly?]</em> A person’s degree is estimated by asking the respondents about the number of contacts he or she has in several subpopulations of known size, such as twins, people named Nicole, or women over <span class="math inline">\(70\)</span>, using the same assumption that an individual should know roughly their degree times the proportion of people in a given subpopulation. <em>[why asking about hidden population directly will work?]</em>
+<li>The NSUM approach is based on the idea that for all individuals, the
+probability that someone they know is in a given subpopulation is the
+size of that subpopulation divided by the overall population size. The
+estimate of the sub population size is then based on the share of the
+subpopulation in the respondent’s network. For example, if a respondent
+knows <span class="math inline">\(100\)</span> people total and knows
+<span class="math inline">\(2\)</span> intravenous drug users, then it
+is inferred that <span class="math inline">\(2\%\)</span> of the total
+population are intravenous drug users. The <em>number</em> of people in
+a given subpopulation that the respondent knows is assumed to follow a
+binomial distribution.</li>
+<li>However, the total number of people known by a respondent, also
+called his or her degree or personal network size, also needs to be
+estimated. <em>[why can’t we ask about this directly?]</em> A person’s
+degree is estimated by asking the respondents about the number of
+contacts he or she has in several subpopulations of known size, such as
+twins, people named Nicole, or women over <span class="math inline">\(70\)</span>, using the same assumption that an
+individual should know roughly their degree times the proportion of
+people in a given subpopulation. <em>[why asking about hidden population
+directly will work?]</em>
 </li>
-<li>…Does not take account of the different propensities of people to know people in different groups, such as people’s tendency to know people like themselves; these are called <strong>barrier effects</strong>.</li>
+<li>…Does not take account of the different propensities of people to
+know people in different groups, such as people’s tendency to know
+people like themselves; these are called <strong>barrier
+effects</strong>.</li>
 <li>
-<strong>Transmission bias</strong> arises when a respondent does not count his or her contact as being in the group of interest, for example because the respondent does not know that the contact belongs to the group. This bias may be particularly large when a group is stigmatized, as is the case of most of the key affected populations in which we are interested.</li>
+<strong>Transmission bias</strong> arises when a respondent does not
+count his or her contact as being in the group of interest, for example
+because the respondent does not know that the contact belongs to the
+group. This bias may be particularly large when a group is stigmatized,
+as is the case of most of the key affected populations in which we are
+interested.</li>
 <li>
-<strong>Recall bias</strong> refers to the tendency for people to underestimate the number of people they know in larger groups because they forget some of these contacts, and to overestimate the number of people they know in small or unusual groups.</li>
+<strong>Recall bias</strong> refers to the tendency for people to
+underestimate the number of people they know in larger groups because
+they forget some of these contacts, and to overestimate the number of
+people they know in small or unusual groups.</li>
 </ul>
 </div>
-<div id="g-nsum-killworth1998" class="section level3">
-<h3 class="hasAnchor">
-<a href="#g-nsum-killworth1998" class="anchor"></a>G-NSUM (<span class="citation">Killworth et al. (<a href="#ref-killworth1998" role="doc-biblioref">1998</a>)</span>)</h3>
+<div class="section level3">
+<h3 id="g-nsum-killworth1998">G-NSUM (<span class="citation">Killworth et al. (<a href="#ref-killworth1998" role="doc-biblioref">1998</a>)</span>)<a class="anchor" aria-label="anchor" href="#g-nsum-killworth1998"></a>
+</h3>
 <p><strong>Basic setup:</strong></p>
 <ul>
 <li>
-<span class="math inline">\(y_{ik}\)</span> be the number of people known by individual <span class="math inline">\(i\)</span>, <span class="math inline">\(i = 1, \dots, n\)</span> , in group <span class="math inline">\(k\)</span>, <span class="math inline">\(k = 1, \dots, K\)</span>
+<span class="math inline">\(y_{ik}\)</span> be the number of people
+known by individual <span class="math inline">\(i\)</span>, <span class="math inline">\(i = 1, \dots, n\)</span> , in group <span class="math inline">\(k\)</span>, <span class="math inline">\(k = 1,
+\dots, K\)</span>
 </li>
-<li>Groups <span class="math inline">\(1, \dots, K − 1\)</span> are of known size and group <span class="math inline">\(K\)</span> – of unknown size (in general number of unknown size groups can be more than one)</li>
+<li>Groups <span class="math inline">\(1, \dots, K − 1\)</span> are of
+known size and group <span class="math inline">\(K\)</span> – of unknown
+size (in general number of unknown size groups can be more than
+one)</li>
 <li>
-<span class="math inline">\(N_{k}\)</span> – size of group <span class="math inline">\(k\)</span>, and let <span class="math inline">\(N\)</span> be the total population, which is assumed to be known</li>
+<span class="math inline">\(N_{k}\)</span> – size of group <span class="math inline">\(k\)</span>, and let <span class="math inline">\(N\)</span> be the total population, which is
+assumed to be known</li>
 <li>
-<span class="math inline">\(d_{i}\)</span> – number of people that respondent <span class="math inline">\(i\)</span> knows, also called his or her degree or personal network size</li>
-<li>Core assumption: <span class="math inline">\(y_{ik} \sim \mathrm{B} (d_{i}, \frac{N_{k}}{N})\)</span>
+<span class="math inline">\(d_{i}\)</span> – number of people that
+respondent <span class="math inline">\(i\)</span> knows, also called his
+or her degree or personal network size</li>
+<li>Core assumption: <span class="math inline">\(y_{ik} \sim \mathrm{B}
+(d_{i}, \frac{N_{k}}{N})\)</span>
 </li>
-<li>Main finding: <span class="math inline">\(\widehat{d_{i}} = N \frac{\sum_{k = 1}^{K} y_{ik}}{\sum_{k = 1}^{K} N_{k}}\)</span> which then leads to <span class="math inline">\(\widehat{N_{K}} = N \frac{\sum_{i = 1}^{n} y_{iK}}{\sum_{i = 1}^{n} \widehat{d_{i}}}\)</span>
+<li>Main finding: <span class="math inline">\(\widehat{d_{i}} = N
+\frac{\sum_{k = 1}^{K} y_{ik}}{\sum_{k = 1}^{K} N_{k}}\)</span> which
+then leads to <span class="math inline">\(\widehat{N_{K}} = N
+\frac{\sum_{i = 1}^{n} y_{iK}}{\sum_{i = 1}^{n}
+\widehat{d_{i}}}\)</span>
 </li>
 </ul>
 </div>
-<div id="g-nsum-maltiel2015" class="section level3">
-<h3 class="hasAnchor">
-<a href="#g-nsum-maltiel2015" class="anchor"></a>G-NSUM (<span class="citation">Maltiel et al. (<a href="#ref-maltiel2015" role="doc-biblioref">2015</a>)</span>)</h3>
-<p><strong>Additional assumptions (on top of basic setup above):</strong></p>
+<div class="section level3">
+<h3 id="g-nsum-maltiel2015">G-NSUM (<span class="citation">Maltiel et al. (<a href="#ref-maltiel2015" role="doc-biblioref">2015</a>)</span>)<a class="anchor" aria-label="anchor" href="#g-nsum-maltiel2015"></a>
+</h3>
+<p><strong>Additional assumptions (on top of basic setup
+above):</strong></p>
 <ul>
-<li>Number of people respondents <span class="math inline">\(i\)</span> knows is distributed log normal: <span class="math inline">\(d_{i} \sim \textrm{Lognormal} (\mu, \sigma^{2})\)</span> <span class="citation">(<a href="#ref-salganik2011" role="doc-biblioref">Salganik et al. 2011</a>)</span>
+<li>Number of people respondents <span class="math inline">\(i\)</span>
+knows is distributed log normal: <span class="math inline">\(d_{i} \sim
+\textrm{Lognormal} (\mu, \sigma^{2})\)</span> <span class="citation">(<a href="#ref-salganik2011" role="doc-biblioref">Salganik et al.
+2011</a>)</span>
 </li>
-<li>Priors are <span class="math inline">\(\pi (N_{k}) \propto \frac{\mathbb{1}_{N_{k} &lt; N}}{N_{K}}\)</span>; <span class="math inline">\(\mu \sim \mathrm{U} (3,8)\)</span>; <span class="math inline">\(\sigma \sim \mathrm{U} (\frac{1}{4}, 2)\)</span>
+<li>Priors are <span class="math inline">\(\pi (N_{k}) \propto
+\frac{\mathbb{1}_{N_{k} &lt; N}}{N_{K}}\)</span>; <span class="math inline">\(\mu \sim \mathrm{U} (3,8)\)</span>; <span class="math inline">\(\sigma \sim \mathrm{U} (\frac{1}{4},
+2)\)</span>
 </li>
-<li>Existence of <strong>barrier effect</strong> implies that <span class="math inline">\(\frac{N_{k}}{N}\)</span> can be over or underestimated by respondent depending on the group <span class="math inline">\(k\)</span>, so instead of using this term in binomial distribution assume:
+<li>Existence of <strong>barrier effect</strong> implies that <span class="math inline">\(\frac{N_{k}}{N}\)</span> can be over or
+underestimated by respondent depending on the group <span class="math inline">\(k\)</span>, so instead of using this term in
+binomial distribution assume:
 <ul>
 <li>
-<span class="math inline">\(y_{ik} \sim \mathrm{B} (d_{i}, q_{ik})\)</span> and <span class="math inline">\(q_{ik} \sim \textrm{Beta} (m_{k}, \rho_{k})\)</span> (mean-sd parametrization), where <span class="math inline">\(m_{k} = \mathbb{E} [q_{ik}] \equiv \frac{N_{k}}{N}\)</span>
+<span class="math inline">\(y_{ik} \sim \mathrm{B} (d_{i},
+q_{ik})\)</span> and <span class="math inline">\(q_{ik} \sim
+\textrm{Beta} (m_{k}, \rho_{k})\)</span> (mean-sd parametrization),
+where <span class="math inline">\(m_{k} = \mathbb{E} [q_{ik}] \equiv
+\frac{N_{k}}{N}\)</span>
 </li>
-<li>priors are <span class="math inline">\(\pi (m_{k}) \propto \frac{1}{m_{k}}\)</span> and <span class="math inline">\(\rho_{k} \sim \mathrm{U} (0,1)\)</span>
+<li>priors are <span class="math inline">\(\pi (m_{k}) \propto
+\frac{1}{m_{k}}\)</span> and <span class="math inline">\(\rho_{k} \sim
+\mathrm{U} (0,1)\)</span>
 </li>
 </ul>
 </li>
-<li>Existence of <strong>transmission bias</strong> implies that for the group of interest <span class="math inline">\(K\)</span> respondents might underestimate number of connections due to stigma. Thus they assume:
+<li>Existence of <strong>transmission bias</strong> implies that for the
+group of interest <span class="math inline">\(K\)</span> respondents
+might underestimate number of connections due to stigma. Thus they
+assume:
 <ul>
 <li>
-<span class="math inline">\(y_{ik} \sim \mathrm{B} (d_{i}, \tau_{k}\frac{N_{k}}{N})\)</span>, <span class="math inline">\(\tau_{K} \sim \textrm{Beta} (\eta_{K}, \nu_{K})\)</span> and <span class="math inline">\(\forall k\neq K:\: \tau_{k} \equiv 1\)</span>
+<span class="math inline">\(y_{ik} \sim \mathrm{B} (d_{i},
+\tau_{k}\frac{N_{k}}{N})\)</span>, <span class="math inline">\(\tau_{K}
+\sim \textrm{Beta} (\eta_{K}, \nu_{K})\)</span> and <span class="math inline">\(\forall k\neq K:\: \tau_{k} \equiv 1\)</span>
 </li>
-<li>standard priors on <span class="math inline">\(\eta_{K}\)</span> and <span class="math inline">\(\nu_{k}\)</span>
+<li>standard priors on <span class="math inline">\(\eta_{K}\)</span> and
+<span class="math inline">\(\nu_{k}\)</span>
 </li>
 </ul>
 </li>
 <li>
-<strong>Recall bias</strong> usually implies that respondents under-report large groups and over-report small groups. Use adjustment method instead of implicit parametrisation to adjust for this bias.</li>
+<strong>Recall bias</strong> usually implies that respondents
+under-report large groups and over-report small groups. Use adjustment
+method instead of implicit parametrisation to adjust for this bias.</li>
 <li>If we combine two we get:
 <ul>
 <li>
-<span class="math inline">\(y_{ik} \sim \mathrm{B} (d_{i}, \tau_{k} q_{ik})\)</span>,</li>
+<span class="math inline">\(y_{ik} \sim \mathrm{B} (d_{i}, \tau_{k}
+q_{ik})\)</span>,</li>
 <li>
-<span class="math inline">\(d_{i} \sim \textrm{Lognormal} (\mu, \sigma^{2})\)</span>,</li>
+<span class="math inline">\(d_{i} \sim \textrm{Lognormal} (\mu,
+\sigma^{2})\)</span>,</li>
 <li>
-<span class="math inline">\(q_{ik} \sim \textrm{Beta} (m_{k}, \rho_{k})\)</span>,</li>
+<span class="math inline">\(q_{ik} \sim \textrm{Beta} (m_{k},
+\rho_{k})\)</span>,</li>
 <li>
-<span class="math inline">\(\tau_{K} \sim \textrm{Beta} (\eta_{K}, \nu_{K})\)</span>,</li>
-<li><span class="math inline">\(\mu \sim \mathrm{U} (3,8);\; \sigma \sim \mathrm{U} (\frac{1}{4}, 2);\; \rho_{k} \sim \mathrm{U} (0,1)\)</span></li>
-<li><span class="math inline">\(\pi (N_{k}) \propto \frac{\mathbb{1}_{N_{k} &lt; N}}{N_{K}} ;\; \pi (m_{k}) \propto \frac{1}{m_{k}}\)</span></li>
+<span class="math inline">\(\tau_{K} \sim \textrm{Beta} (\eta_{K},
+\nu_{K})\)</span>,</li>
+<li><span class="math inline">\(\mu \sim \mathrm{U} (3,8);\; \sigma \sim
+\mathrm{U} (\frac{1}{4}, 2);\; \rho_{k} \sim \mathrm{U}
+(0,1)\)</span></li>
+<li><span class="math inline">\(\pi (N_{k}) \propto
+\frac{\mathbb{1}_{N_{k} &lt; N}}{N_{K}} ;\; \pi (m_{k}) \propto
+\frac{1}{m_{k}}\)</span></li>
 </ul>
 </li>
 </ul>
 </div>
-<div id="g-nsum-feehan2016" class="section level3">
-<h3 class="hasAnchor">
-<a href="#g-nsum-feehan2016" class="anchor"></a>G-NSUM (<span class="citation">Feehan and Salganik (<a href="#ref-feehan2016" role="doc-biblioref">2016</a>)</span>)</h3>
+<div class="section level3">
+<h3 id="g-nsum-feehan2016">G-NSUM (<span class="citation">Feehan and Salganik (<a href="#ref-feehan2016" role="doc-biblioref">2016</a>)</span>)<a class="anchor" aria-label="anchor" href="#g-nsum-feehan2016"></a>
+</h3>
 <ul>
 <li>Focus on <em>in-reports</em> and <em>out-reports</em>:
 <ul>
-<li>two people are connected by a directed edge <span class="math inline">\(i \rightarrow j\)</span> if person <span class="math inline">\(i\)</span> would count person <span class="math inline">\(j\)</span> as a member of group of interest (e.g. drug injector). Whenever <span class="math inline">\(i \rightarrow j\)</span>, we say that <span class="math inline">\(i\)</span> makes an <strong>out-report</strong> about <span class="math inline">\(j\)</span> and that <span class="math inline">\(j\)</span> receives an <strong>in-report</strong> from <span class="math inline">\(i\)</span>.</li>
+<li>two people are connected by a directed edge <span class="math inline">\(i \rightarrow j\)</span> if person <span class="math inline">\(i\)</span> would count person <span class="math inline">\(j\)</span> as a member of group of interest
+(e.g. drug injector). Whenever <span class="math inline">\(i \rightarrow
+j\)</span>, we say that <span class="math inline">\(i\)</span> makes an
+<strong>out-report</strong> about <span class="math inline">\(j\)</span>
+and that <span class="math inline">\(j\)</span> receives an
+<strong>in-report</strong> from <span class="math inline">\(i\)</span>.</li>
 <li>
-<span class="math inline">\(K\)</span> - target group, <span class="math inline">\(U\)</span> - whole population, <span class="math inline">\(F\)</span> - frame population (actually surveyed)</li>
-<li>Requires relative probability sampling from hidden population with structure of questions related to the group of known size. E.g. “How many widowers do you know?” combined with “How many of these widowers are aware that you inject drugs?”</li>
+<span class="math inline">\(K\)</span> - target group, <span class="math inline">\(U\)</span> - whole population, <span class="math inline">\(F\)</span> - frame population (actually
+surveyed)</li>
+<li>Requires relative probability sampling from hidden population with
+structure of questions related to the group of known size. E.g. “How
+many widowers do you know?” combined with “How many of these widowers
+are aware that you inject drugs?”</li>
 </ul>
 </li>
-<li>Total number of out-reports from <span class="math inline">\(i\)</span> to group <span class="math inline">\(K\)</span> are <span class="math inline">\(y_{iK}\)</span> and total number of in-reports about <span class="math inline">\(i\)</span> from the whole population is <span class="math inline">\(\nu_{iU}\)</span> and from the frame population is <span class="math inline">\(\nu_{iF}\)</span>
+<li>Total number of out-reports from <span class="math inline">\(i\)</span> to group <span class="math inline">\(K\)</span> are <span class="math inline">\(y_{iK}\)</span> and total number of in-reports
+about <span class="math inline">\(i\)</span> from the whole population
+is <span class="math inline">\(\nu_{iU}\)</span> and from the frame
+population is <span class="math inline">\(\nu_{iF}\)</span>
 </li>
 <li>
-<strong>Total out-reports = total in-reports</strong>: <span class="math inline">\(\sum_{i \in F} y_{iK} = \sum_{i \in U} \nu_{iF} \Leftrightarrow N_{K} = \frac{\sum_{i \in F} y_{iK}}{\sum_{i \in U} \nu_{iF} \big/ N_{K}}\)</span>
+<strong>Total out-reports = total in-reports</strong>: <span class="math inline">\(\sum_{i \in F} y_{iK} = \sum_{i \in U} \nu_{iF}
+\Leftrightarrow N_{K} = \frac{\sum_{i \in F} y_{iK}}{\sum_{i \in U}
+\nu_{iF} \big/ N_{K}}\)</span>
 </li>
-<li>Assume that the out-reports from people in the frame population only include people in the hidden population, then it must be the case that the visibility of everyone not in the hidden population is 0: <span class="math inline">\(\forall i \notin K:\: \nu_{iF} \equiv 0\)</span>
+<li>Assume that the out-reports from people in the frame population only
+include people in the hidden population, then it must be the case that
+the visibility of everyone not in the hidden population is 0: <span class="math inline">\(\forall i \notin K:\: \nu_{iF} \equiv 0\)</span>
 <ul>
-<li>then <span class="math inline">\(N_{K} = \frac{\sum_{i \in F} y_{iK}}{\sum_{i \in K} \nu_{iF} \big/ N_{K}} = \frac{y_{FK}}{ \overline{\nu_{KF}}}\)</span>
+<li>then <span class="math inline">\(N_{K} = \frac{\sum_{i \in F}
+y_{iK}}{\sum_{i \in K} \nu_{iF} \big/ N_{K}} = \frac{y_{FK}}{
+\overline{\nu_{KF}}}\)</span>
 </li>
 </ul>
 </li>
-<li>Estimate <span class="math inline">\(y_{FK}\)</span> using HT estimator with known sampling probability from <span class="math inline">\(F\)</span>
+<li>Estimate <span class="math inline">\(y_{FK}\)</span> using HT
+estimator with known sampling probability from <span class="math inline">\(F\)</span>
 </li>
-<li>Estimate <span class="math inline">\(\overline{\nu_{KF}}\)</span> using the <em>probe alters</em>, <span class="math inline">\(\mathcal{A}\)</span> , groups of known size for which we collect relational data from hidden population sample. Using this data the estimator is <span class="math inline">\(\widehat{\overline{\nu_{KF}}} = \frac{N}{N_{\mathcal{A}}} \frac{\sum_{i \in s_{K}} \sum_{j} \tilde{\nu}_{i, A_{j}} \big/ (c \pi_{i} )}{\sum_{i \in s_{K}} 1 \big/ (c \pi_{i})}\)</span>, where <span class="math inline">\(\tilde{\nu}_{i, A_{j}}\)</span> is the self-reported visibility of member of hidden population to group of known size <span class="math inline">\(A_{j}\)</span>.</li>
+<li>Estimate <span class="math inline">\(\overline{\nu_{KF}}\)</span>
+using the <em>probe alters</em>, <span class="math inline">\(\mathcal{A}\)</span> , groups of known size for
+which we collect relational data from hidden population sample. Using
+this data the estimator is <span class="math inline">\(\widehat{\overline{\nu_{KF}}} =
+\frac{N}{N_{\mathcal{A}}} \frac{\sum_{i \in s_{K}} \sum_{j}
+\tilde{\nu}_{i, A_{j}} \big/ (c \pi_{i} )}{\sum_{i \in s_{K}} 1 \big/ (c
+\pi_{i})}\)</span>, where <span class="math inline">\(\tilde{\nu}_{i,
+A_{j}}\)</span> is the self-reported visibility of member of hidden
+population to group of known size <span class="math inline">\(A_{j}\)</span>.</li>
 <li>Use bootstrap methods to estimate the standard errors/CIs</li>
 <li>
-<strong>Very useful:</strong> Provide comparison with the basic NSUM method <span class="citation">(<a href="#ref-killworth1998" role="doc-biblioref">Killworth et al. 1998</a>)</span> and show that <span class="math inline">\(N_{K} = \underbrace{\left( \frac{y_{FK}}{\overline{d}_{UF}} \right)}_{\text{standard NSUM estimand}} \times \frac{1}{\phi_{F} \delta_{F} \tau_{F}}\)</span>, where <span class="math inline">\(\phi_{F}\)</span> – frame ratio (average connection within <span class="math inline">\(F\)</span> to connection from <span class="math inline">\(U\)</span> to <span class="math inline">\(F\)</span>), <span class="math inline">\(\delta_{F}\)</span> – degree ratio (average connection from <span class="math inline">\(K\)</span> to <span class="math inline">\(F\)</span> to connection within <span class="math inline">\(F\)</span>), and <span class="math inline">\(\tau_{F}\)</span> – true positive ratio (in-reports from <span class="math inline">\(F\)</span> to <span class="math inline">\(K\)</span> to edges connecting <span class="math inline">\(F\)</span> and <span class="math inline">\(K\)</span>)</li>
-<li>Appendix G to the paper also has very useful ideas on network structure simulation using <em>block</em> approach, where the chances of link between two individuals depend on their membership in <span class="math inline">\(F\)</span> and <span class="math inline">\(K\)</span> (there is no code, but it sounds like something straightforward to do)</li>
+<strong>Very useful:</strong> Provide comparison with the basic NSUM
+method <span class="citation">(<a href="#ref-killworth1998" role="doc-biblioref">Killworth et al. 1998</a>)</span> and show that
+<span class="math inline">\(N_{K} = \underbrace{\left(
+\frac{y_{FK}}{\overline{d}_{UF}} \right)}_{\text{standard NSUM
+estimand}} \times \frac{1}{\phi_{F} \delta_{F} \tau_{F}}\)</span>, where
+<span class="math inline">\(\phi_{F}\)</span> – frame ratio (average
+connection within <span class="math inline">\(F\)</span> to connection
+from <span class="math inline">\(U\)</span> to <span class="math inline">\(F\)</span>), <span class="math inline">\(\delta_{F}\)</span> – degree ratio (average
+connection from <span class="math inline">\(K\)</span> to <span class="math inline">\(F\)</span> to connection within <span class="math inline">\(F\)</span>), and <span class="math inline">\(\tau_{F}\)</span> – true positive ratio
+(in-reports from <span class="math inline">\(F\)</span> to <span class="math inline">\(K\)</span> to edges connecting <span class="math inline">\(F\)</span> and <span class="math inline">\(K\)</span>)</li>
+<li>Appendix G to the paper also has very useful ideas on network
+structure simulation using <em>block</em> approach, where the chances of
+link between two individuals depend on their membership in <span class="math inline">\(F\)</span> and <span class="math inline">\(K\)</span> (there is no code, but it sounds like
+something straightforward to do)</li>
+</ul>
+</div>
+</div>
+<div class="section level2">
+<h2 id="link-tracing-method">Link-Tracing method<a class="anchor" aria-label="anchor" href="#link-tracing-method"></a>
+</h2>
+<div class="section level3">
+<h3 id="vincent2019">
+<span class="citation">Vincent and Thompson (<a href="#ref-vincent2019" role="doc-biblioref">2019</a>)</span><a class="anchor" aria-label="anchor" href="#vincent2019"></a>
+</h3>
+<p>The Link-Tracing method combines ideas from RDS and capture
+re-capture estimation to approximate population size.Applying a
+multi-wave snowball sampling frame over the population, it constructs a
+Gibbs sampling estimator of population size given an observed network
+structure. The central idea behind the construction of this estimator is
+that links between units sampled in the waves up to but not including
+the last wave and all other units can be regarded as iid Bernoulli-type
+outcomes. The occurrences of network links thus represent binomial type
+experiments.</p>
+<div class="section level4">
+<h4 id="population-and-assumptions">Population and Assumptions<a class="anchor" aria-label="anchor" href="#population-and-assumptions"></a>
+</h4>
+<ul>
+<li>population is represented through a stochastic block model where all
+units in the population <span class="math inline">\(U =
+(1,2,...,N)\)</span> are assigned to one of G strata (known if unit is
+observed and latent otherwise) with probability <span class="math inline">\(\underline{\lambda} = (\lambda_1,
+\lambda_2,...,\lambda_G)\)</span> where <span class="math inline">\(C_i\)</span> is the stratum to which unit <span class="math inline">\(i\)</span> belongs.</li>
+<li>strata may be considered groupings or factors that affect (explain
+or predict) the probability of links arising between units.</li>
+<li>all links between units are reciprocated, yielding a symmetric
+adjacency matrix <span class="math inline">\(Y\)</span> of the
+population, where for all <span class="math inline">\(i,j =
+1,2,...,N,Y_{ij} = Y_{ji} = 1\)</span> if a link is present between
+units <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> and 0 otherwise.</li>
+<li>conditional on stratum membership, links occur independently between
+all pairs of units, such that for any <span class="math inline">\(i,j =
+1,2,...,N\)</span> if <span class="math inline">\(i \neq j\)</span> then
+<span class="math inline">\(P(Y_{ij} = 1|\underline{C} = P(Y_{ij} =
+1|C_i,C_j) = \beta_{C_i,C_j}\)</span> and if <span class="math inline">\(i = j\)</span> then <span class="math inline">\(P(Y_{ii} = 1) = 0\)</span>.</li>
+</ul>
+</div>
+<div class="section level4">
+<h4 id="sampling">Sampling<a class="anchor" aria-label="anchor" href="#sampling"></a>
+</h4>
+<ul>
+<li>sampling commences with the selection of an initial sample/wave
+<span class="math inline">\(S_0\)</span> from which all nominated links
+are traced.</li>
+<li>nominations outside of the initial sample comprise the first wave
+<span class="math inline">\(S_1\)</span>.</li>
+<li>this sampling procedure is continued until <span class="math inline">\(W\)</span> waves are reached (units added in wave
+<span class="math inline">\(w\)</span> are thus <span class="math inline">\(S_w\)</span>).</li>
+<li>
+<span class="math inline">\(S = \cup_{w = 0}^{W}S_w\)</span> is thus
+the final sample, and <span class="math inline">\(S \setminus S_w =
+\cup_{w = 0}^{W-1}S_w\)</span> is the final sample minus the units
+selected in the last wave.<span class="math inline">\(\overline{S} = U
+\setminus S\)</span> denotes the set of units not included in the final
+sample.</li>
+</ul>
+</div>
+<div class="section level4">
+<h4 id="required-data">Required Data<a class="anchor" aria-label="anchor" href="#required-data"></a>
+</h4>
+<p>The following data needs to be collected for estimation:</p>
+<ul>
+<li>stratum assignment of each unit</li>
+<li>sampling wave assignment of each unit</li>
+<li>adjacency matrix</li>
+</ul>
+<p>We denote the observed data <span class="math inline">\(d_{I_{gn}}\)</span></p>
+</div>
+<div class="section level4">
+<h4 id="estimation">Estimation<a class="anchor" aria-label="anchor" href="#estimation"></a>
+</h4>
+<p>Given that <span class="math inline">\(n = n_0 + n_1 + ... +
+n_w\)</span> and the population can be partitioned into <span class="math inline">\(W + 2\)</span> sets (<span class="math inline">\(S_0,S_1,...,S_w\)</span> and <span class="math inline">\(\overline{S}\)</span> (i.e. initial sample, all
+waves, non sampled units)) of sizes <span class="math inline">\(n_0,n_1,...,n_w\)</span> and <span class="math inline">\(N-n\)</span> in <span class="math inline">\({N
+\choose n_0,n_1,...,n_w,N-n}\)</span> ways, the following likelihood
+function for the parameters of interest can be written:</p>
+<p><span class="math inline">\(\displaystyle
+L(N,\underline{\lambda},\underline{\beta}|d_{I_{gn}},|S_0|)\)</span>
+<span class="math inline">\(\displaystyle = {N \choose
+n_0,n_1,...,n_w,N-n} \times \prod_{i=1}^{n-n_w}\lambda_{C_i} \times
+\prod_{i,j =
+1,2,...,n-n_w:i&lt;j}\left(\beta_{C_i,C_j}^{Y_{ij}}(1-\beta_{C_i,C_j})^{(1-Y_{ij})}\right)
+\times\)</span> <span class="math inline">\(\displaystyle \left[\prod_{j
+= n-n_w+1}^n\left(\lambda_{C_j} \prod_{i = 1}^{n - n_w}\left(
+\beta_{C_i,C_j}^{Y_{ij}}(1-\beta_{C_i,C_j})^{(1-Y_{ij})}\right)
+\right)\right] \times \left[\sum_{k = 1}^G \left(\lambda_k \prod_{i =
+1}^{n-n_w}(1 - \beta_{C_i,k})\right)\right]^{N-n}\)</span></p>
+<p>Where:</p>
+<ul>
+<li>the first component corresponds to reorderings of the data</li>
+<li>the second component corresponds to the stratum assignment of the
+units within the fist <span class="math inline">\(W-1\)</span> waves of
+the reordered data</li>
+<li>the third component corresponds to the occurrence of links within
+the fist <span class="math inline">\(W-1\)</span> waves of the reordered
+data</li>
+<li>the fourth component corresponds to the stratum assignment of the
+units within wave <span class="math inline">\(W\)</span> and the links
+between units in wave <span class="math inline">\(W\)</span> and the
+first <span class="math inline">\(W-1\)</span> waves of the reordered
+data</li>
+<li>the fifth component corresponds to the unobserved stratum
+memberships of units outside the final sample and the observed absence
+of links between units inside and outside of the final sample.</li>
+</ul>
+<p>As the given likelihood corresponds to a multivariate distribution,
+Link-tracing employs a Gibbs sampling procedure for parameter
+estimation. That is, it iteratively samples from each parameters
+conditional distribution. Estimation thus proceeds as follows:</p>
+<ol style="list-style-type: decimal">
+<li>initialize values for <span class="math inline">\(N,\underline{\lambda}\)</span> and <span class="math inline">\(\underline{\beta}\)</span>
+</li>
+<li>draw from <span class="math inline">\(P(N|d_{I_{ng}},\underline{\lambda},\underline{\beta})\)</span>
+given the values of <span class="math inline">\(\underline{\lambda}\)</span> and <span class="math inline">\(\underline{\beta}\)</span> from the previous
+step</li>
+<li>draw from <span class="math inline">\(P(\underline{\lambda}|N,\underline{\beta})\)</span>
+given the values of <span class="math inline">\(N\)</span> and <span class="math inline">\(\underline{\beta}\)</span> from the previous
+steps</li>
+<li>draw from <span class="math inline">\(P(\underline{\beta}|N,\underline{\lambda})\)</span>
+given the values of <span class="math inline">\(N\)</span> and <span class="math inline">\(\underline{\lambda}\)</span> from the previous
+steps</li>
+<li>repeat steps 2-4</li>
+</ol>
+<div class="section level5">
+<h5 id="population-size">Population Size:<a class="anchor" aria-label="anchor" href="#population-size"></a>
+</h5>
+<ul>
+<li><p>Prior distribution of <span class="math inline">\(N\)</span>
+defined as <span class="math inline">\(\pi(N) \propto N^{-a}, a =
+0,1,2,...\)</span></p></li>
+<li><p><span class="math inline">\(P(N|d_{I_{gn}},\underline{\lambda},\underline{\beta})
+=
+\frac{P(d_{I_{gn}}|N,\underline{\lambda},\underline{\beta})\pi(N)}{P(d_{I_{gn}}|\underline{\lambda},\underline{\beta})}
+\propto \frac{{N - n_0 \choose n_1,...,n_w,N-n}(1-P)^{N - n}
+\frac{1}{N^a}}{\sum_{N' \geq n} \left({N' - n_0 \choose
+n_1,...,n_w,N'-n}(1-p)^{N'-n
+\frac{1}{N'^a}}\right)}\)</span> <span class="math inline">\(\propto
+{N - n_0 \choose n_1,...,n_w,N-n}(1-p)^{N-n
+\frac{1}{N^a}}\)</span></p></li>
+<li><p>where <span class="math inline">\(1-p =
+\sum_{k=1}^{G}\left(\lambda_k \prod_{i=1}^{n - n_w}(1 -
+\beta_{C_i,k})\right)\)</span></p></li>
+</ul>
+</div>
+<div class="section level5">
+<h5 id="stratum-memberships">Stratum Memberships:<a class="anchor" aria-label="anchor" href="#stratum-memberships"></a>
+</h5>
+<ul>
+<li><p>Prior distribution of <span class="math inline">\(\underline{\lambda}\)</span> defined as <span class="math inline">\(\pi(\underline{\lambda}) \propto \prod_{k =
+1}^{G}\lambda_{k}^{a_k-1}\)</span></p></li>
+<li><p>Given the observed data Link-tracing imputes the missing stratum
+assignments by sampling from the following distribution:</p></li>
+<li><p><span class="math inline">\(P(C_i = k|S,\underline{C}_{S
+\setminus S_W}, Y_{S \setminus S_W,i}) = \frac{\lambda_k
+\prod_{j=1}^{n-n_W}(1 - \beta_{C_j,k})}{\sum_{l = 1}^{G}\left(\lambda_l
+\prod_{j=1}^{n-n_W}(1-\beta_{C_j,l})\right)}\)</span></p></li>
+<li><p>New <span class="math inline">\(\underline{\lambda}\)</span>
+values are then drawn from <span class="math inline">\(Dirichlet(N_1 +
+1,...,N_G + 1)\)</span></p></li>
+</ul>
+</div>
+<div class="section level5">
+<h5 id="links">Links:<a class="anchor" aria-label="anchor" href="#links"></a>
+</h5>
+<ul>
+<li><p>Prior distribution of of <span class="math inline">\(\underline{\beta}\)</span> defined as <span class="math inline">\(\pi(\underline{\beta}) \propto \prod_{k,l = 1: k
+\leq l}^{G}\left(\beta_{k,l}^{\gamma_1 - 1}(1-
+\beta_{k,l})^{\gamma_2-1}\right)\)</span></p></li>
+<li><p>The imputed stratum assignments and population size from the
+previous steps update the observed data to a hypothetical full graph
+realization (knowledge about stratum assignment for each unit) <span class="math inline">\(d_1 = \{S,\underline{C},Y_{S \setminus
+S_W,U}\}\)</span> where <span class="math inline">\(U\)</span> is the
+population size estimate. For any <span class="math inline">\(i,j \in
+S_W \cup \overline{S}\)</span> where <span class="math inline">\(i \ne
+j\)</span> links arise independently via <span class="math inline">\(P(Y_{ij} = 1|d_1) = \beta_{C_i,C_j}\)</span> and
+can be imputed through sampling from this. This process yields a
+hypothetical full graph realization (knowledge about stratum membership
+and links for all units) <span class="math inline">\(d =
+\{\underline{C},Y\}\)</span>.</p></li>
+<li><p>New <span class="math inline">\(\underline{\beta}\)</span> values
+for between stratum links <span class="math inline">\(\beta_{k,l}\)</span> for <span class="math inline">\(k,l = 1,2,...,G,k \ne l\)</span> are drawn from
+<span class="math inline">\(Beta(M_{k,l} + 1, N_k N_l - M_{k,l} +
+1)\)</span>.</p></li>
+<li><p>New <span class="math inline">\(\underline{\beta}\)</span> values
+for within stratum links <span class="math inline">\(\beta_{k,k}\)</span> for <span class="math inline">\(k = 1,2,...,G\)</span> are drawn from <span class="math inline">\(Beta(M_{k,k} + 1,{N_k \choose 2} - M_{k,k} +
+1)\)</span>.</p></li>
 </ul>
 <div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-andersson2000" class="csl-entry">
-Andersson, Håkan, and Tom Britton. 2000. <span>“Stochastic Epidemics in Dynamic Populations: Quasi-Stationarity and Extinction.”</span> <em>Journal of Mathematical Biology</em> 41 (6): 559–80. <a href="https://doi.org/10.1007/s002850000060">https://doi.org/10.1007/s002850000060</a>.
+Andersson, Håkan, and Tom Britton. 2000. <span>“Stochastic Epidemics in
+Dynamic Populations: Quasi-Stationarity and Extinction.”</span>
+<em>Journal of Mathematical Biology</em> 41 (6): 559–80. <a href="https://doi.org/10.1007/s002850000060" class="external-link">https://doi.org/10.1007/s002850000060</a>.
 </div>
 <div id="ref-berchenko2017" class="csl-entry">
-Berchenko, Yakir, Jonathan D. Rosenblatt, and Simon D. W. Frost. 2017. <span>“Modeling and Analyzing Respondent-Driven Sampling as a Counting Process.”</span> <em>Biometrics</em> 73 (4): 1189–98. <a href="https://doi.org/10.1111/biom.12678">https://doi.org/10.1111/biom.12678</a>.
+Berchenko, Yakir, Jonathan D. Rosenblatt, and Simon D. W. Frost. 2017.
+<span>“Modeling and Analyzing Respondent-Driven Sampling as a Counting
+Process.”</span> <em>Biometrics</em> 73 (4): 1189–98. <a href="https://doi.org/10.1111/biom.12678" class="external-link">https://doi.org/10.1111/biom.12678</a>.
 </div>
 <div id="ref-crawford2018" class="csl-entry">
-Crawford, Forrest W., Jiacheng Wu, and Robert Heimer. 2018. <span>“Hidden Population Size Estimation from Respondent-Driven Sampling: A Network Approach.”</span> <em>Journal of the American Statistical Association</em> 113 (522): 755–66. <a href="https://doi.org/10.1080/01621459.2017.1285775">https://doi.org/10.1080/01621459.2017.1285775</a>.
+Crawford, Forrest W., Jiacheng Wu, and Robert Heimer. 2018.
+<span>“Hidden Population Size Estimation from Respondent-Driven
+Sampling: A Network Approach.”</span> <em>Journal of the American
+Statistical Association</em> 113 (522): 755–66. <a href="https://doi.org/10.1080/01621459.2017.1285775" class="external-link">https://doi.org/10.1080/01621459.2017.1285775</a>.
 </div>
 <div id="ref-feehan2016" class="csl-entry">
-Feehan, Dennis M., and Matthew J. Salganik. 2016. <span>“Generalizing the Network Scale-up Method: A New Estimator for the Size of Hidden Populations.”</span> <em>Sociological Methodology</em> 46 (1): 153–86. <a href="https://doi.org/10.1177/0081175016665425">https://doi.org/10.1177/0081175016665425</a>.
+Feehan, Dennis M., and Matthew J. Salganik. 2016. <span>“Generalizing
+the Network Scale-up Method: A New Estimator for the Size of Hidden
+Populations.”</span> <em>Sociological Methodology</em> 46 (1): 153–86.
+<a href="https://doi.org/10.1177/0081175016665425" class="external-link">https://doi.org/10.1177/0081175016665425</a>.
 </div>
 <div id="ref-handcock2014" class="csl-entry">
-Handcock, Mark S., Krista J. Gile, and Corinne M. Mar. 2014. <span>“Estimating Hidden Population Size Using Respondent-Driven Sampling Data.”</span> <em>Electronic Journal of Statistics</em> 8 (1): 1491–521. <a href="https://doi.org/10.1214/14-EJS923">https://doi.org/10.1214/14-EJS923</a>.
+Handcock, Mark S., Krista J. Gile, and Corinne M. Mar. 2014.
+<span>“Estimating Hidden Population Size Using Respondent-Driven
+Sampling Data.”</span> <em>Electronic Journal of Statistics</em> 8 (1):
+1491–521. <a href="https://doi.org/10.1214/14-EJS923" class="external-link">https://doi.org/10.1214/14-EJS923</a>.
 </div>
 <div id="ref-johnston2017" class="csl-entry">
-Johnston, Lisa G., Katherine R. McLaughlin, Shada A. Rouhani, and Susan A. Bartels. 2017. <span>“Measuring a Hidden Population: A Novel Technique to Estimate the Population Size of Women with Sexual Violence-Related Pregnancies in South Kivu Province, Democratic Republic of Congo.”</span> <em>Journal of Epidemiology and Global Health</em> 7 (1): 45–53. <a href="https://doi.org/10.1016/j.jegh.2016.08.003">https://doi.org/10.1016/j.jegh.2016.08.003</a>.
+Johnston, Lisa G., Katherine R. McLaughlin, Shada A. Rouhani, and Susan
+A. Bartels. 2017. <span>“Measuring a Hidden Population: A Novel
+Technique to Estimate the Population Size of Women with Sexual
+Violence-Related Pregnancies in South Kivu Province, Democratic Republic
+of Congo.”</span> <em>Journal of Epidemiology and Global Health</em> 7
+(1): 45–53. <a href="https://doi.org/10.1016/j.jegh.2016.08.003" class="external-link">https://doi.org/10.1016/j.jegh.2016.08.003</a>.
 </div>
 <div id="ref-karon2012statistical" class="csl-entry">
-Karon, John M, and Cyprian Wejnert. 2012. <span>“Statistical Methods for the Analysis of Time–Location Sampling Data.”</span> <em>Journal of Urban Health</em> 89 (3): 565–86. <a href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=3368048&amp;tool=pmcentrez&amp;rendertype=abstract">http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=3368048&amp;tool=pmcentrez&amp;rendertype=abstract</a>.
+Karon, John M, and Cyprian Wejnert. 2012. <span>“Statistical Methods for
+the Analysis of Time–Location Sampling Data.”</span> <em>Journal of
+Urban Health</em> 89 (3): 565–86. <a href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=3368048&amp;tool=pmcentrez&amp;rendertype=abstract" class="external-link">http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=3368048&amp;tool=pmcentrez&amp;rendertype=abstract</a>.
 </div>
 <div id="ref-killworth1998" class="csl-entry">
-Killworth, Peter D., Eugene C. Johnsen, Christopher McCarty, Gene Ann Shelley, and H. Russell Bernard. 1998. <span>“A Social Network Approach to Estimating Seroprevalence in the United States.”</span> <em>Social Networks</em> 20 (1): 23–50. <a href="https://doi.org/10.1016/S0378-8733(96)00305-X">https://doi.org/10.1016/S0378-8733(96)00305-X</a>.
+Killworth, Peter D., Eugene C. Johnsen, Christopher McCarty, Gene Ann
+Shelley, and H. Russell Bernard. 1998. <span>“A Social Network Approach
+to Estimating Seroprevalence in the United States.”</span> <em>Social
+Networks</em> 20 (1): 23–50. <a href="https://doi.org/10.1016/S0378-8733(96)00305-X" class="external-link">https://doi.org/10.1016/S0378-8733(96)00305-X</a>.
 </div>
 <div id="ref-mackellar1996young" class="csl-entry">
-MacKellar, Duncan, Linda Valleroy, John Karon, George Lemp, and Robert Janssen. 1996. <span>“The Young Men’s Survey: Methods for Estimating HIV Seroprevalence and Risk Factors Among Young Men Who Have Sex with Men.”</span> <em>Public Health Reports</em> 111 (Suppl 1): 138. <a href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1382056&amp;tool=pmcentrez&amp;rendertype=abstract">http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1382056&amp;tool=pmcentrez&amp;rendertype=abstract</a>.
+MacKellar, Duncan, Linda Valleroy, John Karon, George Lemp, and Robert
+Janssen. 1996. <span>“The Young Men’s Survey: Methods for Estimating HIV
+Seroprevalence and Risk Factors Among Young Men Who Have Sex with
+Men.”</span> <em>Public Health Reports</em> 111 (Suppl 1): 138. <a href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1382056&amp;tool=pmcentrez&amp;rendertype=abstract" class="external-link">http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1382056&amp;tool=pmcentrez&amp;rendertype=abstract</a>.
 </div>
 <div id="ref-maltiel2015" class="csl-entry">
-Maltiel, Rachael, Adrian E. Raftery, Tyler H. McCormick, and Aaron J. Baraff. 2015. <span>“Estimating Population Size Using the Network Scale-up Method.”</span> <em>The Annals of Applied Statistics</em> 9 (3): 1247–77. <a href="https://www.jstor.org/stable/43826420">https://www.jstor.org/stable/43826420</a>.
+Maltiel, Rachael, Adrian E. Raftery, Tyler H. McCormick, and Aaron J.
+Baraff. 2015. <span>“Estimating Population Size Using the Network
+Scale-up Method.”</span> <em>The Annals of Applied Statistics</em> 9
+(3): 1247–77. <a href="https://www.jstor.org/stable/43826420" class="external-link">https://www.jstor.org/stable/43826420</a>.
 </div>
 <div id="ref-fanzana2001venue" class="csl-entry">
-Muhib, F. B., L. S. Lin, A. Stueve, R. L. Miller, W. L. Ford, W. D. Johnson, P. J. Smith, and Community Intervention Trial for Youth Study Team. 2001. <span>“A Venue-Based Method for Sampling Hard-to-Reach Populations.”</span> <em>Public Health Rep</em>, 216–22. <a href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1913675&amp;tool=pmcentrez&amp;rendertype=abstract">http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1913675&amp;tool=pmcentrez&amp;rendertype=abstract</a>.
+Muhib, F. B., L. S. Lin, A. Stueve, R. L. Miller, W. L. Ford, W. D.
+Johnson, P. J. Smith, and Community Intervention Trial for Youth Study
+Team. 2001. <span>“A Venue-Based Method for Sampling Hard-to-Reach
+Populations.”</span> <em>Public Health Rep</em>, 216–22. <a href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1913675&amp;tool=pmcentrez&amp;rendertype=abstract" class="external-link">http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1913675&amp;tool=pmcentrez&amp;rendertype=abstract</a>.
 </div>
 <div id="ref-raymond2007resource" class="csl-entry">
-Raymond, H Fisher, Theresa Ick, Michael Grasso, Jason Vaudrey, and Willi McFarland. 2007. <span>“Resource Guide: Time Location Sampling (TLS).”</span> <em>San Francisco: San Francisco Department of Public Health HIV Epidemiology Section, Behavioral Surveillance Unit</em>. <a href="http://globalhealthsciences.ucsf.edu/sites/default/files/content/pphg/surveillance/modules/global-trainings/tls-res-guide-2nd-edition.pdf">http://globalhealthsciences.ucsf.edu/sites/default/files/content/pphg/surveillance/modules/global-trainings/tls-res-guide-2nd-edition.pdf</a>.
+Raymond, H Fisher, Theresa Ick, Michael Grasso, Jason Vaudrey, and Willi
+McFarland. 2007. <span>“Resource Guide: Time Location Sampling
+(TLS).”</span> <em>San Francisco: San Francisco Department of Public
+Health HIV Epidemiology Section, Behavioral Surveillance Unit</em>. <a href="http://globalhealthsciences.ucsf.edu/sites/default/files/content/pphg/surveillance/modules/global-trainings/tls-res-guide-2nd-edition.pdf" class="external-link">http://globalhealthsciences.ucsf.edu/sites/default/files/content/pphg/surveillance/modules/global-trainings/tls-res-guide-2nd-edition.pdf</a>.
 </div>
 <div id="ref-salganik2011" class="csl-entry">
-Salganik, Matthew J., Dimitri Fazito, Neilane Bertoni, Alexandre H. Abdo, Maeve B. Mello, and Francisco I. Bastos. 2011. <span>“Assessing Network Scale-up Estimates for Groups Most at Risk of HIV/AIDS: Evidence from a Multiple-Method Study of Heavy Drug Users in Curitiba, Brazil.”</span> <em>American Journal of Epidemiology</em> 174 (10): 11901196.
+Salganik, Matthew J., Dimitri Fazito, Neilane Bertoni, Alexandre H.
+Abdo, Maeve B. Mello, and Francisco I. Bastos. 2011. <span>“Assessing
+Network Scale-up Estimates for Groups Most at Risk of HIV/AIDS: Evidence
+from a Multiple-Method Study of Heavy Drug Users in Curitiba,
+Brazil.”</span> <em>American Journal of Epidemiology</em> 174 (10):
+11901196.
+</div>
+<div id="ref-vincent2019" class="csl-entry">
+Vincent, Kyle, and Steve Thompson. 2019. <span>“Estimating the Size and
+Distribution of Networked Populations with Snowball Sampling.”</span> <a href="https://arxiv.org/abs/1402.4372" class="external-link">https://arxiv.org/abs/1402.4372</a>.
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -362,11 +782,14 @@ Salganik, Matthew J., Dimitri Fazito, Neilane Bertoni, Alexandre H. Abdo, Maeve 
 
 
       <footer><div class="copyright">
-  <p>Developed by Georgiy Syunyaev, Macartan Humphreys.</p>
+  <p></p>
+<p>Developed by Georgiy Syunyaev, Macartan Humphreys.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
+2.0.2.</p>
 </div>
 
       </footer>
@@ -374,6 +797,8 @@ Salganik, Matthew J., Dimitri Fazito, Neilane Bertoni, Alexandre H. Abdo, Maeve 
 
   
 
+
+  
 
   </body>
 </html>
