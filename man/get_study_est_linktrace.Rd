@@ -9,8 +9,7 @@ get_study_est_linktrace(
   total = 2000,
   strata = "",
   parallel = TRUE,
-  gibbs_params = list(n_chains = 2L, chain_samples = 4000L, chain_burnin = 2000L,
-    n_samples = 100L),
+  gibbs_params = list(n_samples = 100L, chain_samples = 500L, chain_burnin = 100L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
   prefix = "",
   label = "link_trace"
@@ -21,7 +20,7 @@ get_study_est_linktrace(
 
 \item{total}{integer giving the total size of the population}
 
-\item{strata}{column name of strata vector as character}
+\item{strata}{string specifying column name of strata vector}
 
 \item{parallel}{logical, if TRUE gibbs sampling proceeds in parallel}
 
@@ -30,6 +29,9 @@ get_study_est_linktrace(
 \item{priors}{named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).}
 
 \item{label}{character string describing the estimator}
+}
+\value{
+Data frame of link tracing estimates for single study
 }
 \description{
 Link tracing estimator

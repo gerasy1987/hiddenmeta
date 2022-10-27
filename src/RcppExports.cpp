@@ -148,9 +148,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// lt_gibbs
-std::vector<int> lt_gibbs(DataFrame data, arma::mat y_samp, std::vector<int> strata, int n_strata, int n_waves, int total, int chain_samples, List priors, List param_init);
-RcppExport SEXP _hiddenmeta_lt_gibbs(SEXP dataSEXP, SEXP y_sampSEXP, SEXP strataSEXP, SEXP n_strataSEXP, SEXP n_wavesSEXP, SEXP totalSEXP, SEXP chain_samplesSEXP, SEXP priorsSEXP, SEXP param_initSEXP) {
+// lt_gibbs_cpp
+std::vector<int> lt_gibbs_cpp(DataFrame data, arma::mat y_samp, std::vector<int> strata, int n_strata, int n_waves, int total, int chain_samples, List priors, List param_init);
+RcppExport SEXP _hiddenmeta_lt_gibbs_cpp(SEXP dataSEXP, SEXP y_sampSEXP, SEXP strataSEXP, SEXP n_strataSEXP, SEXP n_wavesSEXP, SEXP totalSEXP, SEXP chain_samplesSEXP, SEXP priorsSEXP, SEXP param_initSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -163,7 +163,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type chain_samples(chain_samplesSEXP);
     Rcpp::traits::input_parameter< List >::type priors(priorsSEXP);
     Rcpp::traits::input_parameter< List >::type param_init(param_initSEXP);
-    rcpp_result_gen = Rcpp::wrap(lt_gibbs(data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init));
+    rcpp_result_gen = Rcpp::wrap(lt_gibbs_cpp(data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -180,7 +180,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_hiddenmeta_int_vec_insert", (DL_FUNC) &_hiddenmeta_int_vec_insert, 3},
     {"_hiddenmeta_mat_to_mat_insert", (DL_FUNC) &_hiddenmeta_mat_to_mat_insert, 6},
     {"_hiddenmeta_lt_permute", (DL_FUNC) &_hiddenmeta_lt_permute, 3},
-    {"_hiddenmeta_lt_gibbs", (DL_FUNC) &_hiddenmeta_lt_gibbs, 9},
+    {"_hiddenmeta_lt_gibbs_cpp", (DL_FUNC) &_hiddenmeta_lt_gibbs_cpp, 9},
     {NULL, NULL, 0}
 };
 

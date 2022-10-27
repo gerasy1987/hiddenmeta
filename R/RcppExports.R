@@ -128,7 +128,7 @@ lt_permute <- function(link_list, wave, name) {
 #' @param param_init List of initial values for n,lambda and beta
 #' @return integer vector of samples from the n distribution
 #' @keywords internal
-lt_gibbs <- function(data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init) {
-    .Call('_hiddenmeta_lt_gibbs', PACKAGE = 'hiddenmeta', data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init)
+lt_gibbs_cpp <- function(data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init) {
+    .Call('_hiddenmeta_lt_gibbs_cpp', PACKAGE = 'hiddenmeta', data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init)
 }
 
