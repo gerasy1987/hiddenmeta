@@ -114,7 +114,7 @@ study_1 <-
                             rds_prefix = "rds", 
                             label = "rds_sspse"),
                chords = list(handler = get_study_est_chords, 
-                             type = "jeffreys",
+                             type = "mle",
                              seed_condition = "rds_from == -999",
                              n_boot = 100,
                              rds_prefix = "rds",
@@ -323,7 +323,7 @@ draw_estimates(study_population +
                  study_estimands +
                  est_sspse +
                  est_chords +
-                 # est_multi +
+                 est_multi +
                  est_nsum_pps + est_ht_pps +
                  est_nsum_tls + est_ht_tls + est_recap_tls +
                  est_recap_rds_pps + est_recap_rds_tls
@@ -367,7 +367,7 @@ study1 <-
 ```{r study_simulate, warning = FALSE, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
-doParallel::registerDoParallel(cores = 20)
+doParallel::registerDoParallel(cores = 10)
 
 set.seed(872312)
 study1_simulations <-
