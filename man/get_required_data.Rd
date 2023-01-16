@@ -7,9 +7,9 @@
 get_required_data(
   multi_study_data,
   study_map = c(`Brazil (FF)` = "ff_brazil", `Tunisia (UMass)` = "umass_tunisia",
-    `Brazil (Stanford)` = "stanford_brazil", `Pakistan (JHU)` = "jhu_pakistan", `Costa
-    Rica (John Jay)` = "johnjay_costarica", `Tanzania (John Jay)` = "johnjay_tanzania",
-    `Morocco (NORC)` = "norc_marocco", `USA (RTI)` = "rti_usa")
+    `Brazil (Stanford)` = "stanford_brazil", `Pakistan (JHU)` = "jhu_pakistan",
+    `Costa Rica (John Jay)` = "johnjay_costarica", `Tanzania (John Jay)` =
+    "johnjay_tanzania", `Morocco (NORC)` = "norc_marocco", `USA (RTI)` = "rti_usa")
 )
 }
 \arguments{
@@ -17,12 +17,6 @@ get_required_data(
 
 \item{study_map}{named character vector of mapping between study labels and names used in the plot}
 }
-\value{
-
-}
 \description{
 Generate Data Frame With Required Data by Study
-}
-\examples{
-
 }

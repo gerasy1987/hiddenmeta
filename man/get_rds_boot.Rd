@@ -32,14 +32,8 @@ get_rds_boot(
 
 \item{n_boot}{number of bootstrap resamples}
 }
-\value{
-
-}
 \description{
 Prepare RDS data for Bootstrap Re-sampling Following Salganik (2006)
-}
-\examples{
-
 }
 \references{
 Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.

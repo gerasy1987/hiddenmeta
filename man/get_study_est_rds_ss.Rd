@@ -26,9 +26,6 @@ get_study_est_rds_ss(
 
 \item{label}{character string describing the estimator}
 }
-\value{
-
-}
 \description{
 Sequential Sampling (SS) prevalence estimator by Gile (2011)
 }

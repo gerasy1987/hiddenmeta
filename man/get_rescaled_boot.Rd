@@ -13,14 +13,8 @@ get_rescaled_boot(data, survey_design, n_boot = 10)
 
 \item{n_boot}{number of bootstrap resamples}
 }
-\value{
-
-}
 \description{
 Modified Function for Rescaled Bootstrap by Rust and Rao (1996)
-}
-\examples{
-
 }
 \references{
 Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.

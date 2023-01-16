@@ -219,6 +219,7 @@ get_study_est_ht <- function(data,
 #' @import dplyr
 #' @importFrom chords initializeRdsObject Estimate.b.k makeJackControl
 #' @importFrom purrr quietly
+#' @importFrom plyr `.`
 get_study_est_chords <- function(data,
                                  type = c("mle", "integrated", "jeffreys"),
                                  seed_condition = "rds_from == -999",

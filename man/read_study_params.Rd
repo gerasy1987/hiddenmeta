@@ -14,12 +14,6 @@ read_study_params(
 
 \item{sheet}{Character string giving name of the sheet in the Google spreadsheet to read}
 }
-\value{
-
-}
 \description{
 Read Study Designs from Google Spreadsheet
-}
-\examples{
-
 }
