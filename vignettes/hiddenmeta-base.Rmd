@@ -63,16 +63,16 @@ study_1 <-
         group_names = c("known", "hidden"),
         
         # probability of visibility (show-up) for each group
-        p_visible = list(known = 1, hidden = 1),
+        p_visible = list(known = 1, hidden = .5),
         
         # probability of service utilization in hidden population
         # for service multiplier
         add_groups = 
           list(
-            service_use = "rbinom(n(), 1, 0.25)",
-            "purrr::map_df(hidden, ~ sapply( `names<-`(rep(0.2, times = 10), paste0('loc_', 1:10)), function(add) rbinom(length(.x), 1, 0.05 + .x * add)))",
+            service_use = "rbinom(.N, 1, 0.25)",
+            "paste0('loc_', 1:10) := lapply(rep(.2, times = 10), function(add) rbinom(.N, 1, 0.05 + hidden * add))",
             known_2 = 0.3,
-            "purrr::map_df(known, ~ sapply( `names<-`(rep(0, times = 8), paste0('known_', 3:10)), function(add) rbinom(length(.x), 1, 0.3)))")
+            "paste0('known_', 3:10) := lapply(3:10, function(x) rbinom(.N, 1, 0.3))")
       ),
     sample = 
       list(
@@ -269,7 +269,7 @@ study_sample_tls <-
 set.seed(872312)
 draw_data(study_population + 
             study_sample_rds + study_sample_pps + study_sample_tls) %>% 
-  dplyr::sample_n(n()) %>% 
+  dplyr::sample_n(size = n()) %>% 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -393,7 +393,7 @@ saveRDS(study1_simulations, here::here("inst/extdata/study1_sim.rds"))
 ```{r study_diagnose, eval=TRUE}
 
 study_diagnosands <-
- declare_diagnosands(
+ DeclareDesign::declare_diagnosands(
     mean_estimand = mean(estimand),
     mean_estimate = mean(estimate),
     sd_estimate = sd(estimate),
@@ -405,10 +405,11 @@ study_diagnosands <-
 study1_simulations <- 
   readRDS(system.file("extdata", "study1_sim.rds", package = "hiddenmeta"))
 
-diagnose_design(simulations_df = study1_simulations, 
+DeclareDesign::diagnose_design(simulations_df = study1_simulations, 
                 diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
+  DeclareDesign::reshape_diagnosis() %>% 
+  dplyr::select(-'Design') %>%
+  knitr::kable()
 
 ```
 
@@ -445,8 +446,8 @@ study_2 <-
         # for service multiplier
         
         add_groups = 
-          list(service_use = "rbinom(n(), 1, 0.25 + hidden * 0.3)",
-               "purrr::map_df(hidden, ~ sapply( `names<-`(runif(10, 0.05,.3), paste0('loc_', 1:10)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
+          list(service_use = "rbinom(.N, 1, 0.25 + hidden * 0.3)",
+               "paste0('loc_', 1:8) := lapply(runif(8, 0.05,.3), function(add) rbinom(.N, 1, 0.1 + hidden * add))",
                known_2 = 0.1, known_3 = 0.2)
       ),
     sample = 
@@ -566,8 +567,8 @@ study_3 <-
         # for service multiplier
         add_groups = 
           list(service_use = "rbinom(n(), 1, 0.25 + hidden * 0.05)",
-         "purrr::map_df(hidden, ~ sapply( `names<-`(c(.2, .1, .3, .2, .4, .1, .3, .2), paste0('loc_', 1:8)), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))",
-         known_2 = 0.1, known_3 = 0.2)
+               "paste0('loc_', 1:8) := lapply(c(.2, .1, .3, .2, .4, .1, .3, .2), function(add) rbinom(.N, 1, 0.1 + hidden * add))",
+               known_2 = 0.1, known_3 = 0.2)
       ),
     sample = 
       list(
@@ -834,9 +835,9 @@ saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim.rds"))
 meta_simulations <- 
   readRDS(system.file("extdata", "meta_sim.rds", package = "hiddenmeta"))
 
-diagnose_design(simulations_df = meta_simulations, 
+DeclareDesign::diagnose_design(simulations_df = meta_simulations, 
                 diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis(digits = 2) %>%
+  DeclareDesign::reshape_diagnosis(digits = 2) %>%
   dplyr::select(-'Design') %>%
   dplyr::filter(`Mean Estimate` != "NA") %>% 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))

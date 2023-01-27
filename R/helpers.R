@@ -164,7 +164,7 @@ gen_marginal_types <- function(K) {
 }
 
 # helper for population simulations
-mutate_visibility <- function(data, vars, p_visible, beta_sd = 0.05) {
+mutate_visibility_tidy <- function(data, vars, p_visible, beta_sd = 0.05) {
   for (var in vars) {
     if (p_visible[[var]] == 1) {
       data[,paste0("p_visible_", var)] <- 1
@@ -179,8 +179,22 @@ mutate_visibility <- function(data, vars, p_visible, beta_sd = 0.05) {
   return(data)
 }
 
+# helper for population simulations using data.table
+mutate_visibility <- function(dat, vars, p_visible, beta_sd = 0.05) {
+  # dat <- copy(dat)
+  for (var in vars) {
+    if (p_visible[[var]] == 1) {
+      dat[,paste0("p_visible_", var) := 1]
+    } else {
+      dat[,paste0("p_visible_", var) := rbeta_mod(.N, mu = p_visible[[var]], sd = beta_sd)]
+    }
+    dat[, paste0(var, "_visible") := rbinom(.N, 1, dat[[paste0("p_visible_", var)]]) * dat[[var]]]
+  }
+  return(dat)
+}
+
 # helper for population simulations
-mutate_add_groups <- function(data, add_groups) {
+mutate_add_groups_tidy <- function(data, add_groups) {
   for (var in seq_along(add_groups)) {
     if (class(add_groups[[var]]) == "numeric") {
       data %<>%
@@ -194,6 +208,23 @@ mutate_add_groups <- function(data, add_groups) {
     }
   }
   return(data)
+}
+
+# helper for population simulations using data.table package
+mutate_add_groups <- function (dat, add_groups) {
+  # dat <- data.table::copy(dat)
+  for (var in seq_along(add_groups)) {
+    if (class(add_groups[[var]]) == "numeric") {
+      dat[, names(add_groups)[var] := rbinom(.N, 1, add_groups[[var]])]
+    }
+    else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] != "") {
+      dat <- dat[, `:=`(names(add_groups)[var], eval(parse(text = add_groups[[var]])))]
+    }
+    else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] == "") {
+      dat <- dat[, eval(parse(text = add_groups[[var]]))]
+    }
+  }
+  return(dat)
 }
 
 # permutations helper from https://stackoverflow.com/a/34287541
@@ -220,7 +251,7 @@ gen_group_types <- function(K) {
 # get undirected graph from adjacency list transformed to character vector
 retrieve_graph <- function(adj_vec, split_vec = ";", list_mode = "all") {
   adj_vec %>%
-    lapply(., function(x) as.numeric(strsplit(x, split = split_vec)[[1]])) %>%
+    lapply(., function(x) as.numeric(base::strsplit(x, split = split_vec)[[1]])) %>%
     igraph::graph.adjlist(mode = list_mode)
 }
 

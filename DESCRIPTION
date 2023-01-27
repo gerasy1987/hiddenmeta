@@ -14,7 +14,8 @@ Description: Package allows analysis of individual and multiple studies of
 Depends: 
     R (>= 4.1.0),
     magrittr (>= 2.0.0), 
-    dplyr (>= 1.0.0)
+    dplyr (>= 1.0.0),
+    data.table (>= 1.0.0)
 Imports: 
     purrr (>= 0.3.3),
     tidyr (>= 1.1.0),
