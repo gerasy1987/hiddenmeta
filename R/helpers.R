@@ -250,9 +250,12 @@ gen_group_types <- function(K) {
 
 # get undirected graph from adjacency list transformed to character vector
 retrieve_graph <- function(adj_vec, split_vec = ";", list_mode = "all") {
-  adj_vec %>%
-    lapply(., function(x) as.numeric(base::strsplit(x, split = split_vec)[[1]])) %>%
+  lapply(adj_vec, function(x) as.numeric(base::strsplit(x, split = split_vec)[[1]])) %>%
     igraph::graph.adjlist(mode = list_mode)
+}
+
+retrieve_adjlist <- function(adj_vec, split_vec = ";", list_mode = "all") {
+   lapply(adj_vec, function(x) as.numeric(base::strsplit(x, split = split_vec)[[1]]))
 }
 
 # extract psu and strata variables from survey design formula
