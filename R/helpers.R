@@ -248,12 +248,44 @@ gen_group_types <- function(K) {
     apply(X = ., MARGIN = 1, FUN = paste0, collapse = "")
 }
 
-# get undirected graph from adjacency list transformed to character vector
+# helper to create data.table with characteristics of new eligible vertices
+get_new_eligible <- function(sampled_df, to, parent, coup) {
+  if (length(to) == 1) {
+    data.table::data.table(
+      from = parent,
+      to = as.integer(to),
+      own_coupon =
+        sampled_df[name == parent][[paste0("coupon_", sample(1:coup, size = 1))]]
+    )
+  } else if (length(to) > 1) {
+    data.table::data.table(
+      from = parent,
+      to = sample(x = as.integer(to),
+                  size = min(length(to), coup),
+                  replace = FALSE),
+      own_coupon =
+        as.character(
+          sampled_df[
+            name == parent,
+            paste0("coupon_", sample(1:coup, size = min(length(to), coup))),
+            with = FALSE
+          ]
+        )
+    )
+  } else {
+    data.table::data.table(from = integer(),
+                           to = integer(),
+                           own_coupon = character())
+  }
+}
+
+# get graph from adjacency list transformed to character vector
 retrieve_graph <- function(adj_vec, split_vec = ";", list_mode = "all") {
   lapply(adj_vec, function(x) as.numeric(base::strsplit(x, split = split_vec)[[1]])) %>%
     igraph::graph.adjlist(mode = list_mode)
 }
 
+# get adjacency list from the one transformed to character vector
 retrieve_adjlist <- function(adj_vec, split_vec = ";", list_mode = "all") {
    lapply(adj_vec, function(x) as.numeric(base::strsplit(x, split = split_vec)[[1]]))
 }
