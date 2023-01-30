@@ -234,25 +234,24 @@ get_study_population <-
         lapply(unique(.SD[["type_visible"]]), function(x) as.integer(.SD[["type_visible"]] == x))
     ][
       , (.out_cols$visible_out) :=
-        apply(.g_adj %*%
-                Matrix::as.matrix(.SD[, c(.out_cols$visible_type[-1], .add_groups_names), with=FALSE]),
-              MARGIN = 2, FUN = function(x) x, simplify = F)
+        apply(.g_adj %*% Matrix::as.matrix(.SD), MARGIN = 2, FUN = function(x) x,
+              simplify = FALSE)
+      , .SDcols = c(.out_cols$visible_type[-1], .add_groups_names)
     ][
       , (.out_cols$visible_in) :=
-        apply(Matrix::rowSums(.g_adj) *
-                Matrix::as.matrix(.SD[, c(.out_cols$visible_type[-1], .add_groups_names), with=FALSE]),
-              MARGIN = 2, FUN = function(x) x, simplify = F)
+        apply(Matrix::rowSums(.g_adj) * Matrix::as.matrix(.SD), MARGIN = 2, FUN = function(x) x,
+              simplify = FALSE)
+      , .SDcols = c(.out_cols$visible_type[-1], .add_groups_names)
     ][
       , (paste0("total_", c(group_names, .add_groups_names))) :=
         lapply(.SD[, c(group_names, .add_groups_names), with=FALSE], sum)
     ][
       , `:=`(
-        n_visible_out =
-          apply(.SD[, paste0(.type_names, "_visible_out"), with=FALSE], MARGIN = 1, FUN = sum),
+        n_visible_out = apply(.SD, MARGIN = 1, FUN = sum),
         name = .I,
         links = sapply(igraph::as_adj_list(g), paste0, collapse = ";"),
-        total = .N
-      )
+        total = .N)
+      , .SDcols = paste0(.type_names, "_visible_out")
     ]
 
     suppressWarnings(.out_df[, (names(.g_attr)) := .g_attr])
