@@ -14,9 +14,9 @@ Description: Package allows analysis of individual and multiple studies of
 Depends: 
     R (>= 4.1.0),
     magrittr (>= 2.0.0), 
-    dplyr (>= 1.0.0),
-    data.table (>= 1.0.0)
+    dplyr (>= 1.0.0)
 Imports: 
+    data.table (>= 1.0.0),
     purrr (>= 0.3.3),
     tidyr (>= 1.1.0),
     igraph (>= 1.3.0),
@@ -35,19 +35,19 @@ Imports:
     surveybootstrap (>= 0.0.1),
     rstan (>= 2.0),
     fastDummies, 
+    googlesheets4,
     MultiRNG,
     doParallel,
-    testthat, 
     methods
 Suggests: 
     covr (>= 3.5.0),
     DeclareDesign (>= 0.20.0),
     ggplot2 (>= 3.3.0),
     knitr,
+    testthat, 
     rmarkdown,
     here,
     DT,
-    googlesheets4,
     GGally
 License: MIT + file LICENSE
 Encoding: UTF-8
