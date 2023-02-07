@@ -238,7 +238,7 @@ sample_tls <-
 
     #select sampled units that are hidden
     data[, temp_id := .I]
-    data_orig <- copy(data)
+    data_orig <- data.table::copy(data)
     data <- data[data[, Reduce(`|`, lapply(.SD, `==`, 1)), .SDcols = as.character(sampled_locs)],]
 
     if(!is.null(hidden_var)) {
