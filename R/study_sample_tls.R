@@ -22,13 +22,15 @@
 #'   \item{[sampling_variable]_weight_visible}{Sampling weight with visibility}
 #'  }
 #'
-#' @export
+#' @keywords internal
+#'
 #'
 #' @import data.table
 #' @import dplyr
 #' @importFrom tidyr nest
 #' @importFrom purrr map_chr when
 #' @importFrom magrittr `%<>%`
+
 sample_tls_tidy <-
   function(data,
            sampling_variable = "tls", drop_nonsampled = FALSE,
@@ -38,6 +40,9 @@ sample_tls_tidy <-
            target_per_cluster,
            clusters
   ) {
+
+    warning("This function was deprecated due to lacking performance. It has been replaced with an optimized version. Consider using sample_tls().")
+
 
     target_cluster_type <- match.arg(target_cluster_type)
 
@@ -295,3 +300,6 @@ sample_tls <-
     return(data)
 
   }
+
+
+

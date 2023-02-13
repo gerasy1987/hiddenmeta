@@ -47,3 +47,4 @@ Population or sample data frame for single study with TLS sample characteristics
 \description{
 Sampling handler for drawing TLS sample with given characteristics from individual study population
 }
+\keyword{internal}
