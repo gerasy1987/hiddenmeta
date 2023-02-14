@@ -308,3 +308,47 @@ extract_terms <- function(fmla) {
     list(psu = psu, strata = strata)
   )
 }
+
+## -----------------------------------------------------------------------------
+
+# helper to avoid naming conflicts between variables and column names for data.table
+
+check_naming_conflict <- function(data,var,name) {
+  names <- colnames(data)
+  check_name <- var == name
+
+  if(!is.null(var)) {
+    if(any(check_name)){
+      warning(paste(name, " column cannot be named '", name, "', renaming column", sep = ""))
+      name_dup <- TRUE
+      i <- 1
+      name_new <- ""
+      while(name_dup) {
+        name_new <- paste(name,i, sep = "")
+        if(!name_new %in% names) {
+          name_dup <- FALSE
+        }
+        i <- i + 1
+      }
+      names[names == name] <- name_new
+      colnames(data) <- names
+      var[check_name] <- name_new
+    }
+  }
+  return(list(colnames = names, var = var))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
