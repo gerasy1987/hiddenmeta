@@ -197,13 +197,14 @@ get_study_population <-
     if (!("igraph" %in% class(g)))
       stop("network_handler should produce an igraph object")
 
-    .type_names <- paste0("type_", unique(.base_df$type))
 
     .out_df <-
       data.table::data.table(
         type = .g_attr$type,
         stringsAsFactors = FALSE
       )[, (group_names) := data.table::tstrsplit(type, "", type.convert=TRUE)]
+
+    .type_names <- paste0("type_", unique(.out_df$type))
 
     .g_attr <- .g_attr[-which(names(.g_attr) == "type")]
 
