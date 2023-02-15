@@ -24,6 +24,8 @@
 #'   \item{[sampling_variable]_coupon_[1-9]}{IDs of the coupons that were given to respondent for enrollment from their network}
 #'  }
 #'
+#' @keywords internal
+#'
 #' @examples
 #' \dontrun{
 #'    sample_rds_tidy(
@@ -38,6 +40,7 @@
 #'      arrival_rate = .5
 #'    )
 #' }
+#'
 #'
 #' @import dplyr
 #' @importFrom igraph sample_pref vertex_attr as_adj as_adj_list
@@ -55,6 +58,7 @@ sample_rds_tidy <-
            arrival_rate = .5,
            drop_nonsampled = FALSE) {
 
+    warning("This function was deprecated due to lacking performance. It has been replaced with an optimized version. Consider using sample_rds().")
     target_type <- match.arg(target_type)
 
     data %<>%

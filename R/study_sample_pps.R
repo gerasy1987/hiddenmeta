@@ -22,6 +22,154 @@
 #'   \item{[sampling_variable]_cluster_prop}{Proportion of strata in the cluster to which respondent belongs}
 #'   \item{[sampling_variable]_weight}{Sampling weights}
 #'  }
+#' @keywords internal
+#'
+#' @import dplyr
+#' @importFrom tidyr nest unnest
+#' @importFrom magrittr `%<>%`
+#' @importFrom purrr when map_int
+sample_pps_tidy <-
+  function(data, sampling_variable = "pps", drop_nonsampled = FALSE,
+           target_n_pps = 400,
+           n_clusters = target_n_pps,
+           sampling_frame = NULL,
+           strata = NULL,
+           cluster = NULL,
+           weights_type = c("absolute", "relative")
+  ) {
+
+    warning("This function was deprecated due to lacking performance. It has been replaced with an optimized version. Consider using sample_pps().")
+    weights_type <- match.arg(weights_type)
+
+    data <- dplyr::mutate(data, temp_id = 1:n())
+    temp_data <- data %>% dplyr::select(temp_id, all_of(c(sampling_frame, strata, cluster)))
+    nmax_per_cluster <- ceiling(target_n_pps/n_clusters)
+
+
+    if (!is.null(sampling_frame)) {
+      temp_data %<>%
+        dplyr::mutate(frame = apply(.[,..sampling_frame, drop = FALSE], 1, function(x) as.integer(all(x == 1))))
+    } else {
+      temp_data %<>% dplyr::mutate(frame = 1)
+    }
+
+    # check that sampling is possible
+    if (target_n_pps >= sum(temp_data$frame)) {
+      stop("Requested PPS sample size is larger than population (or sampling frame) size")
+    }
+
+    if (!is.null(strata)) {
+      temp_data %<>%
+        tidyr::nest(dat = -dplyr::all_of(strata)) %>%
+        dplyr::mutate(strata_id = 1:n(),
+                      strata_prop = purrr::map_int(dat, ~ nrow(.x)),
+                      strata_prop = strata_prop/sum(strata_prop))%>%
+        tidyr::unnest(cols = c(dat))
+    } else {
+      temp_data %<>%
+        dplyr::mutate(strata_id = 1,
+                      strata_prop = 1)
+    }
+
+    nclustmax_per_strat <- ceiling(n_clusters/length(unique(temp_data$strata_id)))
+
+    temp_data %<>%
+      split(., .$strata_id) %>%
+      plyr::ldply(
+        .data = .,
+        .fun = function(strat_df) {
+          if (!is.null(cluster)) {
+            strat_df %<>%
+              tidyr::nest(dat = -dplyr::all_of(cluster)) %>%
+              dplyr::mutate(cluster_id = 1:n(),
+                            cluster_prop = purrr::map_int(dat, ~ nrow(.x)),
+                            cluster_prop = cluster_prop/sum(cluster_prop)) %>%
+              tidyr::unnest(cols = c(dat))
+
+            strat_df %>%
+              dplyr::filter(frame == 1) %>%
+              tidyr::nest(dat = -c(cluster_id, cluster_prop)) %>%
+              dplyr::mutate(
+                sampled_cluster =
+                  ifelse(cluster_id %in% sample(x = cluster_id,
+                                                size = min(n(), nclustmax_per_strat),
+                                                prob = cluster_prop), 1, 0),
+                dat =
+                  purrr::map2(
+                    dat, cluster_prop,
+                    ~ dplyr::mutate(.x,
+                                    sampled = sample(c(rep(1,min(n(), nmax_per_cluster)),
+                                                       rep(0,max(0, n() - nmax_per_cluster)))),
+                                    weight = n()/(sum(sampled) * .y)))
+              ) %>%
+              tidyr::unnest(cols = c(dat)) %>%
+              dplyr::bind_rows(dplyr::filter(strat_df, frame != 1), .) %>%
+              dplyr::mutate(
+                across(c(sampled_cluster, sampled), ~ ifelse(is.na(.), 0, .)),
+                sampled = dplyr::if_else(sampled_cluster == 0, 0, sampled),
+                weight = weight * cluster_prop)
+          } else {
+            strat_df %>%
+              dplyr::mutate(cluster_id = 1:n(),
+                            cluster_prop = 1/n()) %>%
+              dplyr::filter(frame == 1) %>%
+              dplyr::mutate(sampled =
+                              sample(c(rep(1,min(n(), target_n_pps)),
+                                       rep(0,max(0, n() - target_n_pps)))),
+                            sampled_cluster = sampled,
+                            weight = sum(frame)/sum(sampled)) %>%
+              dplyr::bind_rows(dplyr::filter(strat_df, frame != 1), .) %>%
+              dplyr::mutate(across(c(sampled_cluster, sampled), ~ ifelse(is.na(.), 0, .)))
+          }
+        }
+      )
+
+    data <-
+      suppressMessages(
+        temp_data %>%
+          dplyr::rename_with(.cols = c(frame, cluster_prop, strata_prop, sampled_cluster, weight),
+                             ~ paste0(sampling_variable, "_", gsub("^sampled$", "", x = .))) %>%
+          dplyr::mutate("{ sampling_variable }" := sampled,
+                        "{ sampling_variable }_cluster" := cluster_id,
+                        "{ sampling_variable }_strata" := strata_id) %>%
+          dplyr::select(temp_id, starts_with(sampling_variable)) %>%
+          dplyr::left_join(data, ., by = "temp_id") %>%
+          dplyr::select(-temp_id)
+      )
+
+    if (drop_nonsampled) {
+      data %<>% dplyr::filter(dplyr::if_all(dplyr::all_of(sampling_variable), ~ . == 1))
+    }
+
+    return(data)
+
+  }
+
+
+#' Draw probability sample proportional to size (PPS) from single study
+#'
+#' Sampling handler for drawing proportional sample with given characteristics from individual study population
+#'
+#' @param data pass-through population data frame
+#' @param sampling_variable character string that is used as prefix for all variables generated by proportional sampling. Default is 'pps'
+#' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
+#' @param target_n_pps target size of proportional sample
+#' @param n_clusters number of clusters
+#' @param sampling_frame character vector containing all binary vectors identifying sampling frame
+#' @param cluster character vector containing name(s) of all cluster variables
+#' @param strata character vector containing name(s) of stratifying variables. Currently not implemented
+#' @param weights_type character string giving the type of weights to compute. Can be one of "absolute" or "relative". Currently only absolute weights are calculated
+#'
+#' @return Population or sample data frame for single study with PPS sample characteristics added
+#'  \describe{
+#'   \item{[sampling_variable]}{Sampling indicator}
+#'   \item{[sampling_variable]_frame}{Indicator for sampling frame (respondents with 0 cannot be enrolled)}
+#'   \item{[sampling_variable]_strata}{ID of respondent's strata}
+#'   \item{[sampling_variable]_strata_prop}{Proportion of sampling frame in the strata to which respondent belongs}
+#'   \item{[sampling_variable]_cluster}{ID of respondent's cluster}
+#'   \item{[sampling_variable]_cluster_prop}{Proportion of strata in the cluster to which respondent belongs}
+#'   \item{[sampling_variable]_weight}{Sampling weights}
+#'  }
 #' @export
 #'
 #' @import dplyr
@@ -40,36 +188,94 @@ sample_pps <-
 
     weights_type <- match.arg(weights_type)
 
-    data <- dplyr::mutate(data, temp_id = 1:n())
-    temp_data <- data %>% dplyr::select(temp_id, all_of(c(sampling_frame, strata, cluster)))
+    #check for naming conflicts in strata and cluster
+    conflict <- check_naming_conflict(data,strata,"strata")
+    strata <- conflict$var
+    colnames(data) <- conflict$colnames
+
+    conflict <- check_naming_conflict(data,cluster,"cluster")
+    cluster <- conflict$var
+    colnames(data) <- conflict$colnames
+
+    data.table::setDT(data)
+    data[,temp_id := .I]
+    temp_data <- data.table::copy(data)
+    temp_data <- temp_data[,c("temp_id", sampling_frame, strata, cluster), with=FALSE]
     nmax_per_cluster <- ceiling(target_n_pps/n_clusters)
 
-
     if (!is.null(sampling_frame)) {
-      temp_data %<>%
-        dplyr::mutate(frame = apply(.[,sampling_frame], 1, function(x) as.integer(all(x == 1))))
+      temp_data[, frame := Reduce(`&`, .SD), .SDcols=sampling_frame][, frame := as.integer(frame)]
     } else {
-      temp_data %<>% dplyr::mutate(frame = 1)
+      temp_data[, frame := 1]
     }
 
     # check that sampling is possible
-    if (target_n_pps >= sum(temp_data$frame))
+    if (target_n_pps >= sum(temp_data[["frame"]])) {
       stop("Requested PPS sample size is larger than population (or sampling frame) size")
-
-    if (!is.null(strata)) {
-      temp_data %<>%
-        tidyr::nest(dat = -dplyr::all_of(strata)) %>%
-        dplyr::mutate(strata_id = 1:n(),
-                      strata_prop = purrr::map_int(dat, ~ nrow(.x)),
-                      strata_prop = strata_prop/sum(strata_prop)) %>%
-        tidyr::unnest(cols = c(dat))
-    } else {
-      temp_data %<>%
-        dplyr::mutate(strata_id = 1,
-                      strata_prop = 1)
     }
 
-    nclustmax_per_strat <- ceiling(n_clusters/length(unique(temp_data$strata_id)))
+
+    if(!is.null(strata)) {
+      temp_data[, `:=` (strata_id = .GRP, strata_prop = .N), by = strata
+                ][, strata_prop = strata_prop / .N]
+    } else {
+      temp_data[, `:=` (strata_id = 1, strata_prop = 1)]
+    }
+
+
+    #if(!is.null(strata)) {
+    #  temp_data <- temp_data[, list(dat = list(.SD)), by = strata
+    #                         ][,`:=` (strata_id = 1:.N,
+    #                                  strata_prop = sapply(dat, function(x) nrow(x)) /
+    #                                                sum(sapply(dat, function(x) nrow(x))))
+    #                           ][, tidyr::unnest(.SD)]
+    #  data.table::setDT(temp_data)
+    #} else {
+    #  temp_data[, `:=` (strata_id = 1, strata_prop = 1)]
+    #}
+
+    nclustmax_per_strat <- ceiling(n_clusters/length(unique(temp_data[["strata_id"]])))
+
+    temp_data <- split(temp_data, list(temp_data[["strata_id"]]))
+
+    for(i in 1:length(temp_data)) {
+
+      strat_df <- temp_data[[i]]
+      data.table::setDT(strat_df)
+
+      if(!is.null(cluster)) {
+        strat_df[, `:=` (cluster_id = .GRP, cluster_prop = .N), by = cluster
+                 ][, cluster_prop = cluster_prop / .N]
+
+      }
+
+
+      #if(!is.null(cluster)) {
+      #  strat_df <- strat_df[, list(dat = list(.SD)), by = cluster
+      #                         ][, `:=` (cluster_id = 1:.N,
+      #                                   cluster_prop = sapply(dat, function(x) nrow(x)) /
+      #                                                   sum(sapply(dat, function(x) nrow(x))))
+      #                           ][, tidyr::unnest(.SD)]
+      #  data.table::setDT(strat_df)
+
+      #  strat_df <- strat_df[eval(as.name(sampling_frame)) == 1, list(dat = list(.SD)),
+      #                         by = list(cluster_id, cluster_prop)
+      #                         ][, `:=` (sampled_cluster =
+      #                                     ifelse(cluster_id %in% sample(x = cluster_id,
+      #                                                                   size = min(.N, nclustmax_per_strat),
+      #                                                                   prob = cluster_prop),1,0),
+      #                                   dat =
+      #                                     mapply(function(x,y){
+      #                                       x[,`:=` (sampled = sample(c(rep(1,min(.N, nmax_per_cluster)),
+      #                                                                   rep(0,max(0, .N - nmax_per_cluster)))))
+      #                                         ][, `:=` (weight = .N / (sum(sampled) * y))]
+      #                                     }, dat, cluster_prop))] # make the purr::map2 monstrosity on line 279 work
+        ## ---------------------------------------------------------------------
+      } else {
+
+      }
+
+    }
 
     temp_data %<>%
       split(., .$strata_id) %>%
