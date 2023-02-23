@@ -5,12 +5,11 @@
 #' @param hidden_var character string containing hidden group name in the study population data frame
 #'
 #' @return Estimands data frame for single study
-#' @export
 #'
 #' @import dplyr
 #' @importFrom magrittr `%>%`
 #' @importFrom purrr map_int
-get_study_estimands <- function(data,
+get_study_estimands_tidy <- function(data,
                                 known_pattern = "^known(\\_\\d|\\d)?$",
                                 hidden_var = "hidden") {
 
@@ -63,6 +62,63 @@ get_study_estimands <- function(data,
             stringsAsFactors = FALSE)
         } %>%
         bind_rows(.out, .)
+    }
+  }
+
+  return(.out)
+}
+
+
+
+#' Get individual study estimands using data.table
+#'
+#' @param data pass-through population data frame
+#' @param known_pattern character string containing regular expression to match known group names in the study population dataset
+#' @param hidden_var character string containing hidden group name in the study population data frame
+#'
+#' @return Estimands data frame for single study
+#' @export
+#'
+#' @import data.table
+get_study_estimands <- function(data,
+                                   known_pattern = "^known(\\_\\d|\\d)?$",
+                                   hidden_var = "hidden") {
+
+  if (!data.table::is.data.table(data)) data <- data.table::setDT(data)
+
+  known_groups <-
+    names(data)[grepl(x = names(data), pattern = known_pattern)]
+
+  .out <-
+    data[, grep(pattern = paste0(known_pattern, "|^", hidden_var, "$"),
+                       x = names(data), value = TRUE)
+       , with = FALSE]
+
+  .out <-
+    do.call(
+      rbind,
+      lapply(
+        X = names(.out),
+        FUN = function(x)
+          data.frame(inquiry = paste0(x, c("_size", "_prev")),
+                     estimand = c(sum(!is.na(.out[[x]])),
+                                  mean(.out[[x]], na.rm = TRUE)))))
+
+  if (length(known_groups) != 0) {
+    for (i in seq_along(known_groups)) {
+      .temp <-
+        data[
+          get(known_groups[i]) == 1
+          , grep(pattern = paste0("^", hidden_var, "$"), names(data), value = TRUE)
+          , with = FALSE
+        ]
+
+      .out <-
+        rbind(.out,
+              data.frame(
+                inquiry = paste0(names(.temp), c("_size", "_prev"), "_in_", known_groups[i]),
+                estimand = c(sum(!is.na(unlist(.temp))),
+                             mean(unlist(.temp), na.rm = TRUE))))
     }
   }
 

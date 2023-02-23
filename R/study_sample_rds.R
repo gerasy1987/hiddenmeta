@@ -522,7 +522,7 @@ sample_rds <-
             to = .available_links,
             parent = .new$to,
             coup = n_coupons)[
-              data1[, c("name", paste0(c("p_visible_", ""), ..hidden_var))]
+              data[, c("name", paste0(c("p_visible_", ""), ..hidden_var))]
               , on = .(to = name),
               paste0(c("p_visible_", ""), hidden_var) :=
                 mget(paste0("i.", paste0(c("p_visible_", ""), ..hidden_var)))

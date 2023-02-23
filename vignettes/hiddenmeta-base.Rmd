@@ -93,7 +93,7 @@ study_1 <-
                    target_cluster_type = "fixed",
                    target_per_cluster = 15,
                    clusters = paste0("loc_", 1:10)),
-        pps = list(handler = sample_pps,
+        pps = list(handler = hiddenmeta:::sample_pps_tidy,
                    sampling_variable = "pps",
                    # prop sampling parameters
                    sampling_frame = NULL,
@@ -186,8 +186,7 @@ study_population <-
 set.seed(872312)
 example_pop <- study_population()
 
-example_pop |>  
-  dplyr::sample_n(size = n()) |> 
+example_pop[sample(1:.N)] |> 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -231,8 +230,7 @@ study_sample_rds <-
   eval(as.call(c(list(declare_sampling), study_1$sample$rds)))
 
 set.seed(872312)
-draw_data(study_population + study_sample_rds) |>   
-  dplyr::sample_n(size = n())  |>  
+draw_data(study_population + study_sample_rds)[sample(1:.N)] |>  
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -310,7 +308,7 @@ draw_estimates(study_population +
                  study_sample_rds + study_sample_pps + study_sample_tls +
                  study_estimands +
                  est_sspse +
-                 est_chords +
+                 # est_chords +
                  est_multi +
                  est_nsum_pps + est_ht_pps +
                  est_nsum_tls + est_ht_tls + est_recap_tls +
