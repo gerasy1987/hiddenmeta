@@ -122,7 +122,7 @@ get_study_est_rds_ss <-
     )
   }
 
-#' Horvitz-Thompson prevalence estimator using
+#' Horvitz-Thompson prevalence estimator
 #'
 #' @param data pass-through population data frame
 #' @param hidden_var variable containing hidden group membership indicator
@@ -543,7 +543,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 
 
 
-#' Capture-recapture estimator for closed population
+#' Mark-recapture estimator for closed population
 #'
 #' @param data pass-through population data frame that contains capture indicators
 #' @param capture_vars character vector giving names of variables with capture indicators

@@ -393,7 +393,7 @@ saveRDS(study1_simulations, here::here("inst/extdata/study1_sim.rds"))
 ```{r study_diagnose, eval=TRUE}
 
 study_diagnosands <-
- declare_diagnosands(
+ DeclareDesign::declare_diagnosands(
     mean_estimand = mean(estimand),
     mean_estimate = mean(estimate),
     sd_estimate = sd(estimate),
