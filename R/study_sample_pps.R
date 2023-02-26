@@ -235,8 +235,8 @@ sample_pps <-
         strat_df[, `:=` (cluster_id = .GRP, cluster_prop = .N), by = cluster
                  ][, cluster_prop := cluster_prop / .N]
 
-        strat_df_2 <- strat_df[eval(as.name(sampling_frame)) == 0,,][,`:=` (sampled_cluster = 0, sampled = 0, weight = NA)]
-        strat_df <- strat_df[eval(as.name(sampling_frame)) == 1,,]
+        strat_df_2 <- strat_df[frame == 0,][,`:=` (sampled_cluster = 0, sampled = 0, weight = NA)]
+        strat_df <- strat_df[frame == 1,]
 
 
         sample <- unique(strat_df, by = c("cluster_id"))
@@ -255,11 +255,11 @@ sample_pps <-
         temp_data[[i]] <- strat_df
 
       } else {
-        strat_df_2 <- strat_df[eval(as.name(sampling_frame)) == 0,
+        strat_df_2 <- strat_df[frame == 0,
                                `:=` (sampled_cluster = 0, sampled = 0)]
 
         strat_df <- strat_df[, `:=` (cluster_id = .I, cluster_prop = 1/.N)
-                             ][eval(as.name(sampling_frame)) == 1,
+                             ][frame == 1,
                                `:=` (sampled = sample(c(rep(1, min(.N, target_n_pps)),
                                                         rep(0, max(0, .N - target_n_pps)))))
                                ][,`:=` (sampled_cluster = sampled,
