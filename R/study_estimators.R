@@ -701,31 +701,29 @@ y_samp <- data %>%
                      b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
                      n_0 = total)
 
-  if(parallel){
-    future::plan(future::multisession)
-    res <- furrr::future_map(1:gibbs_params$n_samples,
-                             ~lt_gibbs_cpp(data = data,
-                                           y_samp = y_samp,
-                                           strata = strata,
-                                           n_strata = n_strata,
-                                           n_waves = n_waves,
-                                           total = total,
-                                           chain_samples = gibbs_params$chain_samples,
-                                           priors = priors,
-                                           param_init = param_init),
-                             .progress = TRUE)
+  if(parallel) {
+    ncores <- parallel::detectCores() - 1
   } else {
-    res <- purrr::map(1:gibbs_params$n_samples,
-                      ~lt_gibbs_cpp(data = data,
-                                    y_samp = y_samp,
-                                    strata = strata,
-                                    n_strata = n_strata,
-                                    n_waves = n_waves,
-                                    total = total,
-                                    chain_samples = gibbs_params$chain_samples,
-                                    priors = priors,
-                                    param_init = param_init))
+    ncores <- 1
   }
+
+  res <- lt_gibbs_cpp(links_list = data$links_list,
+                      wave = data$rds_wave,
+                      name = data$name,
+                      y_samp = y_samp,
+                      strata = strata,
+                      n_strata = n_strata,
+                      n_waves = n_waves,
+                      total = total,
+                      chain_samples = gibbs_params$chain_samples,
+                      prior_n = priors$p_n,
+                      prior_l = priors$p_l,
+                      prior_b = priors$p_b,
+                      n_0 = param_init$n_0,
+                      l_0 = param_init$l_0,
+                      b_0 = param_init$b_0,
+                      n_samples = gibbs_params$n_samples,
+                      ncores = ncores)
 
 
   est <- sapply(res, function(i){

@@ -8,9 +8,7 @@
 #' @param new_index integer index element should be moved to
 #' @return shuffled vector
 #' @keywords internal
-move_elements <- function(x, old_index, new_index) {
-    .Call(`_hiddenmeta_move_elements`, x, old_index, new_index)
-}
+NULL
 
 #' n choose k helper for combn_cpp
 #'
@@ -18,9 +16,7 @@ move_elements <- function(x, old_index, new_index) {
 #' @param k integer number of elements to choose
 #' @return integer number of ways to choose k items out of n
 #' @keywords internal
-choose_cpp <- function(n, k) {
-    .Call(`_hiddenmeta_choose_cpp`, n, k)
-}
+NULL
 
 #' helper to generate combinations of x k at a time (cpp implementation of combn)
 #'
@@ -28,27 +24,21 @@ choose_cpp <- function(n, k) {
 #' @param K integer order of combinations
 #' @return a matrix of k-wise combinations of elements in x
 #' @keywords internal
-combn_cpp <- function(x, K) {
-    .Call(`_hiddenmeta_combn_cpp`, x, K)
-}
+NULL
 
 #' helper to generate single draw from dirichlet distribution
 #'
 #' @param alpha double vector of alpha parameters
 #' @return a double vector containing a single draw from a dirichlet distribution
 #' @keywords internal
-rdirichlet_cpp <- function(alpha) {
-    .Call(`_hiddenmeta_rdirichlet_cpp`, alpha)
-}
+NULL
 
 #' cpp implementation of R table
 #'
 #' @param x an integer vector of elements to be counted
 #' @return an integer vector of counts of unique elements in x (sorted in ascending order of elements in x)
 #' @keywords internal
-table_cpp <- function(x) {
-    .Call(`_hiddenmeta_table_cpp`, x)
-}
+NULL
 
 #' cpp implementation of standard R rep
 #'
@@ -56,9 +46,7 @@ table_cpp <- function(x) {
 #' @param n integer number of repetitions
 #' @return integer vector x repeated n times
 #' @keywords internal
-rep_times <- function(x, n) {
-    .Call(`_hiddenmeta_rep_times`, x, n)
-}
+NULL
 
 #' cpp implementation of R rep with each argument
 #'
@@ -66,9 +54,7 @@ rep_times <- function(x, n) {
 #' @param n integer number of repetitions
 #' @return integer vector with each element in x repeated n times in order
 #' @keywords internal
-rep_each <- function(x, n) {
-    .Call(`_hiddenmeta_rep_each`, x, n)
-}
+NULL
 
 #' helper to generate range of consecutive integers
 #'
@@ -76,20 +62,7 @@ rep_each <- function(x, n) {
 #' @param to last integer
 #' @return integer vector of consecutive integers between from and to inclusive
 #' @keywords internal
-gen_range <- function(from, to) {
-    .Call(`_hiddenmeta_gen_range`, from, to)
-}
-
-#' helper to do random access insertion for vectors
-#'
-#' @param vec integer vector to insert values into
-#' @param vals integer vector of values to insert into vec
-#' @param pos integer vector of index positions in vec to insert vals into
-#' @return integer vector with vals inserted at pos
-#' @keywords internal
-int_vec_insert <- function(vec, vals, pos) {
-    .Call(`_hiddenmeta_int_vec_insert`, vec, vals, pos)
-}
+NULL
 
 #' helper to do random access insertion of matrix into another matrix
 #'
@@ -101,9 +74,7 @@ int_vec_insert <- function(vec, vals, pos) {
 #' @param old_cols integer vector of column indeces of old_m to take values from
 #' @return matrix new_m with values from old_m in specified positions
 #' @keywords internal
-mat_to_mat_insert <- function(old_m, new_m, new_rows, new_cols, old_rows, old_cols) {
-    .Call(`_hiddenmeta_mat_to_mat_insert`, old_m, new_m, new_rows, new_cols, old_rows, old_cols)
-}
+NULL
 
 #' helper to permute sampling data
 #'
@@ -117,18 +88,26 @@ lt_permute <- function(link_list, wave, name) {
 }
 
 #' Link-tracing Gibbs sampler
-#' @param data DataFrame pass through of sammple data created in get_study_est_linktrace
+#' @param links_list list of between unit edges
+#' @param wave integer vector of rds wave units were sampled in
+#' @param name integer vector of unit ids
 #' @param y_samp matrix pass through of adjecency matrix generated in get_study_est_linktrace
 #' @param strata integer stratum id of each unit
 #' @param n_strata integer number of unique strata
 #' @param n_waves integer number of sampling waves
 #' @param total integer total size of the population
 #' @param chain_samples integer number of samples per MCMC chain
-#' @param priors List of priors for n, lambda and beta
-#' @param param_init List of initial values for n,lambda and beta
-#' @return integer vector of samples from the n distribution
+#' @param prior_n integer power law prior for population size
+#' @param prior_l double vector of dirichilet priors for stratum membership
+#' @param prior_b integer beta distribution prior for unit links
+#' @param n_0 integer initial value for n
+#' @param l_0 double vector initial values for l
+#' @param b_0 double matrix initial values for b
+#' @param n_samples number of samples to draw
+#' @param ncores number of cores to use for parallel sampling
+#' @return a vector of vectors with n_samples population size samples
 #' @keywords internal
-lt_gibbs_cpp <- function(data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init) {
-    .Call(`_hiddenmeta_lt_gibbs_cpp`, data, y_samp, strata, n_strata, n_waves, total, chain_samples, priors, param_init)
+lt_gibbs_cpp <- function(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores) {
+    .Call(`_hiddenmeta_lt_gibbs_cpp`, links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores)
 }
 

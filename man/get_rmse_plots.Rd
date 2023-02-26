@@ -25,12 +25,6 @@ get_rmse_plots(
 
 \item{estimator_map}{named character vector of mapping between estimators and names used in the plot}
 }
-\value{
-
-}
 \description{
 Create Diagnosis Plot of Log Normalized RMSE Across Studies
-}
-\examples{
-
 }

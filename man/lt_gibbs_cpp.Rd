@@ -5,19 +5,31 @@
 \title{Link-tracing Gibbs sampler}
 \usage{
 lt_gibbs_cpp(
-  data,
+  links_list,
+  wave,
+  name,
   y_samp,
   strata,
   n_strata,
   n_waves,
   total,
   chain_samples,
-  priors,
-  param_init
+  prior_n,
+  prior_l,
+  prior_b,
+  n_0,
+  l_0,
+  b_0,
+  n_samples,
+  ncores
 )
 }
 \arguments{
-\item{data}{DataFrame pass through of sammple data created in get_study_est_linktrace}
+\item{links_list}{list of between unit edges}
+
+\item{wave}{integer vector of rds wave units were sampled in}
+
+\item{name}{integer vector of unit ids}
 
 \item{y_samp}{matrix pass through of adjecency matrix generated in get_study_est_linktrace}
 
@@ -31,12 +43,24 @@ lt_gibbs_cpp(
 
 \item{chain_samples}{integer number of samples per MCMC chain}
 
-\item{priors}{List of priors for n, lambda and beta}
+\item{prior_n}{integer power law prior for population size}
 
-\item{param_init}{List of initial values for n,lambda and beta}
+\item{prior_l}{double vector of dirichilet priors for stratum membership}
+
+\item{prior_b}{integer beta distribution prior for unit links}
+
+\item{n_0}{integer initial value for n}
+
+\item{l_0}{double vector initial values for l}
+
+\item{b_0}{double matrix initial values for b}
+
+\item{n_samples}{number of samples to draw}
+
+\item{ncores}{number of cores to use for parallel sampling}
 }
 \value{
-integer vector of samples from the n distribution
+a vector of vectors with n_samples population size samples
 }
 \description{
 Link-tracing Gibbs sampler

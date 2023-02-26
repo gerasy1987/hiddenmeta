@@ -17,12 +17,6 @@ get_single_study_design(
 
 \item{sheet}{Character string giving name of the sheet in the Google spreadsheet to read}
 }
-\value{
-
-}
 \description{
 Get Parameters and Design Features of Specific Study
-}
-\examples{
-
 }
