@@ -73,7 +73,8 @@ get_study_est_sspse <- function(data,
 #' Sequential Sampling (SS) prevalence estimator by Gile (2011)
 #'
 #' @param data pass-through population data frame
-#' @param hidden_var character string specifying hidden variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "hidden" for the simulations
+#' @param sampling_var character string specifying name of the group from which RDS sample was drawn (associated probability of visibility should be named \code{p_visible_[sampling_var]}). Defaults to "hidden" for the simulations
+#' @param hidden_var character string specifying names of the hidden group variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
 #' @param total integer giving the total size of known population (denominator for prevalence)
 #' @param rds_prefix character prefix used for RDS sample variables
@@ -88,13 +89,14 @@ get_study_est_sspse <- function(data,
 #' @import dplyr
 #' @importFrom RDS as.rds.data.frame RDS.SS.estimates
 #' @importFrom purrr quietly
-get_study_est_rds_ss <-
+get_study_est_ss <-
   function(data,
-           hidden_var = "hidden",
+           sampling_var = "hidden",
+           hidden_var = "target",
            n_coupons = 3,
-           total = 2000,
+           total = 1000,
            rds_prefix = "rds",
-           label = "sspse") {
+           label = "ss") {
 
     .quiet_rds_ss <- purrr::quietly(RDS::RDS.SS.estimates)
 
@@ -111,14 +113,15 @@ get_study_est_rds_ss <-
                              time = paste0(rds_prefix, "_t"),
                              max.coupons = n_coupons) %>%
       .quiet_rds_ss(., outcome.variable = hidden_var, N = total) %>%
+      .$result %>%
       .$interval %>%
       .[c(1,5)]
 
     return(
-      data.frame(estimator = paste0("hidden_prev_", label),
+      data.frame(estimator = paste0(hidden_var, "_prev_in_", sampling_var, "_", label),
                  estimate = c(unname(.fit_rds_ss[1])),
                  se =   c(unname(.fit_rds_ss[2])),
-                 inquiry = c("hidden_prev"))
+                 inquiry = paste0(hidden_var, "_prev_in_", sampling_var))
     )
   }
 
@@ -241,7 +244,7 @@ get_study_est_chords <- function(data,
     data %>%
     dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
     dplyr::mutate(
-      NS1 = apply(.[,grep(pattern = .pattern, x = names(data))], 1, sum),
+      NS1 = apply(.[, grep(pattern = .pattern, x = names(data)), with = FALSE], 1, sum),
       refCoupNum = get(paste0(rds_prefix, "_own_coupon")),
       interviewDt = get(paste0(rds_prefix, "_t"))) %>%
     dplyr::rename_with(
