@@ -188,14 +188,14 @@ sample_pps <-
 
     weights_type <- match.arg(weights_type)
 
-    #check for naming conflicts in strata and cluster
-    conflict <- check_naming_conflict(data,strata,"strata")
-    strata <- conflict$var
-    colnames(data) <- conflict$colnames
-
-    conflict <- check_naming_conflict(data,cluster,"cluster")
-    cluster <- conflict$var
-    colnames(data) <- conflict$colnames
+    # #check for naming conflicts in strata and cluster
+    # conflict <- check_naming_conflict(data,strata,"strata")
+    # strata <- conflict$var
+    # colnames(data) <- conflict$colnames
+    #
+    # conflict <- check_naming_conflict(data,cluster,"cluster")
+    # cluster <- conflict$var
+    # colnames(data) <- conflict$colnames
 
     data.table::setDT(data)
     data[,temp_id := .I]
@@ -229,43 +229,70 @@ sample_pps <-
     for(i in 1:length(temp_data)) {
 
       strat_df <- temp_data[[i]]
-      data.table::setDT(strat_df)
+      # data.table::setDT(strat_df)
 
       if(!is.null(cluster)) {
-        strat_df[, `:=` (cluster_id = .GRP, cluster_prop = .N), by = cluster
-                 ][, cluster_prop := cluster_prop / .N]
 
-        strat_df_2 <- strat_df[frame == 0,][,`:=` (sampled_cluster = 0, sampled = 0, weight = NA)]
-        strat_df <- strat_df[frame == 1,]
+        strat_df_2 <-
+          strat_df[
+            frame == 0,
+          ][
+            ,`:=` (cluster_id = NA, cluster_prop = NA,
+                   sampled_cluster = 0, sampled = 0, weight = NA)
+          ]
 
+        strat_df <-
+          strat_df[
+            frame == 1,
+          ][
+            , `:=` (cluster_id = .GRP, cluster_prop = .N), by = cluster
+          ][
+            , cluster_prop := cluster_prop / .N
+          ]
 
         sample <- unique(strat_df, by = c("cluster_id"))
-        sample <- sample(sample$cluster_id, size = min(nrow(sample), nclustmax_per_strat), prob = sample$cluster_prop)
-        strat_df[, `:=` (sampled_cluster = ifelse(cluster_id %in% sample, 1, 0))]
+        sample <- sample(sample$cluster_id,
+                         size = min(nrow(sample), nclustmax_per_strat),
+                         prob = sample$cluster_prop)
 
-        strat_df[,`:=` (sampled = sample(c(rep(1, min(.N, nmax_per_cluster)),
-                                           rep(0, max(0, .N - nmax_per_cluster))))),
-                 by = list(cluster_id, cluster_prop)]
+        strat_df[
+          , `:=` (sampled_cluster = ifelse(cluster_id %in% sample, 1, 0))
+        ][
+          ,`:=` (sampled = sample(c(rep(1, min(.N, nmax_per_cluster)),
+                                    rep(0, max(0, .N - nmax_per_cluster))))),
+          by = list(cluster_id, cluster_prop)
+        ][
+          ,`:=` (sampled = sampled * sampled_cluster)
+        ][
+          , `:=` (weight = .N / (sum(sampled) * cluster_prop)),
+          by = list(cluster_id, cluster_prop)
+        ]
 
-        strat_df[, `:=` (weight = .N / (sum(sampled) * cluster_prop)),
-                 by = list(cluster_id, cluster_prop)]
-
-        strat_df <- data.table::rbindlist(list(strat_df_2,strat_df))
-        strat_df[,`:=` (sampled = sampled * sampled_cluster)]
-        temp_data[[i]] <- strat_df
+        temp_data[[i]] <- data.table::rbindlist(list(strat_df_2,strat_df),
+                                                use.names = TRUE)
 
       } else {
-        strat_df_2 <- strat_df[frame == 0,
-                               `:=` (sampled_cluster = 0, sampled = 0)]
 
-        strat_df <- strat_df[, `:=` (cluster_id = .I, cluster_prop = 1/.N)
-                             ][frame == 1,
-                               `:=` (sampled = sample(c(rep(1, min(.N, target_n_pps)),
-                                                        rep(0, max(0, .N - target_n_pps)))))
-                               ][,`:=` (sampled_cluster = sampled,
+        strat_df_2 <-
+          strat_df[
+            frame == 0,
+          ][
+            ,`:=` (cluster_id = NA, cluster_prop = NA,
+                   sampled_cluster = 0, sampled = 0, weight = NA)
+          ]
+
+        strat_df <-
+          strat_df[
+            frame == 1,
+          ][, `:=` (cluster_id = .I, cluster_prop = 1/.N)
+          ][
+            , `:=` (sampled = sample(c(rep(1, min(.N, target_n_pps)),
+                                       rep(0, max(0, .N - target_n_pps)))))
+          ][,`:=` (sampled_cluster = sampled,
                                         weight = sum(frame)/sum(sampled))]
 
-        temp_data[[i]] <- data.table::rbindlist(list(strat_df_2,strat_df))
+        temp_data[[i]] <- data.table::rbindlist(list(strat_df_2,strat_df),
+                                                use.names = TRUE)
       }
 
     }
