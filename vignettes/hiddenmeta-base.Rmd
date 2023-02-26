@@ -71,8 +71,8 @@ study_1 <-
           list(
             service_use = "rbinom(.N, 1, 0.25)",
             "paste0('loc_', 1:10) := lapply(rep(.2, times = 10), function(add) rbinom(.N, 1, 0.05 + hidden * add))",
-            known_2 = 0.3,
-            "paste0('known_', 3:10) := lapply(3:10, function(x) rbinom(.N, 1, 0.3))")
+            target = 0.3,
+            "paste0('known_', 2:10) := lapply(2:10, function(x) rbinom(.N, 1, 0.3))")
       ),
     sample = 
       list(
@@ -102,12 +102,20 @@ study_1 <-
                    target_n_pps = 150)
       ),
     inquiries = list(handler = get_study_estimands,
-                     known_pattern = "^known(\\_\\d|\\d)?$", 
+                     in_groups = "^target$",
+                     out_groups = "^known$", 
                      hidden_var = "hidden"),
     estimators = 
       list(
         rds = 
-          list(sspse = list(handler = get_study_est_sspse,
+          list(ss = list(handler = get_study_est_ss,
+                         sampling_var = "hidden",
+                         hidden_var = "target", # estimates prevalence withing RDS
+                         n_coupons = 3,
+                         total = 1000,
+                         rds_prefix = "rds",
+                         label = "ss"),
+               sspse = list(handler = get_study_est_sspse,
                             prior_mean = 100,
                             mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
                             total = 1000,
@@ -142,7 +150,7 @@ study_1 <-
                recap = list(handler = get_study_est_recapture,
                             capture_parse = 
                               "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
-                            sample_condition = "tls == 1",
+                            # sample_condition = "tls == 1",
                             model = "Mt",
                             hidden_variable = "hidden",
                             label = "tls_recap")),
@@ -277,6 +285,8 @@ draw_estimands(study_population +
 
 ```{r example_estimators}
 
+est_ss <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$ss)))
 est_sspse <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$rds$sspse)))
 est_chords <- 
@@ -305,8 +315,8 @@ set.seed(872312)
 draw_estimates(study_population +
                  study_sample_rds + study_sample_pps + study_sample_tls +
                  study_estimands +
-                 est_sspse +
-                 # est_chords +
+                 est_ss + est_sspse +
+                 est_chords +
                  est_multi +
                  est_nsum_pps + est_ht_pps +
                  est_nsum_tls + est_ht_tls + est_recap_tls +
@@ -461,7 +471,7 @@ study_2 <-
                    target_n_pps = 800)
       ),
     inquiries = list(handler = get_study_estimands,
-                     known_pattern = "^known$|^frame$", 
+                     out_groups = "^known$|^frame$", 
                      hidden_var = "hidden"),
     estimators = 
       list(
@@ -580,7 +590,7 @@ study_3 <-
                    target_n_pps = 400)
       ),
     inquiries = list(handler = get_study_estimands,
-                     known_pattern = "^known$", 
+                     out_groups = "^known$", 
                      hidden_var = "hidden"),
     estimators = 
       list(
