@@ -6,14 +6,17 @@
 \usage{
 get_study_estimands(
   data,
-  known_pattern = "^known(\\\\_\\\\d|\\\\d)?$",
+  in_groups = NULL,
+  out_groups = "^known(\\\\_\\\\d|\\\\d)?$",
   hidden_var = "hidden"
 )
 }
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{known_pattern}{character string containing regular expression to match known group names in the study population dataset}
+\item{in_groups}{character string containing regular expression to match group names for which prevalence is estimated within hidden group}
+
+\item{out_groups}{character string containing regular expression to match group names within which hidden group prevalence is estimated}
 
 \item{hidden_var}{character string containing hidden group name in the study population data frame}
 }
