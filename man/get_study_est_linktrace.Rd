@@ -9,7 +9,7 @@ get_study_est_linktrace(
   total = 2000,
   strata = "",
   parallel = TRUE,
-  gibbs_params = list(n_samples = 100L, chain_samples = 500L, chain_burnin = 100L),
+  gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
   prefix = "",
   label = "link_trace"

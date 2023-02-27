@@ -638,7 +638,7 @@ get_study_est_linktrace <- function(
   total = 2000,
   strata = "",
   parallel = TRUE,
-  gibbs_params = list(n_samples = 100L, chain_samples = 500L, chain_burnin = 100L),
+  gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
   prefix = "",
   label = "link_trace"
@@ -683,7 +683,6 @@ y_samp <- data %>%
   }
 
   strata <- as.integer(data[["strata_id"]])
-
   n_strata <- length(unique(strata))
 
   if(length(priors$p_l) == 1){
@@ -696,13 +695,10 @@ y_samp <- data %>%
 
   n_waves <- max(data$rds_wave)
 
-
-  param_init <- list(l_0 = rep(1/n_strata, n_strata),
-                     b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
-                     n_0 = total)
-
   if(parallel) {
-    ncores <- parallel::detectCores() - 1
+    warning("parallel processing is currently disabled in cpp, defaulting to sequential processing on single thread.")
+    #ncores <- parallel::detectCores() - 1
+    ncores <- 1
   } else {
     ncores <- 1
   }
@@ -716,27 +712,23 @@ y_samp <- data %>%
                       n_waves = n_waves,
                       total = total,
                       chain_samples = gibbs_params$chain_samples,
+                      chain_burnin = gibbs_params$chain_burnin,
                       prior_n = priors$p_n,
                       prior_l = priors$p_l,
                       prior_b = priors$p_b,
-                      n_0 = param_init$n_0,
-                      l_0 = param_init$l_0,
-                      b_0 = param_init$b_0,
+                      n_0 = total,
+                      l_0 = rep(1/n_strata, n_strata),
+                      b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
                       n_samples = gibbs_params$n_samples,
                       ncores = ncores)
 
 
-  est <- sapply(res, function(i){
-    mean(i[(gibbs_params$chain_burnin + 1):gibbs_params$chain_samples])
-  })
-
   return(
     data.frame(estimator = paste0("hidden_size_", label),
-               estimate = mean(est),
-               se = sd(est),
+               estimate = mean(res$N),
+               se = sd(res$N),
                inquiry = "hidden_size")
   )
 
 }
-
 

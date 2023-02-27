@@ -1,13 +1,12 @@
 #include <RcppArmadillo.h>
 #include <unistd.h>
 #include <vector>
-#include <omp.h>
 #include <iostream>
 #include <chrono>
 #include <progress.hpp>
 #include <progress_bar.hpp>
+#include <omp.h>
 // [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::depends(RcppProgress)]]
 using namespace Rcpp;
 
@@ -268,6 +267,7 @@ std::vector<std::vector<int>> lt_permute(std::vector<std::vector<int>> &link_lis
 //' @param n_waves integer number of sampling waves
 //' @param total integer total size of the population
 //' @param chain_samples integer number of samples per MCMC chain
+//' @param chain_burning integer number of burnin samples per MCMC chain
 //' @param prior_n integer power law prior for population size
 //' @param prior_l double vector of dirichilet priors for stratum membership
 //' @param prior_b integer beta distribution prior for unit links
@@ -278,8 +278,9 @@ std::vector<std::vector<int>> lt_permute(std::vector<std::vector<int>> &link_lis
 //' @param ncores number of cores to use for parallel sampling
 //' @return a vector of vectors with n_samples population size samples
 //' @keywords internal
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
-std::vector<std::vector<int>> lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
+List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
                               std::vector<int> wave,
                               std::vector<int> name,
                               arma::mat y_samp,
@@ -288,6 +289,7 @@ std::vector<std::vector<int>> lt_gibbs_cpp(std::vector<std::vector<int>> links_l
                               int n_waves,
                               int total,
                               int chain_samples,
+                              int chain_burnin,
                               int prior_n,
                               std::vector<double> prior_l,
                               int prior_b,
@@ -298,10 +300,11 @@ std::vector<std::vector<int>> lt_gibbs_cpp(std::vector<std::vector<int>> links_l
                               int ncores) {
   Function cpp_sample("sample");
   Progress p(n_samples, true);
-  std::vector<std::vector<int>> nout(n_samples);
-
+  std::vector<double> n_out(n_samples);
+  arma::mat l_out(n_samples,n_strata);
+  //setenv("OMP_STACKSIZE","2G",1);
   // set parallel environment
-  #pragma omp parallel num_threads(ncores) default(none) shared(cpp_sample,p,nout,links_list,wave,name,y_samp,strata,n_strata,n_waves,total,chain_samples,prior_n,prior_l,prior_b,n_0,l_0,b_0,n_samples)
+  #pragma omp parallel num_threads(ncores) default(none) shared(cpp_sample,p,n_out,l_out,links_list,wave,name,strata,n_strata,n_waves,total,chain_samples,chain_burnin,prior_n,prior_l,prior_b,n_0,l_0,b_0,n_samples,y_samp)
   {
     #pragma omp for
     for(int samps = 0; samps < n_samples; ++samps) {
@@ -588,14 +591,19 @@ std::vector<std::vector<int>> lt_gibbs_cpp(std::vector<std::vector<int>> links_l
 
             }
           }
-
           b.slice(t) = b_i;
         }
-        nout[samps] = n;
+        // calculate mean n
+        double n_sum = std::accumulate(n.begin() + chain_burnin, n.end(), 0.0);
+        n_out[samps] = n_sum / (chain_samples - chain_burnin);
+        // calculate mean lambda
+        l = l.submat(chain_burnin,0,chain_samples - 1, n_strata - 1);
+        l_out.row(samps) = mean(l,0);
       }
     }
   }
-  return nout;
+  List out = List::create(Named("N") = n_out , _["L"] = l_out);
+  return out;
 }
 
 

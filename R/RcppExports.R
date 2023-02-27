@@ -87,27 +87,7 @@ lt_permute <- function(link_list, wave, name) {
     .Call(`_hiddenmeta_lt_permute`, link_list, wave, name)
 }
 
-#' Link-tracing Gibbs sampler
-#' @param links_list list of between unit edges
-#' @param wave integer vector of rds wave units were sampled in
-#' @param name integer vector of unit ids
-#' @param y_samp matrix pass through of adjecency matrix generated in get_study_est_linktrace
-#' @param strata integer stratum id of each unit
-#' @param n_strata integer number of unique strata
-#' @param n_waves integer number of sampling waves
-#' @param total integer total size of the population
-#' @param chain_samples integer number of samples per MCMC chain
-#' @param prior_n integer power law prior for population size
-#' @param prior_l double vector of dirichilet priors for stratum membership
-#' @param prior_b integer beta distribution prior for unit links
-#' @param n_0 integer initial value for n
-#' @param l_0 double vector initial values for l
-#' @param b_0 double matrix initial values for b
-#' @param n_samples number of samples to draw
-#' @param ncores number of cores to use for parallel sampling
-#' @return a vector of vectors with n_samples population size samples
-#' @keywords internal
-lt_gibbs_cpp <- function(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores) {
-    .Call(`_hiddenmeta_lt_gibbs_cpp`, links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores)
+lt_gibbs_cpp <- function(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores) {
+    .Call(`_hiddenmeta_lt_gibbs_cpp`, links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores)
 }
 

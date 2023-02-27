@@ -25,8 +25,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // lt_gibbs_cpp
-std::vector<std::vector<int>> lt_gibbs_cpp(std::vector<std::vector<int>> links_list, std::vector<int> wave, std::vector<int> name, arma::mat y_samp, std::vector<int> strata, int n_strata, int n_waves, int total, int chain_samples, int prior_n, std::vector<double> prior_l, int prior_b, int n_0, std::vector<double> l_0, arma::mat b_0, int n_samples, int ncores);
-RcppExport SEXP _hiddenmeta_lt_gibbs_cpp(SEXP links_listSEXP, SEXP waveSEXP, SEXP nameSEXP, SEXP y_sampSEXP, SEXP strataSEXP, SEXP n_strataSEXP, SEXP n_wavesSEXP, SEXP totalSEXP, SEXP chain_samplesSEXP, SEXP prior_nSEXP, SEXP prior_lSEXP, SEXP prior_bSEXP, SEXP n_0SEXP, SEXP l_0SEXP, SEXP b_0SEXP, SEXP n_samplesSEXP, SEXP ncoresSEXP) {
+List lt_gibbs_cpp(std::vector<std::vector<int>> links_list, std::vector<int> wave, std::vector<int> name, arma::mat y_samp, std::vector<int> strata, int n_strata, int n_waves, int total, int chain_samples, int chain_burnin, int prior_n, std::vector<double> prior_l, int prior_b, int n_0, std::vector<double> l_0, arma::mat b_0, int n_samples, int ncores);
+RcppExport SEXP _hiddenmeta_lt_gibbs_cpp(SEXP links_listSEXP, SEXP waveSEXP, SEXP nameSEXP, SEXP y_sampSEXP, SEXP strataSEXP, SEXP n_strataSEXP, SEXP n_wavesSEXP, SEXP totalSEXP, SEXP chain_samplesSEXP, SEXP chain_burninSEXP, SEXP prior_nSEXP, SEXP prior_lSEXP, SEXP prior_bSEXP, SEXP n_0SEXP, SEXP l_0SEXP, SEXP b_0SEXP, SEXP n_samplesSEXP, SEXP ncoresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -39,6 +39,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n_waves(n_wavesSEXP);
     Rcpp::traits::input_parameter< int >::type total(totalSEXP);
     Rcpp::traits::input_parameter< int >::type chain_samples(chain_samplesSEXP);
+    Rcpp::traits::input_parameter< int >::type chain_burnin(chain_burninSEXP);
     Rcpp::traits::input_parameter< int >::type prior_n(prior_nSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type prior_l(prior_lSEXP);
     Rcpp::traits::input_parameter< int >::type prior_b(prior_bSEXP);
@@ -47,14 +48,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type b_0(b_0SEXP);
     Rcpp::traits::input_parameter< int >::type n_samples(n_samplesSEXP);
     Rcpp::traits::input_parameter< int >::type ncores(ncoresSEXP);
-    rcpp_result_gen = Rcpp::wrap(lt_gibbs_cpp(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores));
+    rcpp_result_gen = Rcpp::wrap(lt_gibbs_cpp(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_hiddenmeta_lt_permute", (DL_FUNC) &_hiddenmeta_lt_permute, 3},
-    {"_hiddenmeta_lt_gibbs_cpp", (DL_FUNC) &_hiddenmeta_lt_gibbs_cpp, 17},
+    {"_hiddenmeta_lt_gibbs_cpp", (DL_FUNC) &_hiddenmeta_lt_gibbs_cpp, 18},
     {NULL, NULL, 0}
 };
 
