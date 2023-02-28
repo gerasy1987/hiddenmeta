@@ -318,6 +318,7 @@ sample_rds_tidy <-
 #' @param add_seeds numeric indicating how many seeds to add at a time if target sample size is not reached with initial seeds. Additional seeds are randomly drawn from non-sampled hidden population members. Defaults to \code{NULL} that does not allow adding seeds
 #' @param arrival_rate numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to .5
 #' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
+#' @param linktrace logical indicating whether to use linktrace rds sampling (i.e. sampling from hidden and non-hidden poulations)\code{FALSE}. Default is \code{FALSE}
 #'
 #' @return Population or sample data frame for single study with RDS sample characteristics added
 #'  \describe{
@@ -345,14 +346,19 @@ sample_rds <-
            target_n_rds,
            add_seeds = NULL,
            arrival_rate = .5,
-           drop_nonsampled = FALSE) {
+           drop_nonsampled = FALSE,
+           linktrace = FALSE) {
 
     target_type <- match.arg(target_type)
 
     data[, links_list := retrieve_adjlist(links)]
-
     # generate arrival times using rate of 2 per unit of time
     # consider making rate a lambda parameter later
+    if(linktrace){
+      hidden_old <- data[[hidden_var]]
+      data[,hidden_var] <- 1
+    }
+
     .arrival_time <-
       base::cumsum(
         stats::rexp(n = nrow(data[get(hidden_var) == 1]), rate = arrival_rate)
@@ -556,6 +562,10 @@ sample_rds <-
     ][
       , links_list := NULL
     ]
+
+    if(linktrace){
+      data[,hidden_var] <- hidden_old
+    }
 
     if (drop_nonsampled) data <- data[get(sampling_variable) == 1]
 
