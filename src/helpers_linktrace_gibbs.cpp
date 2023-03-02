@@ -1,8 +1,6 @@
 #include <RcppArmadillo.h>
-#include <unistd.h>
 #include <vector>
 #include <iostream>
-#include <chrono>
 #include <string>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -82,7 +80,7 @@ std::vector<double> rdirichlet_cpp(std::vector<double> alpha){
   for(int i = 0; i < alpha.size(); i++){
 
     if(alpha[i] > 0.0){
-      vec[i] = as<double>(Rcpp::rgamma(1,alpha[i],(1/alpha[i])));
+      vec[i] = Rcpp::as<double>(Rcpp::rgamma(1,alpha[i],(1/alpha[i])));
     } else {
       vec[i] = 0.0;
     }
@@ -261,26 +259,25 @@ void update_progress_bar(int progress, int total) {
 //' @param n_samples number of samples to draw
 //' @return a vector of vectors with n_samples population size samples
 //' @keywords internal
-// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
-List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
-                              std::vector<int> wave,
-                              std::vector<int> name,
-                              arma::mat y_samp,
-                              std::vector<int> strata,
-                              int n_strata,
-                              int n_waves,
-                              int total,
-                              int chain_samples,
-                              int chain_burnin,
-                              int prior_n,
-                              std::vector<double> prior_l,
-                              int prior_b,
-                              int n_0,
-                              std::vector<double> l_0,
-                              arma::mat b_0,
-                              int n_samples) {
-  Function cpp_sample("sample");
+Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
+                        std::vector<int> wave,
+                        std::vector<int> name,
+                        arma::mat y_samp,
+                        std::vector<int> strata,
+                        int n_strata,
+                        int n_waves,
+                        int total,
+                        int chain_samples,
+                        int chain_burnin,
+                        int prior_n,
+                        std::vector<double> prior_l,
+                        int prior_b,
+                        int n_0,
+                        std::vector<double> l_0,
+                        arma::mat b_0,
+                        int n_samples) {
+  Rcpp::Function cpp_sample("sample");
   std::vector<double> n_out(n_samples);
   arma::mat l_out(n_samples,n_strata);
   for(int samps = 0; samps < n_samples; ++samps) {
@@ -421,7 +418,7 @@ List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
         n_sample_prob.push_back(exp(n_sample_prob_vec[i] - max_n_sample_prob_vec));
       }
 
-      std::vector<int> nt = as<std::vector<int>>(cpp_sample(n_post_range, 1, false, n_sample_prob));
+      std::vector<int> nt = Rcpp::as<std::vector<int>>(cpp_sample(n_post_range, 1, false, n_sample_prob));
       n.push_back(nt[0]);
 
       // generate new lambda -----------------------------------------------
@@ -441,7 +438,7 @@ List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
         pstrat.push_back(no_link_l[i]/no_link);
       }
 
-      std::vector<int> stratsamp = as<std::vector<int>>(cpp_sample(strat_s, not_sampled.size(), true, pstrat));
+      std::vector<int> stratsamp = Rcpp::as<std::vector<int>>(cpp_sample(strat_s, not_sampled.size(), true, pstrat));
 
       for(int i = 0; i < stratsamp.size(); i++){
         stratum.push_back(stratsamp[i]);
@@ -549,7 +546,7 @@ List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
 
         double shape_1 = strata_link_count(i,i) + prior_b;
         double shape_2 = choose_cpp(strata_count_int[i],2) - strata_link_count(i,i) + prior_b;
-        b_i(i,i) = as<double>(Rcpp::rbeta(1,shape_1,shape_2));
+        b_i(i,i) = Rcpp::as<double>(Rcpp::rbeta(1,shape_1,shape_2));
 
       }
 
@@ -558,7 +555,7 @@ List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
 
           double shape_1 = strata_link_count(i,j) + strata_link_count(j,i) + prior_b;
           double shape_2 = strata_count_int[i] * strata_count_int[j] - strata_link_count(i,j) - strata_link_count(j,i) + prior_b;
-          double beta_i = as<double>(Rcpp::rbeta(1,shape_1,shape_2));
+          double beta_i = Rcpp::as<double>(Rcpp::rbeta(1,shape_1,shape_2));
 
           b_i(i,j) = beta_i;
           b_i(j,i) = beta_i;
@@ -573,9 +570,9 @@ List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
     n_out[samps] = n_sum / (chain_samples - chain_burnin);
     // calculate mean lambda
     l = l.submat(chain_burnin,0,chain_samples - 1, n_strata - 1);
-    l_out.row(samps) = mean(l,0);
+    l_out.row(samps) = arma::mean(l,0);
   }
-  List out = List::create(Named("N") = n_out , _["L"] = l_out);
+  Rcpp::List out = Rcpp::List::create(Named("N") = n_out , _["L"] = l_out);
   return out;
 }
 
