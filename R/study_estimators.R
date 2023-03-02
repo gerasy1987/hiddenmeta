@@ -621,7 +621,6 @@ get_study_est_recapture <- function(
 #' @param data pass through sample
 #' @param total integer giving the total size of the population
 #' @param strata string specifying column name of strata vector
-#' @param parallel logical, if TRUE gibbs sampling proceeds in parallel
 #' @param gibbs_params named list of parameters passed to Gibbs sampler
 #' @param priors named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).
 #' @param prefix
@@ -637,7 +636,6 @@ get_study_est_linktrace <- function(
   data,
   total = 2000,
   strata = "",
-  parallel = TRUE,
   gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
   prefix = "",
@@ -695,14 +693,6 @@ y_samp <- data %>%
 
   n_waves <- max(data$rds_wave)
 
-  if(parallel) {
-    warning("parallel processing is currently disabled in cpp, defaulting to sequential processing on single thread.")
-    #ncores <- parallel::detectCores() - 1
-    ncores <- 1
-  } else {
-    ncores <- 1
-  }
-
   res <- lt_gibbs_cpp(links_list = data$links_list,
                       wave = data$rds_wave,
                       name = data$name,
@@ -719,9 +709,7 @@ y_samp <- data %>%
                       n_0 = total,
                       l_0 = rep(1/n_strata, n_strata),
                       b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
-                      n_samples = gibbs_params$n_samples,
-                      ncores = ncores)
-
+                      n_samples = gibbs_params$n_samples)
 
   return(
     data.frame(estimator = paste0("hidden_size_", label),

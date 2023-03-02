@@ -64,18 +64,6 @@ NULL
 #' @keywords internal
 NULL
 
-#' helper to do random access insertion of matrix into another matrix
-#'
-#' @param old_m matrix to take values from
-#' @param new_m matrix to insert values into
-#' @param new_rows integer vector of row indeces of new_m to insert values into
-#' @param new_cols integer vector of column indeces of new_m to insert values into
-#' @param old_rows integer vector of row indeces of old_m to take values from
-#' @param old_cols integer vector of column indeces of old_m to take values from
-#' @return matrix new_m with values from old_m in specified positions
-#' @keywords internal
-NULL
-
 #' helper to permute sampling data
 #'
 #' @param link_list List holding indices of linked units for each unit
@@ -88,7 +76,7 @@ NULL
 #' simple progress bar function
 NULL
 
-lt_gibbs_cpp <- function(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores) {
-    .Call(`_hiddenmeta_lt_gibbs_cpp`, links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores)
+lt_gibbs_cpp <- function(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples) {
+    .Call(`_hiddenmeta_lt_gibbs_cpp`, links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples)
 }
 

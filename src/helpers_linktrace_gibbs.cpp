@@ -172,34 +172,6 @@ std::vector<int> gen_range(int from,
 
 }
 
-//' helper to do random access insertion of matrix into another matrix
-//'
-//' @param old_m matrix to take values from
-//' @param new_m matrix to insert values into
-//' @param new_rows integer vector of row indeces of new_m to insert values into
-//' @param new_cols integer vector of column indeces of new_m to insert values into
-//' @param old_rows integer vector of row indeces of old_m to take values from
-//' @param old_cols integer vector of column indeces of old_m to take values from
-//' @return matrix new_m with values from old_m in specified positions
-//' @keywords internal
-
-arma::mat mat_to_mat_insert(arma::mat old_m,
-                            arma::mat new_m,
-                            std::vector<int> new_rows,
-                            std::vector<int> new_cols,
-                            std::vector<int> old_rows,
-                            std::vector<int> old_cols){
-
-  for(int i = 0; i < new_rows.size(); i++){
-    for(int j = 0; j < new_cols.size(); j++){
-      new_m(new_rows[i] - 1 , new_cols[j] - 1) = old_m(old_rows[i] - 1 , old_cols[j] - 1);
-    }
-  }
-
-  return new_m;
-}
-
-
 //' helper to permute sampling data
 //'
 //' @param link_list List holding indices of linked units for each unit
@@ -269,7 +241,6 @@ void update_progress_bar(int progress, int total) {
   std::cout.flush();
 }
 
-
 //' Link-tracing Gibbs sampler
 //' @param links_list list of between unit edges
 //' @param wave integer vector of rds wave units were sampled in
@@ -288,7 +259,6 @@ void update_progress_bar(int progress, int total) {
 //' @param l_0 double vector initial values for l
 //' @param b_0 double matrix initial values for b
 //' @param n_samples number of samples to draw
-//' @param ncores number of cores to use for parallel sampling
 //' @return a vector of vectors with n_samples population size samples
 //' @keywords internal
 // [[Rcpp::plugins(openmp)]]
@@ -309,8 +279,7 @@ List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
                               int n_0,
                               std::vector<double> l_0,
                               arma::mat b_0,
-                              int n_samples,
-                              int ncores) {
+                              int n_samples) {
   Function cpp_sample("sample");
   std::vector<double> n_out(n_samples);
   arma::mat l_out(n_samples,n_strata);

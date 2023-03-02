@@ -8,7 +8,6 @@ get_study_est_linktrace(
   data,
   total = 2000,
   strata = "",
-  parallel = TRUE,
   gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
   prefix = "",
@@ -21,8 +20,6 @@ get_study_est_linktrace(
 \item{total}{integer giving the total size of the population}
 
 \item{strata}{string specifying column name of strata vector}
-
-\item{parallel}{logical, if TRUE gibbs sampling proceeds in parallel}
 
 \item{gibbs_params}{named list of parameters passed to Gibbs sampler}
 
