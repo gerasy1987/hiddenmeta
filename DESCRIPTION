@@ -44,8 +44,7 @@ Imports:
     Rcpp (>= 1.0.9)
 LinkingTo: 
   Rcpp, 
-  RcppArmadillo,
-  RcppProgress
+  RcppArmadillo
 Suggests: 
     covr (>= 3.5.0),
     DeclareDesign (>= 0.20.0),

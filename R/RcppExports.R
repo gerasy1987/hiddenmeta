@@ -83,9 +83,10 @@ NULL
 #' @param name integer vector holding the name of each unit
 #' @return vector of integer vectors holding permuted sampling waves
 #' @keywords internal
-lt_permute <- function(link_list, wave, name) {
-    .Call(`_hiddenmeta_lt_permute`, link_list, wave, name)
-}
+NULL
+
+#' simple progress bar function
+NULL
 
 lt_gibbs_cpp <- function(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores) {
     .Call(`_hiddenmeta_lt_gibbs_cpp`, links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, ncores)

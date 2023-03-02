@@ -11,19 +11,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// lt_permute
-std::vector<std::vector<int>> lt_permute(std::vector<std::vector<int>>& link_list, std::vector<int> wave, std::vector<int> name);
-RcppExport SEXP _hiddenmeta_lt_permute(SEXP link_listSEXP, SEXP waveSEXP, SEXP nameSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::vector<std::vector<int>>& >::type link_list(link_listSEXP);
-    Rcpp::traits::input_parameter< std::vector<int> >::type wave(waveSEXP);
-    Rcpp::traits::input_parameter< std::vector<int> >::type name(nameSEXP);
-    rcpp_result_gen = Rcpp::wrap(lt_permute(link_list, wave, name));
-    return rcpp_result_gen;
-END_RCPP
-}
 // lt_gibbs_cpp
 List lt_gibbs_cpp(std::vector<std::vector<int>> links_list, std::vector<int> wave, std::vector<int> name, arma::mat y_samp, std::vector<int> strata, int n_strata, int n_waves, int total, int chain_samples, int chain_burnin, int prior_n, std::vector<double> prior_l, int prior_b, int n_0, std::vector<double> l_0, arma::mat b_0, int n_samples, int ncores);
 RcppExport SEXP _hiddenmeta_lt_gibbs_cpp(SEXP links_listSEXP, SEXP waveSEXP, SEXP nameSEXP, SEXP y_sampSEXP, SEXP strataSEXP, SEXP n_strataSEXP, SEXP n_wavesSEXP, SEXP totalSEXP, SEXP chain_samplesSEXP, SEXP chain_burninSEXP, SEXP prior_nSEXP, SEXP prior_lSEXP, SEXP prior_bSEXP, SEXP n_0SEXP, SEXP l_0SEXP, SEXP b_0SEXP, SEXP n_samplesSEXP, SEXP ncoresSEXP) {
@@ -54,7 +41,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_hiddenmeta_lt_permute", (DL_FUNC) &_hiddenmeta_lt_permute, 3},
     {"_hiddenmeta_lt_gibbs_cpp", (DL_FUNC) &_hiddenmeta_lt_gibbs_cpp, 18},
     {NULL, NULL, 0}
 };
