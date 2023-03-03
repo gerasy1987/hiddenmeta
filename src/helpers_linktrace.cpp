@@ -5,12 +5,12 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
-//' cpp helper to move vector elements to new indices
-//'
-//' param x integer vector of elements to be shuffled
-//' param old_index integer original index of element to be moved
-//' param new_index integer index element should be moved to
-//' return shuffled vector
+// cpp helper to move vector elements to new indices
+//
+// x integer vector of elements to be shuffled
+// old_index integer original index of element to be moved
+// new_index integer index element should be moved to
+// returns shuffled vector
 
 std::vector<int> move_elements(std::vector<int> x, int old_index, int new_index){
 
@@ -23,24 +23,24 @@ std::vector<int> move_elements(std::vector<int> x, int old_index, int new_index)
   return x;
 }
 
-//' n choose k helper for combn_cpp
-//'
-//' param n integer number of elements to choose from
-//' param k integer number of elements to choose
-//' return integer number of ways to choose k items out of n
+// n choose k helper for combn_cpp
+//
+// n integer number of elements to choose from
+// k integer number of elements to choose
+// returns integer number of ways to choose k items out of n
 
 uint64_t choose_cpp(uint64_t n, uint64_t k) {
   if(k == 0) return 1;
   return (n * choose_cpp(n - 1, k - 1)) / k;
 }
 
-//' helper to generate combinations of x k at a time (cpp implementation of combn)
-//'
-//' param x integer vector of elements to combine
-//' param K integer order of combinations
-//' return a matrix of k-wise combinations of elements in x
+// helper to generate combinations of x k at a time (cpp implementation of combn)
+//
+// x integer vector of elements to combine
+// K integer order of combinations
+// returns a matrix of k-wise combinations of elements in x
 
-arma::mat combn_cpp(std::vector<int> x, int K) {
+arma::mat combn_cpp(const std::vector<int>& x, const int& K) {
   int N = x.size();
 
   std::string bitmask(K, 1);
@@ -62,12 +62,12 @@ arma::mat combn_cpp(std::vector<int> x, int K) {
   return results;
 }
 
-//' helper to generate single draw from dirichlet distribution
-//'
-//' param alpha double vector of alpha parameters
-//' return a double vector containing a single draw from a dirichlet distribution
+// helper to generate single draw from dirichlet distribution
+//
+// alpha double vector of alpha parameters
+// returns a double vector containing a single draw from a dirichlet distribution
 
-std::vector<double> rdirichlet_cpp(std::vector<double> alpha){
+std::vector<double> rdirichlet_cpp(const std::vector<double>& alpha){
 
   std::vector<double> vec(alpha.size());
 
@@ -90,12 +90,12 @@ std::vector<double> rdirichlet_cpp(std::vector<double> alpha){
   return vec;
 }
 
-//' cpp implementation of R table
-//'
-//' param x an integer vector of elements to be counted
-//' return an integer vector of counts of unique elements in x (sorted in ascending order of elements in x)
+// cpp implementation of R table
+//
+// x an integer vector of elements to be counted
+// returns an integer vector of counts of unique elements in x (sorted in ascending order of elements in x)
 
-std::vector<int> table_cpp(std::vector<int> &x){
+std::vector<int> table_cpp(const std::vector<int>& x){
 
   std::vector<int> vec(x);
   sort(vec.begin(),vec.end());
@@ -110,13 +110,13 @@ std::vector<int> table_cpp(std::vector<int> &x){
   return vec_count;
 }
 
-//' cpp implementation of standard R rep
-//'
-//' param x integer vector to be repeated
-//' param n integer number of repetitions
-//' return integer vector x repeated n times
+// cpp implementation of standard R rep
+//
+// x integer vector to be repeated
+// n integer number of repetitions
+// returns integer vector x repeated n times
 
-std::vector<int> rep_times(std::vector<int> x, int n){
+std::vector<int> rep_times(const std::vector<int>& x, const int& n){
 
   std::vector<int> ret;
 
@@ -127,13 +127,13 @@ std::vector<int> rep_times(std::vector<int> x, int n){
   return ret;
 }
 
-//' cpp implementation of R rep with each argument
-//'
-//' param x integer vector of elements to be repeated
-//' param n integer number of repetitions
-//' return integer vector with each element in x repeated n times in order
+// cpp implementation of R rep with each argument
+//
+// x integer vector of elements to be repeated
+// n integer number of repetitions
+// returns integer vector with each element in x repeated n times in order
 
-std::vector<int> rep_each(std::vector<int> x, int n){
+std::vector<int> rep_each(const std::vector<int>& x, const int& n){
 
   std::vector<int> ret;
 
@@ -146,11 +146,11 @@ std::vector<int> rep_each(std::vector<int> x, int n){
   return ret;
 }
 
-//' helper to generate range of consecutive integers
-//'
-//' param from integer first integer
-//' param to last integer
-//' return integer vector of consecutive integers between from and to inclusive
+// helper to generate range of consecutive integers
+//
+// from integer first integer
+// to last integer
+// returns integer vector of consecutive integers between from and to inclusive
 
 std::vector<int> gen_range(int from,
                            int to){
@@ -162,12 +162,12 @@ std::vector<int> gen_range(int from,
 
 }
 
-//' helper to permute sampling data
-//'
-//' param link_list List holding indices of linked units for each unit
-//' param wave integer vector holding the sampling wave of each unit
-//' param name integer vector holding the name of each unit
-//' return vector of integer vectors holding permuted sampling waves
+// helper to permute sampling data
+//
+// link_list List holding indices of linked units for each unit
+// wave integer vector holding the sampling wave of each unit
+// name integer vector holding the name of each unit
+// returns vector of integer vectors holding permuted sampling waves
 
 std::vector<std::vector<int>> lt_permute(const std::vector<std::vector<int>>& link_list,
                                          std::vector<int> wave,
@@ -214,7 +214,7 @@ std::vector<std::vector<int>> lt_permute(const std::vector<std::vector<int>>& li
   return wave_samples;
 }
 
-//' simple progress bar function
+// simple progress bar function
 void update_progress_bar(int progress, int total) {
   float percentage = (float)progress / total;
   int bar_width = 70;
