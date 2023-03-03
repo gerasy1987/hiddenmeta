@@ -692,8 +692,7 @@ get_study_est_linktrace <- function(
         as.matrix()
     }
 
-  strata <- as.integer(data[["strata_id"]])
-  n_strata <- length(unique(strata))
+  n_strata <- length(unique(data$strata_id))
 
   if(length(priors$p_l) == 1){
     priors$p_l <- rep(priors$p_l, n_strata)
@@ -709,7 +708,7 @@ get_study_est_linktrace <- function(
                       wave = data$link_trace_wave,
                       name = data$name,
                       y_samp = y_samp,
-                      strata = strata,
+                      strata = data$strata_id,
                       n_strata = n_strata,
                       n_waves = n_waves,
                       total = total,
@@ -723,7 +722,7 @@ get_study_est_linktrace <- function(
                       b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
                       n_samples = gibbs_params$n_samples)
 
-  colnames(return$L) <- dplyr::arrange(strata_id,strata_id)[[strata]]
+  colnames(res$L) <- dplyr::arrange(strata_id,strata_id)[[strata]]
 
   return(
     data.frame(estimator = paste0("hidden_size_", label),
@@ -733,4 +732,6 @@ get_study_est_linktrace <- function(
   )
 
 }
+
+
 
