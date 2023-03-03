@@ -63,7 +63,7 @@ study_1 <-
         group_names = c("known", "hidden"),
         
         # probability of visibility (show-up) for each group
-        p_visible = list(known = 1, hidden = .5),
+        p_visible = list(known = 1, hidden = .8),
         
         # probability of service utilization in hidden population
         # for service multiplier
@@ -116,7 +116,7 @@ study_1 <-
                          rds_prefix = "rds",
                          label = "ss"),
                sspse = list(handler = get_study_est_sspse,
-                            prior_mean = 100,
+                            prior_mean = 200,
                             mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
                             total = 1000,
                             rds_prefix = "rds", 
@@ -188,13 +188,15 @@ study_1 <-
 
 ```{r example_pop}
 
+# study_1 <- study_designs$jhu_pakistan
+
 study_population <-
   eval(as.call(c(list(declare_population), study_1$pop)))
 
 set.seed(872312)
 example_pop <- study_population()
 
-example_pop[sample(1:.N)] |> 
+example_pop[sample(1:min(.N, 1000))] %>%  
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -205,6 +207,7 @@ example_pop[sample(1:.N)] |>
 
 
 library(GGally)
+library(grDevices)
 
 g <-
   example_pop %$% {
@@ -213,15 +216,17 @@ g <-
       igraph::set_vertex_attr("type", value = type)
   }
 
-igraph::V(g)$color <-
-  plyr::mapvalues(igraph::V(g)$type,
-                  from = unique(igraph::V(g)$type),
-                  to = grDevices::palette.colors(n = length(unique(igraph::V(g)$type)), 
-                                                 palette = "Dark2"))
+pal <- 
+  grDevices::palette.colors(n = length(unique(igraph::V(g)$type)), 
+                            palette = "Dark2",
+                            recycle = TRUE) %>% 
+  `names<-`(unique(igraph::V(g)$type))
 
-GGally::ggnet2(g, palette = "Set1", mode = "fruchtermanreingold",
+GGally::ggnet2(g, mode = "fruchtermanreingold",
                edge.alpha = .5, edge.size = .2, 
                node.alpha = .9, node.size = 2.5, node.color = "type",
+               palette = pal,
+               color.legend = "type",
                max_size = 4, shape = 16,
                legend.size = 12, legend.position = "bottom") +
   ggplot2::coord_equal()
@@ -307,21 +312,20 @@ est_recap_tls <-
   eval(as.call(c(list(declare_estimator), study_1$estimators$tls$recap)))
 
 est_recap_rds_pps <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap1)))
+  eval(as.call(c(list(declare_estimator), study_1$estimators$rds_pps$recap1)))
 est_recap_rds_tls <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap2)))
 
 set.seed(872312)
 draw_estimates(study_population +
-                 study_sample_rds + study_sample_pps + study_sample_tls +
+                 study_sample_rds + study_sample_pps + #study_sample_tls +
                  study_estimands +
-                 est_ss + est_sspse +
+                 est_sspse +
                  est_chords +
                  est_multi +
-                 est_nsum_pps + est_ht_pps +
-                 est_nsum_tls + est_ht_tls + est_recap_tls +
-                 est_recap_rds_pps + est_recap_rds_tls
-               )  |> 
+                 est_nsum_pps + est_ht_pps  +
+                 est_recap_rds_pps 
+               ) %>%  
   kable(digits = 2)
 
 ```
@@ -334,7 +338,8 @@ study1 <-
   study_population +
   study_sample_rds + study_sample_pps + study_sample_tls +
   study_estimands +
-  est_sspse + est_chords + est_multi +
+  est_ss + est_sspse + est_chords +
+  est_multi +
   est_nsum_pps + est_ht_pps +
   est_nsum_tls + est_ht_tls + est_recap_tls +
   est_recap_rds_pps + est_recap_rds_tls
@@ -628,7 +633,7 @@ study_3 <-
                            label = "tls_nsum"),
                recap = list(handler = get_study_est_recapture,
                             capture_vars = paste0("loc_", 1:6),
-                            sample_condition = "tls == 1",
+                            # sample_condition = "tls == 1",
                             model = "Mt",
                             hidden_variable = "hidden",
                             label = "tls_recap")),
