@@ -192,7 +192,7 @@ study_1 <-
           list(link_trace = list(handler = get_study_est_linktrace,
                                    total = 300,
                                    strata = "hidden",
-                                   gibbs_params = list(n_samples = 25L, chain_samples = 250L, chain_burnin = 50L),
+                                   gibbs_params = list(n_samples = 10L, chain_samples = 250L, chain_burnin = 50L),
                                    priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
                                    prefix = "link_trace",
                                    label = "link_trace"))
