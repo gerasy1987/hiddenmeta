@@ -316,7 +316,7 @@ sample_rds_tidy <-
 #' @param target_type one of 'sample' or 'waves'
 #' @param target_n_rds numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed
 #' @param add_seeds numeric indicating how many seeds to add at a time if target sample size is not reached with initial seeds. Additional seeds are randomly drawn from non-sampled hidden population members. Defaults to \code{NULL} that does not allow adding seeds
-#' @param arrival_rate numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to .5
+#' @param arrival_rate numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to 5
 #' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
 #'
 #' @return Population or sample data frame for single study with RDS sample characteristics added
@@ -344,19 +344,19 @@ sample_rds <-
            n_seed, n_coupons, n_waves = NULL,
            target_n_rds,
            add_seeds = NULL,
-           arrival_rate = .5,
+           arrival_rate = 5,
            drop_nonsampled = FALSE) {
 
     target_type <- match.arg(target_type)
 
     data[, links_list := retrieve_adjlist(links)]
 
-    # generate arrival times using rate of 2 per unit of time
-    # consider making rate a lambda parameter later
     .arrival_time <-
-      base::cumsum(
-        stats::rexp(n = nrow(data[get(hidden_var) == 1]), rate = arrival_rate)
-      )
+      do.call(c, mapply(FUN = rep,
+                        x = 1:ceiling(2*target_n_rds/arrival_rate),
+                        times = stats::rpois(n = ceiling(2*target_n_rds/arrival_rate),
+                                             lambda = arrival_rate)))[
+                                               1:nrow(data[get(hidden_var) == 1])]
 
     if (nrow(data[get(hidden_var) == 1,]) <= n_seed) {
       .seeds <- data[get(hidden_var) == 1][["name"]]
