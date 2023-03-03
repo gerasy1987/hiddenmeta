@@ -317,6 +317,7 @@ sample_rds_tidy <-
 #' @param target_n_rds numeric target size of RDS sample. If \code{target_type = "sample"}, this gives maximum number of respondents to be sampled (right now the RDS network can also end before reaching sample size target). If \code{target_type = "waves"}, this gives maximum number of waves of recruitment allowed
 #' @param add_seeds numeric indicating how many seeds to add at a time if target sample size is not reached with initial seeds. Additional seeds are randomly drawn from non-sampled hidden population members. Defaults to \code{NULL} that does not allow adding seeds
 #' @param arrival_rate numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to 5
+#' @param linktrace logical indicating whether to use linktrace rds sampling (i.e. sampling from hidden and non-hidden poulations)\code{FALSE}. Default is \code{FALSE}
 #' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Default is \code{FALSE}
 #'
 #' @return Population or sample data frame for single study with RDS sample characteristics added
@@ -345,11 +346,17 @@ sample_rds <-
            target_n_rds,
            add_seeds = NULL,
            arrival_rate = 5,
+           linktrace = FALSE,
            drop_nonsampled = FALSE) {
 
     target_type <- match.arg(target_type)
 
     data[, links_list := retrieve_adjlist(links)]
+
+    if (linktrace) {
+      hidden_old <- data[[hidden_var]]
+      data[,hidden_var] <- 1
+    }
 
     .arrival_time <-
       do.call(c, mapply(FUN = rep,
@@ -556,6 +563,9 @@ sample_rds <-
     ][
       , links_list := NULL
     ]
+
+    # restore hidden variable
+    if (linktrace) data[,hidden_var] <- hidden_old
 
     if (drop_nonsampled) data <- data[get(sampling_variable) == 1]
 

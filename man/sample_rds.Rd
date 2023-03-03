@@ -15,7 +15,8 @@ sample_rds(
   target_n_rds,
   add_seeds = NULL,
   arrival_rate = 0.5,
-  drop_nonsampled = FALSE
+  drop_nonsampled = FALSE,
+  linktrace = FALSE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ sample_rds(
 \item{arrival_rate}{numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to .5}
 
 \item{drop_nonsampled}{logical indicating whether to drop units that are not sampled. Default is \code{FALSE}}
+
+\item{linktrace}{logical indicating whether to use linktrace rds sampling (i.e. sampling from hidden and non-hidden poulations)\code{FALSE}. Default is \code{FALSE}}
 }
 \value{
 Population or sample data frame for single study with RDS sample characteristics added
