@@ -343,26 +343,12 @@ est_recap_tls <-
   eval(as.call(c(list(declare_estimator), study_1$estimators$tls$recap)))
 
 est_recap_rds_pps <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$rds_pps$recap1)))
+  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap1)))
 est_recap_rds_tls <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap2)))
 
 est_link_trace <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$link_trace$link_trace)))
-
-set.seed(872312)
-draw_estimates(study_population +
-                 study_sample_rds + study_sample_pps + study_sample_tls + study_sample_link_trace + 
-                 study_estimands +
-                 est_sspse +
-                 est_chords +
-                 est_multi +
-                 est_nsum_pps + est_ht_pps +
-                 est_nsum_tls + est_ht_tls + est_recap_tls +
-                 est_recap_rds_pps + est_recap_rds_tls +
-                 est_link_trace
-               )  %>% 
-  kable(digits = 2)
 
 ```
 
@@ -378,7 +364,8 @@ study1 <-
   est_multi +
   est_nsum_pps + est_ht_pps +
   est_nsum_tls + est_ht_tls + est_recap_tls +
-  est_recap_rds_pps + est_recap_rds_tls + est_link_trace
+  est_recap_rds_pps + est_recap_rds_tls #+
+  # est_link_trace
 
 # # can draw one of the samples
 # study1$study_sample_rds(study1$study_population())
@@ -393,6 +380,10 @@ study1 <-
 # study1$rds_sspse(study1_data)
 # study1$pps_ht(study1_data)
 # study1$rds_pps_recap(study1_data)
+
+set.seed(872312)
+draw_estimates(study1) %>% 
+  kable(digits = 2)
 
 ```
 

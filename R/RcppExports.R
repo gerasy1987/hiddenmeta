@@ -89,6 +89,6 @@ NULL
 #' @return a vector of vectors with n_samples population size samples
 #' @keywords internal
 lt_gibbs_cpp <- function(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, progress) {
-    .Call(`_hiddenmeta_lt_gibbs_cpp`, links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, progress)
+    .Call('_hiddenmeta_lt_gibbs_cpp', PACKAGE = 'hiddenmeta', links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, progress)
 }
 
