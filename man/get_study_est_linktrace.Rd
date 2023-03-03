@@ -10,6 +10,7 @@ get_study_est_linktrace(
   strata,
   gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+  progress = FALSE,
   prefix,
   label = "link_trace"
 )
@@ -24,6 +25,8 @@ get_study_est_linktrace(
 \item{gibbs_params}{named list of parameters passed to Gibbs sampler}
 
 \item{priors}{named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).}
+
+\item{progress}{logical indicating whether to display progress bar. Defaults to \code{FALSE}}
 
 \item{label}{character string describing the estimator}
 }

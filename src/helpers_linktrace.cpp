@@ -248,6 +248,7 @@ void update_progress_bar(int progress, int total) {
 //' @param l_0 double vector initial values for l
 //' @param b_0 double matrix initial values for b
 //' @param n_samples number of samples to draw
+//' @param progress bool indicating whether to display progress bar
 //' @return a vector of vectors with n_samples population size samples
 //' @keywords internal
 // [[Rcpp::export]]
@@ -267,7 +268,8 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
                         int n_0,
                         std::vector<double> l_0,
                         arma::mat b_0,
-                        int n_samples) {
+                        int n_samples,
+                        bool progress) {
   Rcpp::Function cpp_sample("sample");
   std::vector<double> n_out(n_samples);
   arma::mat l_out(n_samples,n_strata);
@@ -554,7 +556,6 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
         }
       }
       b.slice(t) = b_i;
-      update_progress_bar(samps + 1,n_samples);
     }
     // calculate mean n
     double n_sum = std::accumulate(n.begin() + chain_burnin, n.end(), 0.0);
@@ -562,6 +563,11 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
     // calculate mean lambda
     l = l.submat(chain_burnin,0,chain_samples - 1, n_strata - 1);
     l_out.row(samps) = arma::mean(l,0);
+
+    //update progress bar
+    if(progress) {
+      update_progress_bar(samps + 1,n_samples);
+    }
   }
   Rcpp::List out = Rcpp::List::create(Named("N") = n_out , _["L"] = l_out);
   return out;

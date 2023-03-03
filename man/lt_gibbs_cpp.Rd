@@ -21,7 +21,8 @@ lt_gibbs_cpp(
   n_0,
   l_0,
   b_0,
-  n_samples
+  n_samples,
+  progress
 )
 }
 \arguments{
@@ -56,6 +57,8 @@ lt_gibbs_cpp(
 \item{b_0}{double matrix initial values for b}
 
 \item{n_samples}{number of samples to draw}
+
+\item{progress}{bool indicating whether to display progress bar}
 
 \item{chain_burning}{integer number of burnin samples per MCMC chain}
 }

@@ -85,9 +85,10 @@ NULL
 #' @param l_0 double vector initial values for l
 #' @param b_0 double matrix initial values for b
 #' @param n_samples number of samples to draw
+#' @param progress bool indicating whether to display progress bar
 #' @return a vector of vectors with n_samples population size samples
 #' @keywords internal
-lt_gibbs_cpp <- function(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples) {
-    .Call('_hiddenmeta_lt_gibbs_cpp', PACKAGE = 'hiddenmeta', links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples)
+lt_gibbs_cpp <- function(links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, progress) {
+    .Call(`_hiddenmeta_lt_gibbs_cpp`, links_list, wave, name, y_samp, strata, n_strata, n_waves, total, chain_samples, chain_burnin, prior_n, prior_l, prior_b, n_0, l_0, b_0, n_samples, progress)
 }
 

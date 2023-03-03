@@ -192,7 +192,7 @@ study_1 <-
           list(link_trace = list(handler = get_study_est_linktrace,
                                    total = 300,
                                    strata = "hidden",
-                                   gibbs_params = list(n_samples = 10L, chain_samples = 250L, chain_burnin = 50L),
+                                   gibbs_params = list(n_samples = 5L, chain_samples = 250L, chain_burnin = 50L),
                                    priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
                                    prefix = "link_trace",
                                    label = "link_trace"))
@@ -365,12 +365,12 @@ draw_estimates(study_population +
 
 study1 <- 
   study_population +
-  study_sample_rds + study_sample_pps + study_sample_tls +
+  study_sample_rds + study_sample_pps + study_sample_tls + study_sample_link_trace +
   study_estimands +
   est_sspse + est_chords + est_multi +
   est_nsum_pps + est_ht_pps +
   est_nsum_tls + est_ht_tls + est_recap_tls +
-  est_recap_rds_pps + est_recap_rds_tls
+  est_recap_rds_pps + est_recap_rds_tls + est_link_trace
 
 # # can draw one of the samples
 # study1$study_sample_rds(study1$study_population())
@@ -501,7 +501,16 @@ study_2 <-
                    sampling_frame = "frame",
                    strata = NULL,
                    cluster = NULL,
-                   target_n_pps = 800)
+                   target_n_pps = 800),
+        link_trace = list(handler = sample_rds,
+                            sampling_variable = "link_trace",
+                            hidden_var = "hidden",
+                            n_seed = 50,
+                            n_coupons = 3,
+                            add_seeds = 0,
+                            target = "sample",
+                            target_n_rds = 150,
+                            linktrace = TRUE)
       ),
     inquiries = list(handler = get_study_estimands,
                      out_groups = "^known$|^frame$", 
@@ -566,7 +575,15 @@ study_2 <-
                              capture_vars = c("rds", paste0("loc_", 1:8)),
                              model = "Mt",
                              hidden_variable = "hidden",
-                             label = "rds_tls_recap"))
+                             label = "rds_tls_recap")),
+        link_trace =
+          list(link_trace = list(handler = get_study_est_linktrace,
+                                   total = 300,
+                                   strata = "hidden",
+                                   gibbs_params = list(n_samples = 5L, chain_samples = 250L, chain_burnin = 50L),
+                                   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+                                   prefix = "link_trace",
+                                   label = "link_trace"))
       )
   )
 
@@ -620,7 +637,16 @@ study_3 <-
                    sampling_frame = NULL,
                    strata = NULL,
                    cluster = NULL,
-                   target_n_pps = 400)
+                   target_n_pps = 400),
+        link_trace = list(handler = sample_rds,
+                            sampling_variable = "link_trace",
+                            hidden_var = "hidden",
+                            n_seed = 50,
+                            n_coupons = 3,
+                            add_seeds = 0,
+                            target = "sample",
+                            target_n_rds = 150,
+                            linktrace = TRUE)
       ),
     inquiries = list(handler = get_study_estimands,
                      out_groups = "^known$", 
@@ -686,7 +712,15 @@ study_3 <-
                              capture_vars = c("rds", paste0("loc_", 1:4)),
                              model = "Mt",
                              hidden_variable = "hidden",
-                             label = "rds_tls_recap"))
+                             label = "rds_tls_recap")),
+        link_trace =
+          list(link_trace = list(handler = get_study_est_linktrace,
+                                   total = 300,
+                                   strata = "hidden",
+                                   gibbs_params = list(n_samples = 5L, chain_samples = 250L, chain_burnin = 50L),
+                                   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+                                   prefix = "link_trace",
+                                   label = "link_trace"))
       )
   )
 

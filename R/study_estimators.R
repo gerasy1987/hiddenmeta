@@ -629,6 +629,7 @@ get_study_est_recapture <- function(
 #' @param strata string specifying column name of strata vector
 #' @param gibbs_params named list of parameters passed to Gibbs sampler
 #' @param priors named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).
+#' @param progress logical indicating whether to display progress bar. Defaults to \code{FALSE}
 #' @param prefix
 #' @param label character string describing the estimator
 #' @return Data frame of link tracing estimates for single study
@@ -643,6 +644,7 @@ get_study_est_linktrace <- function(
     strata,
     gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
     priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+    progress = FALSE,
     prefix,
     label = "link_trace"
 ){
@@ -720,7 +722,8 @@ get_study_est_linktrace <- function(
                       n_0 = total,
                       l_0 = rep(1/n_strata, n_strata),
                       b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
-                      n_samples = gibbs_params$n_samples)
+                      n_samples = gibbs_params$n_samples,
+                      progress = progress)
 
   colnames(res$L) <- dplyr::arrange(strata_id,strata_id)[[strata]]
 
