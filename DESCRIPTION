@@ -38,7 +38,11 @@ Imports:
     googlesheets4,
     MultiRNG,
     doParallel,
-    methods
+    methods,
+    Rcpp (>= 1.0.9)
+LinkingTo: 
+    Rcpp, 
+    RcppArmadillo
 Suggests: 
     covr (>= 3.5.0),
     DeclareDesign (>= 0.20.0),

@@ -622,3 +622,115 @@ get_study_est_recapture <- function(
 
 
 
+#' Link tracing estimator
+#'
+#' @param data pass through sample
+#' @param total integer giving the total size of the population
+#' @param strata string specifying column name of strata vector
+#' @param gibbs_params named list of parameters passed to Gibbs sampler
+#' @param priors named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).
+#' @param prefix
+#' @param label character string describing the estimator
+#' @return Data frame of link tracing estimates for single study
+#'
+#' @export
+#'
+#' @importFrom magrittr `%$%`
+
+get_study_est_linktrace <- function(
+    data,
+    total = 2000,
+    strata,
+    gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
+    priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+    prefix,
+    label = "link_trace"
+){
+
+  data <- data %>%
+    as.data.frame() %>%
+    dplyr::filter(., link_trace == 1) %>%
+    dplyr::mutate(link_trace_from = replace(link_trace_from, link_trace_from == -999, NA),
+                  name = as.numeric(name))
+
+  name_old <- data$name
+  name_new <- 1:nrow(data)
+
+  for(i in 1:nrow(data)){
+    data$name[data$name == name_old[i]] <- name_new[i]
+    data$link_trace_from[data$link_trace_from == name_old[i]] <- name_new[i]
+  }
+
+  data <- data %>%
+    dplyr::inner_join(.,
+                      {
+                        nodes <- dplyr::select(., name)
+                        edges <- tidyr::drop_na(dplyr::select(., c(link_trace_from, name)))
+                        igraph::graph_from_data_frame(edges, nodes, directed = FALSE) %>%
+                          igraph::as_adj_list() %>%
+                          lapply(., function(i) as.numeric(i$name))
+                      } %>%
+                        {
+                          links_list <- .
+                          data.frame(name = as.numeric(names(.))) %>%
+                            dplyr::mutate(links_list = links_list)
+                        }, by = "name")
+
+
+  strata_unique <- unique(data[[strata]])
+  strata_id <- cbind(strata_unique, as.numeric(factor(strata_unique))) %>%
+    as.data.frame() %>%
+    magrittr::set_colnames(c(strata,"strata_id"))
+  data <- dplyr::left_join(data,strata_id, by = strata)
+
+  y_samp <- data %>%
+    {
+      nodes <- dplyr::select(., name)
+      edges <- tidyr::drop_na(dplyr::select(., c(link_trace_from, name)))
+      igraph::graph_from_data_frame(edges, nodes, directed = FALSE) %>%
+        igraph::as_adjacency_matrix()%>%
+        as.matrix()
+    }
+
+  strata <- as.integer(data[["strata_id"]])
+  n_strata <- length(unique(strata))
+
+  if(length(priors$p_l) == 1){
+    priors$p_l <- rep(priors$p_l, n_strata)
+  }
+
+  if(n_strata != length(priors$p_l)){
+    stop("mismatch between number of strata and number of priors specified for strata in p_l")
+  }
+
+  n_waves <- max(data$link_trace_wave)
+
+  res <- lt_gibbs_cpp(links_list = data$links_list,
+                      wave = data$link_trace_wave,
+                      name = data$name,
+                      y_samp = y_samp,
+                      strata = strata,
+                      n_strata = n_strata,
+                      n_waves = n_waves,
+                      total = total,
+                      chain_samples = gibbs_params$chain_samples,
+                      chain_burnin = gibbs_params$chain_burnin,
+                      prior_n = priors$p_n,
+                      prior_l = priors$p_l,
+                      prior_b = priors$p_b,
+                      n_0 = total,
+                      l_0 = rep(1/n_strata, n_strata),
+                      b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
+                      n_samples = gibbs_params$n_samples)
+
+  colnames(return$L) <- dplyr::arrange(strata_id,strata_id)[[strata]]
+
+  return(
+    data.frame(estimator = paste0("hidden_size_", label),
+               estimate = mean(res$N),
+               se = sd(res$N),
+               inquiry = "hidden_size")
+  )
+
+}
+
