@@ -127,10 +127,11 @@ read_study_params <- function(
           .pop$add_groups <-
             c(
               .pop$add_group,
-              paste0("purrr::map_df(hidden, ~ sapply( `names<-`(rep(",
-                     .row$prior_p_showup, ", times = ",
-                     .row$tls_n_time_locations, "), paste0('loc_', 1:",
-                     .row$tls_n_time_locations, ")), function(add) rbinom(length(.x), 1, 0.1 + .x * add)))")
+              paste0(
+                "paste0('loc_', 1:", .row$tls_n_time_locations,
+                ") := lapply(rep(", .row$prior_p_showup,
+                ", times = ", .row$tls_n_time_locations,
+                "), function(add) rbinom(.N, 1, 0.05 + hidden * add))")
             )
         }
 
@@ -140,8 +141,9 @@ read_study_params <- function(
               c(
                 .pop$add_groups,
                 cluster_for_pps =
-                  paste0("sample(rep(1:ceiling(n() /", .row$pps_n_per_cluster ,
-                         "), times = ", .row$pps_n_per_cluster, ")[1:n()])")
+                  paste0(
+                    "sample(rep(1:ceiling(.N/", .row$pps_n_per_cluster ,
+                    "), times = ", .row$pps_n_per_cluster , "))[1:.N]")
               )
           }
         }
@@ -162,44 +164,55 @@ read_study_params <- function(
             )
         }
 
+        if (!is.na(.row$rds_allow_non_hidden) & .row$rds_allow_non_hidden == 1) {
+          .pop$add_groups <-
+            c(
+              .pop$add_groups,
+              `names<-`(as.list(.row$prior_hidden_prev), "hidden2")
+            )
+        }
+
         .inquiries <-
           list(handler = get_study_estimands,
-               known_pattern =
-                 paste0("^known[1-", .row$prior_known_hidden_interact, "]$"),
+               in_groups = if (!is.na(.row$rds_allow_non_hidden) & .row$rds_allow_non_hidden == 1) "^hidden2$" else NULL,
+               out_groups = paste0("^known[1-", .row$prior_known_hidden_interact, "]$"),
                hidden_var = "hidden")
 
         .samples <-
           list(
             rds =
-              if (.row$rds == 1) list(handler = sample_rds,
-                                      sampling_variable = "rds",
-                                      hidden_var = "hidden", # default
-                                      n_seed = .row$rds_n_seeds,
-                                      n_coupons = .row$rds_n_coupons,
-                                      n_waves =
-                                        if (!is.na(.row$rds_target_n_waves)) .row$rds_target_n_waves,
-                                      add_seeds = .row$rds_allow_add_seeds,
-                                      target_type = .row$rds_target_type,
-                                      target_n_rds = .row$rds_target_n_sample),
+              if (.row$rds == 1)
+                list(handler = sample_rds,
+                     sampling_variable = "rds",
+                     hidden_var = "hidden", # default
+                     n_seed = .row$rds_n_seeds,
+                     n_coupons = .row$rds_n_coupons,
+                     n_waves =
+                       if (!is.na(.row$rds_target_n_waves)) .row$rds_target_n_waves,
+                     add_seeds = .row$rds_allow_add_seeds,
+                     target_type = .row$rds_target_type,
+                     target_n_rds = .row$rds_target_n_sample),
             tls =
-              if (.row$tls == 1) list(handler = sample_tls,
-                                      sampling_variable = "tls",
-                                      hidden_var = if (.row$tls_allow_non_hidden == 0) "hidden" else NULL,
-                                      target_n_clusters = .row$tls_target_n_clusters,
-                                      target_cluster_type = .row$tls_target_cluster_type,
-                                      target_per_cluster = .row$tls_target_per_cluster,
-                                      clusters = paste0("loc_", 1:.row$tls_n_time_locations)),
+              if (.row$tls == 1)
+                list(handler = sample_tls,
+                     sampling_variable = "tls",
+                     hidden_var = if (.row$tls_allow_non_hidden == 0) "hidden" else NULL,
+                     target_n_clusters = .row$tls_target_n_clusters,
+                     target_cluster_type = .row$tls_target_cluster_type,
+                     target_per_cluster = .row$tls_target_per_cluster,
+                     clusters = paste0("loc_", 1:.row$tls_n_time_locations)),
             pps =
-              if (.row$pps == 1) list(handler = sample_pps,
-                                      sampling_variable = "pps",
-                                      sampling_frame = NULL,
-                                      n_clusters =
-                                        if (!is.na(.row$pps_cluster)) .row$pps_cluster,
-                                      strata =
-                                        if (!is.na(.row$pps_strata)) "strata_for_pps",
-                                      cluster =
-                                        if (!is.na(.row$pps_cluster)) "cluster_for_pps",
-                                      target_n_pps = .row$pps_target_n_pps)
+              if (.row$pps == 1)
+                list(handler = sample_pps,
+                     sampling_variable = "pps",
+                     sampling_frame = NULL,
+                     n_clusters =
+                       if (!is.na(.row$pps_cluster)) .row$pps_cluster,
+                     strata =
+                       if (!is.na(.row$pps_strata)) "strata_for_pps",
+                     cluster =
+                       if (!is.na(.row$pps_cluster)) "cluster_for_pps",
+                     target_n_pps = .row$pps_target_n_pps)
           ) %>%
           {.[sapply(., function(x) !is.null(x))]}
 
