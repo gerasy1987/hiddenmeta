@@ -91,14 +91,19 @@ get_study_estimands <- function(data,
   .out_groups_vec <-
     names(data)[grepl(x = names(data), pattern = out_groups)]
 
-  .in_groups_vec <-
-    names(data)[grepl(x = names(data), pattern = in_groups)]
+  if (!is.null(in_groups)) {
+    .in_groups_vec <-
+      names(data)[grepl(x = names(data), pattern = in_groups)]
+  }
 
 
   .out <-
-    data[, grep(pattern = paste0(in_groups, "|", out_groups, "|^", hidden_var, "$"),
-                       x = names(data), value = TRUE)
-       , with = FALSE]
+    data[
+      , grep(
+        pattern = paste0(c(in_groups, out_groups, paste0("^", hidden_var, "$")),
+                         collapse = "|"),
+        x = names(data), value = TRUE)
+      , with = FALSE]
 
   .out <-
     do.call(
@@ -111,7 +116,7 @@ get_study_estimands <- function(data,
                                   mean(.out[[x]], na.rm = TRUE)))))
 
   # get prevalences and sizes of other groups within hidden group
-  if (!is.null(.in_groups_vec)) {
+  if (!is.null(in_groups)) {
     for (i in seq_along(.in_groups_vec)) {
       .temp <-
         data[get(hidden_var) == 1, .in_groups_vec[i], with = FALSE]
@@ -126,7 +131,7 @@ get_study_estimands <- function(data,
   }
 
   # get prevalences and sizes of hidden group within other groups
-  if (!is.null(.out_groups_vec)) {
+  if (!is.null(out_groups)) {
     for (i in seq_along(.out_groups_vec)) {
       .temp <-
         data[
