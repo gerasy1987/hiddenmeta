@@ -497,8 +497,9 @@ get_study_est_multiplier <- function(data,
 #' @param data pass-through population data frame
 #' @param label character string describing the estimator
 #'
+#' @keywords internal
+#'
 #' @return Data frame of HT estimates for single study
-#' @export
 #'
 #' @import dplyr
 #' @importFrom estimatr lm_robust

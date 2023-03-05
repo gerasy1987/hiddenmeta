@@ -8,6 +8,9 @@
 #'
 #' @return Population data frame for single study
 #'
+#' @keywords internal
+#'
+#'
 #' @examples
 #' \dontrun{
 #'   get_study_population_tidy(
@@ -753,6 +756,8 @@ sample_rds_tidy <-
 #' @param data pass-through population data frame
 #' @param known_pattern character string containing regular expression to match known group names in the study population dataset
 #' @param hidden_var character string containing hidden group name in the study population data frame
+#'
+#' @keywords internal
 #'
 #' @return Estimands data frame for single study
 #'
