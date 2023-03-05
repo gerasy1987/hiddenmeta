@@ -28,7 +28,7 @@ get_study_est_linktrace(
 
 \item{progress}{logical indicating whether to display progress bar. Defaults to \code{FALSE}}
 
-\item{prefix}{character string giving name of the column with sampling indicator}
+\item{prefix}{character string giving name of the column with RDS+ sampling indicator}
 
 \item{label}{character string giving label for the estimator}
 }

@@ -630,7 +630,7 @@ get_study_est_recapture <- function(
 #' @param gibbs_params named list of parameters passed to Gibbs sampler
 #' @param priors named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).
 #' @param progress logical indicating whether to display progress bar. Defaults to \code{FALSE}
-#' @param prefix character string giving name of the column with sampling indicator
+#' @param prefix character string giving name of the column with RDS+ sampling indicator
 #' @param label character string giving label for the estimator
 #' @return Data frame of link tracing estimates for single study
 #'

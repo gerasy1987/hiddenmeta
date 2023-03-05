@@ -15,7 +15,7 @@ sample_rds(
   target_n_rds,
   add_seeds = NULL,
   arrival_rate = 5,
-  linktrace = FALSE,
+  linktrace = NULL,
   drop_nonsampled = FALSE
 )
 }
@@ -40,7 +40,7 @@ sample_rds(
 
 \item{arrival_rate}{numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to 5}
 
-\item{linktrace}{logical indicating whether to use linktrace rds sampling (i.e. sampling from hidden and non-hidden poulations)\code{FALSE}. Default is \code{FALSE}}
+\item{linktrace}{character string indicating either \code{"all"} or name of variable to use in RDS+ sample to sample from. Default is \code{NULL}}
 
 \item{drop_nonsampled}{logical indicating whether to drop units that are not sampled. Default is \code{FALSE}}
 }
