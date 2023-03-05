@@ -46,11 +46,11 @@ reference:
   - get_study_est_sspse
   - get_study_est_chords
   - get_study_est_ht
-  - get_study_est_rds_ss
+  - get_study_est_ss
   - get_study_est_nsum
   - get_study_est_multiplier
   - get_study_est_recapture
-  - get_study_est_gnsum
+  - get_study_est_linktrace
 
 - title: Multi-study functions
   description: These function allow to simulate several study population and sampling strategies and conduct estimation on them at the same time
