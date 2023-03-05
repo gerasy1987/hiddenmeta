@@ -13,7 +13,7 @@ editor_options:
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE,
+  eval = TRUE,
   echo = TRUE,
   fig.path = "vignette-",
   message = FALSE,
@@ -21,8 +21,6 @@ knitr::opts_chunk$set(
 )
 
 
-library(GGally)
-library(grDevices)
 library(knitr)
 library(magrittr)
 
@@ -38,7 +36,7 @@ devtools::install_github("gerasy1987/hiddenmeta", build_vignettes = TRUE)
 
 ```
 
-```{r setup, eval=TRUE}
+```{r setup}
 
 library(hiddenmeta)
 library(DeclareDesign)
@@ -413,7 +411,7 @@ saveRDS(study1_simulations, here::here("inst/extdata/study1_sim.rds"))
 ```
 
 
-```{r study_diagnose, eval=TRUE}
+```{r study_diagnose}
 
 study_diagnosands <-
  declare_diagnosands(
@@ -728,7 +726,7 @@ study_3 <-
 
 ### Declare multiple studies
 
-```{r multi_study, eval=TRUE, warning=FALSE}
+```{r multi_study, warning=FALSE}
 
 multi_population <- 
   declare_population(handler = get_multi_populations, 
@@ -826,7 +824,7 @@ diagnose_design(simulations_df = multi_simulations,
 5. We have all parts to conduct the full cycle of meta-analyses
 
 
-```{r meta_study, eval=TRUE}
+```{r meta_study}
 
 meta_population <- 
   declare_population(multi_design = multi_study, n_sim = 3, parallel = FALSE, 
@@ -891,7 +889,7 @@ saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim.rds"))
 
 ```
 
-```{r meta_study_diagnose, eval = TRUE}
+```{r meta_study_diagnose}
 
 meta_simulations <- 
   readRDS(system.file("extdata", "meta_sim.rds", package = "hiddenmeta"))
