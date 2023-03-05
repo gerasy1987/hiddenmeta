@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -75,26 +72,27 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">get_meta_estimands</span><span class="op">(</span>
-  <span class="va">data</span>,
-  study_estimand <span class="op">=</span> <span class="st">"hidden_size"</span>,
-  samp_est_benchmark <span class="op">=</span> <span class="st">"pps_ht"</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_meta_estimands</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  study_estimand <span class="op">=</span> <span class="st">"hidden_size"</span>,</span>
+<span>  samp_est_benchmark <span class="op">=</span> <span class="st">"pps_ht"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>data</dt>
 <dd><p>pass-through meta population</p></dd>
+
+
 <dt>study_estimand</dt>
 <dd><p>study-level estimand for meta-analysis estimands</p></dd>
+
+
 <dt>samp_est_benchmark</dt>
 <dd><p>within-study benchmark sampling-estimator strategy</p></dd>
+
 </dl></div>
-    <div id="value">
-    <h2>Value</h2>
-    
-    </div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -108,8 +106,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

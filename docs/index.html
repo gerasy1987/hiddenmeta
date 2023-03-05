@@ -39,7 +39,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
       </span>
     </div>
 
@@ -60,9 +60,6 @@
     </li>
     <li>
       <a href="articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul>
 </li>
@@ -92,74 +89,47 @@
 <div class="section level1">
 <div class="page-header"><h1 id="hiddenmeta">hiddenmeta<a class="anchor" aria-label="anchor" href="#hiddenmeta"></a>
 </h1></div>
-
+<p><img src="https://github.com/gerasy1987/hiddenmeta/workflows/R/badge.svg" alt="R"><a href="https://codecov.io/gh/gerasy1987/hiddenmeta" class="external-link"><img src="https://codecov.io/gh/gerasy1987/hiddenmeta/branch/main/graph/badge.svg?token=ZG9A64Q0A1" alt="codecov"></a> <a href="https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE" class="external-link"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a></p>
 <div class="section level3">
 <h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"DeclareDesign"</span><span class="op">)</span>
-
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"gerasy1987/hiddenmeta"</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"DeclareDesign"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"gerasy1987/hiddenmeta"</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h3>
-<p>This package provides tools to implement and evaluate designs to
-measure the prevalence of hidden populations.</p>
-<p>Researchers use a variety of techniques that vary on three
-dimensions: how and from whom data is gathered, which measures are
-taken, how analysis is done using these measure. Specific measures range
-from simple population sample with scaling by inverse sampling weights,
-to complex sampling designs using respondent driven sampling or time
-location sampling, coupled with network scale-up methods, or Bayesian
-analyses. Each method involves many specific design choices, and the
-relative performance of different methods likely varies over
-applications.</p>
-<p>The tools provided here help researchers select designs, assess their
-quality, and implement their analyses. In addition the tools can allow
-researchers to pool findings from multiple methods in order to implement
-meta-analysis that lets researchers learn about the relative
-effectiveness of approaches.</p>
+<p>This package provides tools to implement and evaluate designs to measure the prevalence of hidden populations.</p>
+<p>Researchers use a variety of techniques that vary on three dimensions: how and from whom data is gathered, which measures are taken, how analysis is done using these measure. Specific measures range from simple population sample with scaling by inverse sampling weights, to complex sampling designs using respondent driven sampling or time location sampling, coupled with network scale-up methods, or Bayesian analyses. Each method involves many specific design choices, and the relative performance of different methods likely varies over applications.</p>
+<p>The tools provided here help researchers select designs, assess their quality, and implement their analyses. In addition the tools can allow researchers to pool findings from multiple methods in order to implement meta-analysis that lets researchers learn about the relative effectiveness of approaches.</p>
 </div>
 <div class="section level3">
 <h3 id="evaluating-designs">Evaluating designs<a class="anchor" aria-label="anchor" href="#evaluating-designs"></a>
 </h3>
-<p>We rely on <a href="https://declaredesign.org/" class="external-link"><code>DeclareDesign</code></a> package
-for evaluating designs via simulation. The key idea of the simulation
-workflow is that we simulate the design as a set of steps. When
-concatenated the steps produce an instance of a design. When replicated
-these instances let us assess the overall performance of a design.</p>
+<p>We rely on <a href="https://declaredesign.org/" class="external-link"><code>DeclareDesign</code></a> package for evaluating designs via simulation. The key idea of the simulation workflow is that we simulate the design as a set of steps. When concatenated the steps produce an instance of a design. When replicated these instances let us assess the overall performance of a design.</p>
 <p>Fully specified designs include information on:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>M</strong>: The background model—for instance, background
-beliefs about network structures.</li>
+<strong>M</strong>: The background model—for instance, background beliefs about network structures.</li>
 <li>
-<strong>I</strong>: The inquiries, i.e. what exactly is the quantity
-we want to estimate. The <strong>estimands</strong> should be readable
-from the background model.</li>
+<strong>I</strong>: The inquiries, i.e. what exactly is the quantity we want to estimate. The <strong>estimands</strong> should be readable from the background model.</li>
 <li>
-<strong>D</strong>: What is the <strong>data</strong> strategy? For
-instance how will sampling be undertaken?</li>
+<strong>D</strong>: What is the <strong>data</strong> strategy? For instance how will sampling be undertaken?</li>
 <li>
-<strong>A</strong>: What is the <strong>answer</strong> strategy?
-How will estimation be done?</li>
+<strong>A</strong>: What is the <strong>answer</strong> strategy? How will estimation be done?</li>
 </ol>
-<p>Each of these MIDA steps can be defined using “handlers” from the
-<code>hiddenmeta</code> package and can be adjusted to reflect details
-of individual study designs.</p>
+<p>Each of these MIDA steps can be defined using “handlers” from the <code>hiddenmeta</code> package and can be adjusted to reflect details of individual study designs.</p>
 </div>
 <div class="section level3">
 <h3 id="individual-designs">Individual designs<a class="anchor" aria-label="anchor" href="#individual-designs"></a>
 </h3>
 <p>The individual study design simulation involves:</p>
 <ol style="list-style-type: decimal">
-<li>Selecting parameters: this involves specifying methods that will be
-used and how they will be used.</li>
-<li>Using these to declare a design: the declared design can then be
-used to simulate data and implement analysis.</li>
-<li>Diagnosing the design by repeatedly simulating instances of the
-design</li>
+<li>Selecting parameters: this involves specifying methods that will be used and how they will be used.</li>
+<li>Using these to declare a design: the declared design can then be used to simulate data and implement analysis.</li>
+<li>Diagnosing the design by repeatedly simulating instances of the design</li>
 </ol>
 </div>
 <div class="section level3">
@@ -167,29 +137,18 @@ design</li>
 </h3>
 <p>Simulated study level results feed into the meta-analysis:</p>
 <ol style="list-style-type: decimal">
-<li><p>Conduct multi-study design for as many sampling-estimator pairs
-in each study as possible, then diagnose the multi-study design.
-Calculate average (across simulations) estimand and bias of
-sampling-estimator for each of the studies and estimator sampling
-strategies. These will serve as population we will be drawing
-population-sampling-estimator triads</p></li>
+<li><p>Conduct multi-study design for as many sampling-estimator pairs in each study as possible, then diagnose the multi-study design. Calculate average (across simulations) estimand and bias of sampling-estimator for each of the studies and estimator sampling strategies. These will serve as population we will be drawing population-sampling-estimator triads</p></li>
 <li>
 <p>Estimands include:</p>
 <ul>
 <li>Average estimand by inquiry label (within study)</li>
-<li>Average bias of specific sampling-estimator pair (across studies)
-compared to truth</li>
-<li>Average relative bias of sampling-estimator pair (across studies)
-compared to “gold standard”</li>
+<li>Average bias of specific sampling-estimator pair (across studies) compared to truth</li>
+<li>Average relative bias of sampling-estimator pair (across studies) compared to “gold standard”</li>
 <li>Ratio of average bias to costs of sampling-estimator pair</li>
 </ul>
 </li>
-<li><p>Sampling consists of drawing population-sampling-estimator triads
-presuming that each study uses at least two sampling strategies at a
-time</p></li>
-<li><p>Once we draw sample we use Stan model to estimate study-specific
-estimands and sampling-estimator specific errors (biases, study level
-prevalence or size, cost-effectiveness)</p></li>
+<li><p>Sampling consists of drawing population-sampling-estimator triads presuming that each study uses at least two sampling strategies at a time</p></li>
+<li><p>Once we draw sample we use Stan model to estimate study-specific estimands and sampling-estimator specific errors (biases, study level prevalence or size, cost-effectiveness)</p></li>
 </ol>
 <hr>
 </div>
@@ -197,16 +156,11 @@ prevalence or size, cost-effectiveness)</p></li>
 <h3 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h3>
 <ul>
-<li>To familiarize yourself with the <code>hiddenmeta</code> workflow
-please read <a href="https://gsyunyaev.com/hiddenmeta/articles/hiddenmeta-base.html">this
-vignette</a>
+<li>To familiarize yourself with the <code>hiddenmeta</code> workflow please read <a href="https://gsyunyaev.com/hiddenmeta/articles/hiddenmeta-base.html">this vignette</a>
 </li>
 </ul>
 <hr>
-<p>This project is based at the <a href="https://www.wzb.eu/en/research/political-economy-of-development/institutions-and-political-inequality" class="external-link">WZB
-Berlin Social Science Center</a> (IPI group) and is generously supported
-by a grant from the <a href="https://apries.uga.edu/prevalenceforum/" class="external-link">African Programming &amp;
-Research Initiative to End Slavery (APRIES)</a>.</p>
+<p>This project is based at the <a href="https://www.wzb.eu/en/research/political-economy-of-development/institutions-and-political-inequality" class="external-link">WZB Berlin Social Science Center</a> (IPI group) and is generously supported by a grant from the <a href="https://apries.uga.edu/prevalenceforum/" class="external-link">African Programming &amp; Research Initiative to End Slavery (APRIES)</a>.</p>
 </div>
 </div>
   </div>
@@ -246,13 +200,7 @@ Research Initiative to End Slavery (APRIES)</a>.</p>
 </ul>
 </div>
 
-<div class="dev-status">
-<h2 data-toc-skip>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://codecov.io/gh/gerasy1987/hiddenmeta" class="external-link"><img src="https://codecov.io/gh/gerasy1987/hiddenmeta/branch/main/graph/badge.svg?token=ZG9A64Q0A1" alt="codecov"></a></li>
-<li><a href="https://github.com/gerasy1987/hiddenmeta/blob/main/LICENSE" class="external-link"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a></li>
-</ul>
-</div>
+
 
   </div>
 </div>
@@ -265,8 +213,7 @@ Research Initiative to End Slavery (APRIES)</a>.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer>

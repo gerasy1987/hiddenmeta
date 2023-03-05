@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -82,15 +79,12 @@
 <h2 class="page-header" data-toc-text="0.1.9" id="hiddenmeta-019">hiddenmeta 0.1.9<a class="anchor" aria-label="anchor" href="#hiddenmeta-019"></a></h2>
 <div class="section level3">
 <h3 id="enhancements-0-1-9">Enhancements<a class="anchor" aria-label="anchor" href="#enhancements-0-1-9"></a></h3>
-<ul><li>Added function that allows to read study parameters from the Google
-spreadsheet</li>
-<li>Added drafts of several vignettes: On reading study parameters, and
-on simple meta-analysis simulation</li>
+<ul><li>Added function that allows to read study parameters from the Google spreadsheet</li>
+<li>Added drafts of several vignettes: On reading study parameters, and on simple meta-analysis simulation</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-0-1-9">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-1-9"></a></h3>
-<ul><li>Fixed meta-estimation handler to allow specification of custom Stan
-code</li>
+<ul><li>Fixed meta-estimation handler to allow specification of custom Stan code</li>
 <li>Added option to provide more controls over Stan fit call</li>
 </ul></div>
 </div>
@@ -99,11 +93,24 @@ code</li>
 <div class="section level3">
 <h3 id="enhancements-0-2-0">Enhancements<a class="anchor" aria-label="anchor" href="#enhancements-0-2-0"></a></h3>
 <ul><li>Significantly reworked RDS sampling procedure</li>
-<li>Full support of import and diagnosis of study designs from Google
-Spreadsheets</li>
+<li>Full support of import and diagnosis of study designs from Google Spreadsheets</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-0-2-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-2-0"></a></h3>
+<ul><li>Numerous bug fixes</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.3.0" id="hiddenmeta-030">hiddenmeta 0.3.0<a class="anchor" aria-label="anchor" href="#hiddenmeta-030"></a></h2>
+<div class="section level3">
+<h3 id="enhancements-0-3-0">Enhancements<a class="anchor" aria-label="anchor" href="#enhancements-0-3-0"></a></h3>
+<ul><li>Study level population, sampling and inquiries functions are rewritten using <code>data.table</code> instead of <code>tidyverse</code> for significant speed gains</li>
+<li>
+<code>sample_rds</code> allows to specify RDS+ sampling with many heterogeneous seeds</li>
+<li>introducing <code>get_study_est_linktrace</code> implementing Link-Tracing population size estimation on RDS+ sample</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-3-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-3-0"></a></h3>
 <ul><li>Numerous bug fixes</li>
 </ul></div>
 </div>
@@ -121,8 +128,7 @@ Spreadsheets</li>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

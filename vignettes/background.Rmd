@@ -23,214 +23,78 @@ knitr::opts_chunk$set(
 
 ```
 
-## RDS/RDS+ methods
-
-- Use the coupons, the timing of surveys and the structure of recruitment network to approximate the size of the population
-
-- Relies on network connectedness, i.e. if the seeds are within a "small world" the method will likely depart significantly from the truth
-
-- Do not rely on proportional sampling and likely are cheaper
-
-### @crawford2018
-
-- Use data from RDS $\mathbf{Y} = (G_{R}, \mathbf{d}, \mathbf{t}, \mathbf{C})$, where:
-    - $G_{R}$ -- Directly observed recrutiment graph with $n$ (out of $N$) vertices (not the same as $G_{S}$ -- full subgraph of graph of hidden population $G$ induced by recruitment)
-    - $\mathbf{d}$ -- vector of number of connections of each recruited respondents in hidden population $G$ from survey
-    - $\mathbf{t}$ -- directly observed vector of recruitment timings
-    - $\mathbf{C}$ -- coupon matrix in which $C_{ij} = 1$ iff subject $i$ has at least one coupon just before the $j$-th subject recruitment event, and zero otherwise
-- Using this data we are trying to estimate $N$ using the likelihood of $N | G_{S}$ marginalizing over all $G_{S}$ consistent with $G_{R}$
-- Assumptions:
-    1. $G$ is finite graph with no self-loops
-    2. Use Erdos-Renyi Model assumptions for hidden population graph $G$: assume $d_{i} \sim \mathrm{B} (N-1, p)$ (similar to [@killworth1998] and thus to [@maltiel2015])
-    3. The edges connecting the newly recruited respondent $i$ to other unrecruited respondents do not affect $i$'s probability of being recruited *[this is very strong assumption]*
-    4. Vertices become recruiters immediately upon entering the study and receiving one or more coupons. They remain recruiters until their coupons or susceptible neighbors are depleted, whichever happens first *[this is very strong assumption]*
-    5. When a susceptible neighbor $j$ of a recruiter $i$ is recruited by any recruiter, the edge connecting $i$ and $j$ is immediately no longer susceptible *[this is very strong assumption]*
-    6. The time to recruitment along an edge connecting a recruiter to a susceptible neighbor has exponential distribution with rate $\lambda$, independent of the identity of the recruiter, neighbor, and all other waiting times
-- Assumptions 2 and 3 imply that the "unrecruited degree" of subject recruited in $i$-th order can be represented as $d^{u}_{i} \sim \mathrm{B} (N - i, p)$
-- This in turns allows us to write $\mathcal{L} (N, p \,|\, G_{S}, \mathbf{Y}) = \prod_{i}^{n} {N - i \choose d^{u}_{i}} p^{d^{u}_{i}} (1-p)^{N-i-d^{u}_{i}}$
-- Assumptions 4-6 imply $\mathcal{L} (G_{S}, \lambda \,|\, \mathbf{Y}) = \left( \prod_{j \notin M} \lambda \mathbf{s}_{j} \right) \exp (-\lambda \mathbf{s}' \mathbf{w})$, where $s = \mathrm{lowerTri} (\mathbf{AC})'\mathbb{1} + \mathbf{C}'u$ -- vector of the number of susceptible edges just before each recruitment event
-- Appendix also has very useful ideas on network structure simulation using *block* approach similar to [@feehan2016]
-
-### @handcock2014
-
-- Uses the same RDS data (no need for supplementary data from general population)
-- Models degrees of un-sampled vertices as being drawn independently from a pre-specified parametric distribution
-- Does not follow strict topological rules on $G_{S}$ as the ones imposed by [@crawford2018]
-- This lack of graphical constraints in the SS-size model suggests a view of RDS recruitment that is not network-based: subjects' reported degrees might be regarded as surrogate measures of "visibility" in the population which in turn refers to [@maltiel2015] and standard HT estimator
-- The SS-size model also assumes that the degrees of recruited subjects should decrease over time as the sample accrues [@johnston2017]
-- We can basically estimate this approach and the one in [@crawford2018] at the same time: While the models are very different the data used is very similar. It seems that the NSUM methods and specifically [@maltiel2015] model has a better "compatibility" with [@handcock2014]
-
-### @berchenko2017
-
-- Current RDS estimators resort to modeling recruitment as a homogeneous random walk, which culminates in the assumption that the sampling probability is proportional to degree, that is, $\pi_{k} \propto k$ which in turns allows for use of HT estimator
-- Uses the same RDS data (no need for supplementary data from general population) in the context of epidemiological model setup in [@andersson2000]
-- Assumptions:
-    1. Sampling is done without replacement, with $n_{k,t}$ being the (right-continuous) counting process representing the number of people with degree $k$ recruited by time $t$.
-    2. Between times $t$ and $t + \Delta t$, an individual with degree $k$ is sampled with probability $$\lambda_{k,t} = \frac{\beta_{k}}{N} I_{t} (N_{k} - n_{k,t}) \Delta t + \mathcal{o} (\Delta t)$$ where $I_{t}$ is the number of people actively trying to recruit new individuals, and the constant $\beta_{k}$ is a degree-dependent recruitment rate
-    3. The multivariate counting process $n_{t} \equiv (n_{1,t}, \dots, n_{k_{\max}, t})$ has intensity $$\lambda_{t} = N^{-1} \left( \beta_{1} I^{-}_{t} (N_{1} - n^{-}_{1,t} ), \dots, \beta_{k_{\max}} I^{-}_{t} (N_{k_{\max}} - n^{-}_{k_{\max},t} ) \right)$$ such that $m_{t} \equiv n_{t} - \int_{0}^{t} \lambda_s \mathrm{d} s$ is a multivariate martingale.
-- We are interested in the estimator $\hat{P}_{CP} = \sum_{k \geq 1} \hat{f}_{k} \hat{p}_{k}$ where $\hat{f}_{k}$ is the estimate of proportion of degree $k$ in the population and $\hat{p}_{k}$ is the estimate of prevalence in the degree $k$ group
+## Individual studies {#sec-estimation-study}
 
+For each of the studies we are aiming to analyze all possible sampling-estimation method pairs given the sampling strategies used. Table below shows all sampling-estimation method pairs we consider in the meta-analysis. Note that the first three sampling-estimation pairs aim directly to estimate prevalence of hidden group within broader population, while the rest of the methods estimate size of the hidden group that can be transformed into prevalence estimate under assumption that there is no uncertainty about the size of the population within which the prevalence is being estimated.
 
-## TLS methods
+| Sampling                       | Estimation                                                                                                                                                  | Method references                             | [R] Package                                                                                       |
+|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|---------------------------------------------------------------------------------------------------|
+| **Prevalence estimation**      |                                                                                                                                                             |                                               |                                                                                                   |
+| **PPS**                        | **HT**: Horvitz-Thompson estimator of [*prevalence*]{.underline} with re-scaled bootstrap standard errors                                                   | @rust1996variance                             | Self-coded + `surveybootstrap` [@feehan2023surveybootstrap]                                       |
+| **TLS**                        | **HT**: Horvitz-Thompson estimator of [*prevalence*]{.underline} with re-scaled bootstrap standard errors [@rust1996variance]                               | @rust1996variance                             | Self-coded + `surveybootstrap` [@feehan2023surveybootstrap]                                       |
+| **RDS**                        | **SS**: Sequential sampling estimator of [*prevalence*]{.underline}                                                                                         | @gile2011improved                             | `RDS` [@handcock2023rds]                                                                          |
+| **Population size estimation** |                                                                                                                                                             |                                               |                                                                                                   |
+| **PPS**                        | **NSUM**: Network scale-up estimatior of [*population size*]{.underline} with re-scaled bootstrap standard errors                                           | @killworth1998social; @rust1996variance       | `networkreporting` [@feehan2021networkreporting] + `surveybootstrap` [@feehan2023surveybootstrap] |
+| **TLS**                        | **NSUM**: Network scale-up estimatior of [*population size*]{.underline} with re-scaled bootstrap standard errors [@killworth1998social; @rust1996variance] | @killworth1998social; @rust1996variance       | `networkreporting` [@feehan2021networkreporting] + `surveybootstrap` [@feehan2023surveybootstrap] |
+| **TLS**                        | **RECAP \***: Mark-recapture estimator of [*population size*]{.underline} with parametric standard errors                                                   | @hickman2006estimating                        | `Rcapture` [@baillargeon2007rcapture]                                                             |
+| **RDS**                        | **SSPSE**: Bayesian sequential sampling model of [*population size*]{.underline}                                                                            | @handcock2014                                 | `sspse` [@handcock2022sspse]                                                                      |
+| **RDS**                        | **CHORDS**: Epidemiological model for [*population size*]{.underline} estimation                                                                            | @berchenko2017                                | `chords` [@berchenko2017]                                                                         |
+| **RDS**                        | **MULTIPLIER** \*: Service-multiplier [*population size*]{.underline} estimator with bootstrap re-sampling standard errors                                  | @hickman2006estimating; @salganik2006variance | Self-coded + `surveybootstrap` [@feehan2023surveybootstrap]                                       |
+| **RDS \***                     | **LINK**: Link-tracing [*population size*]{.underline} estimator based on special type of RDS                                                               | @vincent2019                                  | Self-coded based on @vincent2019                                                                  |
 
-- @karon2012statistical
-- @raymond2007resource
-- @fanzana2001venue
-- @mackellar1996young
+: Sampling-estimation pairs
 
-## PPS methods
+In the meta-analysis part we focus on comparison of prevalence estimates produced by all the methods listed in the table. The sampling and estimation methods marked with `*` in the table indicate need for additional data or special type of sampling required for corresponding method. Specifically, estimation using *TLS-RECAP* requires recapture data to be collected beyond standard NSUM and direct indicators. *RDS-MULTIPLIER* estimation requires data from a provider of a service that is likely to be used by hidden group of interest as well as direct questions about that service use asked from hidden group members in RDS sample. Finally *RDS-LINK* estimation requires a special type of RDS sample with more initial seeds but less waves of link tracing and collection of data on recaptures in RDS network.
 
-### Horvotz-Thomson
+## Meta level {#sec-estimation-meta}
 
-### NSUM
+We use a Bayesian model to assess the relative bias of methods. We describe a model for $N$ sites and $K$ estimation methods which could be used at each site.
 
-- The NSUM approach is based on the idea that for all individuals, the probability that someone they know is in a given subpopulation is the size of that subpopulation divided by the overall population size. The estimate of the sub population size is then based on the share of the subpopulation in the respondent's network. For example, if a respondent knows $100$ people total and knows $2$ intravenous drug users, then it is inferred that $2\%$ of the total population are intravenous drug users. The *number* of people  in a given subpopulation that the respondent knows is assumed to follow a binomial distribution.
-- However, the total number of people known by a respondent, also called his or her degree or personal network size, also needs to be estimated. *[why can't we ask about this directly?]* A person's degree is estimated by asking the respondents about the number of contacts he or she has in several subpopulations of known size, such as twins, people named Nicole, or women over $70$, using the same assumption that an individual should know roughly their degree times the proportion of people in a given subpopulation. *[why asking about hidden population directly will work?]*
-- ...Does not take account of the different propensities of people to know people in different groups, such as people's tendency to know people like themselves; these are called **barrier effects**.
-- **Transmission bias** arises when a respondent does not count his or her contact as being in the group of interest, for example because the respondent does not know that the contact belongs to the group. This bias may be particularly large when a group is stigmatized, as is the case of most of the key affected populations in which we are interested.
-- **Recall bias** refers to the tendency for people to underestimate the number of people they know in larger groups because they forget some of these contacts, and to overestimate the number of people they know in small or unusual groups.
+We are interested in the true prevalence, an $N$-dimensional vector $\alpha$ and the bias associated with each estimate relative to the benchmark procedure: a $K$-dimensional vector $\beta$ (with the first element constrained to unity).
 
-### G-NSUM (@killworth1998)
+The following code block describes the `stan` model used to estimate $\alpha$ and $\beta$ give the findings across studies.
 
-**Basic setup:**
+```{r}
+#| label: stancode
+#| eval: true
+#| echo: true
 
-- $y_{ik}$ be the number of people known by individual $i$, $i = 1, \dots, n$ , in group $k$, $k = 1, \dots, K$
-- Groups $1, \dots, K − 1$ are of known size and group $K$ -- of unknown size (in general number of unknown size groups can be more than one)
-- $N_{k}$ -- size of group $k$, and let $N$ be the total population, which is assumed to be known
-- $d_{i}$ -- number of people that respondent $i$ knows, also called his or her degree or personal network size
-- Core assumption: $y_{ik} \sim \mathrm{B} (d_{i}, \frac{N_{k}}{N})$
-- Main finding: $\widehat{d_{i}} = N \frac{\sum_{k = 1}^{K} y_{ik}}{\sum_{k = 1}^{K} N_{k}}$ which then leads to $\widehat{N_{K}} = N \frac{\sum_{i = 1}^{n} y_{iK}}{\sum_{i = 1}^{n} \widehat{d_{i}}}$
+model_code <- "
 
-### G-NSUM (@maltiel2015)
+data {
+  int<lower=0> N;
+  int<lower=0> K;
+  int<lower=0> n_ests;
+  real<lower=0> alpha_prior_mean[N];
+  real<lower=0> alpha_prior_sd[N];
+  real<lower=0> bias_prior_mean[K];
+  real<lower=0> bias_prior_sd[K];
+  int<lower=0> site[n_ests];
+  int<lower=0> design[n_ests];
+  vector<lower=0>[n_ests] ests;
+  vector<lower=0>[n_ests] ses;
+}
+parameters {
+  vector<lower=0.01>[K] bias;
+  vector<lower=1>[N] alpha;
+}
 
-**Additional assumptions (on top of basic setup above):**
+model {
 
-- Number of people respondents $i$ knows is distributed log normal: $d_{i} \sim \textrm{Lognormal} (\mu, \sigma^{2})$ [@salganik2011]
-- Priors are $\pi (N_{k}) \propto \frac{\mathbb{1}_{N_{k} < N}}{N_{K}}$; $\mu \sim \mathrm{U} (3,8)$; $\sigma \sim \mathrm{U} (\frac{1}{4}, 2)$
-- Existence of **barrier effect** implies that $\frac{N_{k}}{N}$ can be over or underestimated by respondent depending on the group $k$, so instead of using this term in binomial distribution assume:
-    - $y_{ik} \sim \mathrm{B} (d_{i}, q_{ik})$ and $q_{ik} \sim \textrm{Beta} (m_{k}, \rho_{k})$ (mean-sd parametrization), where $m_{k} = \mathbb{E} [q_{ik}] \equiv \frac{N_{k}}{N}$
-    - priors are $\pi (m_{k}) \propto \frac{1}{m_{k}}$ and $\rho_{k} \sim \mathrm{U} (0,1)$
-- Existence of **transmission bias** implies that for the group of interest $K$ respondents might underestimate number of connections due to stigma. Thus they assume:
-    - $y_{ik} \sim \mathrm{B} (d_{i}, \tau_{k}\frac{N_{k}}{N})$, $\tau_{K} \sim \textrm{Beta} (\eta_{K}, \nu_{K})$ and $\forall k\neq K:\: \tau_{k} \equiv 1$
-    - standard priors on $\eta_{K}$ and $\nu_{k}$
-- **Recall bias** usually implies that respondents under-report large groups and over-report small groups. Use adjustment method instead of implicit parametrisation to adjust for this bias.
-- If we combine two we get: 
-    - $y_{ik} \sim \mathrm{B} (d_{i}, \tau_{k} q_{ik})$, 
-    - $d_{i} \sim \textrm{Lognormal} (\mu, \sigma^{2})$, 
-    - $q_{ik} \sim \textrm{Beta} (m_{k}, \rho_{k})$, 
-    - $\tau_{K} \sim \textrm{Beta} (\eta_{K}, \nu_{K})$, 
-    - $\mu \sim \mathrm{U} (3,8);\; \sigma \sim \mathrm{U} (\frac{1}{4}, 2);\; \rho_{k} \sim \mathrm{U} (0,1)$
-    - $\pi (N_{k}) \propto \frac{\mathbb{1}_{N_{k} < N}}{N_{K}} ;\; \pi (m_{k}) \propto \frac{1}{m_{k}}$
+  target += normal_lpdf(ests | bias[design].*alpha[site], ses);
+  alpha ~ normal(alpha_prior_mean, alpha_prior_sd);
+  bias ~ lognormal(log(bias_prior_mean), bias_prior_sd);
 
+}
+"
 
-### G-NSUM (@feehan2016)
 
-- Focus on *in-reports* and *out-reports*:
-    - two people are connected by a directed edge $i \rightarrow j$ if person $i$ would count person $j$ as a member of group of interest (e.g. drug injector). Whenever $i \rightarrow j$, we say that $i$ makes an **out-report** about $j$ and that $j$ receives an **in-report** from $i$.
-    - $K$ - target group, $U$ - whole population, $F$ - frame population (actually surveyed)
-    - Requires relative probability sampling from hidden population with structure of questions related to the group of known size. E.g. "How many widowers do you know?" combined with "How many of these widowers are aware that you inject drugs?"
-- Total number of out-reports from $i$ to group $K$ are $y_{iK}$ and total number of in-reports about $i$ from the whole population is $\nu_{iU}$ and from the frame population is $\nu_{iF}$
-- **Total out-reports = total in-reports**: $\sum_{i \in F} y_{iK} = \sum_{i \in U} \nu_{iF} \Leftrightarrow N_{K} = \frac{\sum_{i \in F} y_{iK}}{\sum_{i \in U} \nu_{iF} \big/ N_{K}}$
-- Assume that the out-reports from people in the frame population only include people in the hidden population, then it must be the case that the visibility of everyone not in the hidden population is 0: $\forall i \notin K:\: \nu_{iF} \equiv 0$
-    - then $N_{K} = \frac{\sum_{i \in F} y_{iK}}{\sum_{i \in K} \nu_{iF} \big/ N_{K}} = \frac{y_{FK}}{ \overline{\nu_{KF}}}$
-- Estimate $y_{FK}$ using HT estimator with known sampling probability from $F$
-- Estimate $\overline{\nu_{KF}}$ using the *probe alters*, $\mathcal{A}$ , groups of known size for which we collect relational data from hidden population sample. Using this data the estimator is $\widehat{\overline{\nu_{KF}}} = \frac{N}{N_{\mathcal{A}}} \frac{\sum_{i \in s_{K}} \sum_{j} \tilde{\nu}_{i, A_{j}} \big/ (c \pi_{i} )}{\sum_{i \in s_{K}} 1 \big/ (c \pi_{i})}$, where $\tilde{\nu}_{i, A_{j}}$ is the self-reported visibility of member of hidden population to group of known size $A_{j}$.
-- Use bootstrap methods to estimate the standard errors/CIs
-- **Very useful:** Provide comparison with the basic NSUM method [@killworth1998] and show that $N_{K} = \underbrace{\left( \frac{y_{FK}}{\overline{d}_{UF}} \right)}_{\text{standard NSUM estimand}} \times \frac{1}{\phi_{F} \delta_{F} \tau_{F}}$, where $\phi_{F}$ -- frame ratio (average connection within $F$ to connection from $U$ to $F$), $\delta_{F}$ -- degree ratio (average connection from $K$ to $F$ to connection within $F$), and $\tau_{F}$ -- true positive ratio (in-reports from $F$ to $K$ to edges connecting $F$ and $K$)
-- Appendix G to the paper also has very useful ideas on network structure simulation using *block* approach, where the chances of link between two individuals depend on their membership in $F$ and $K$ (there is no code, but it sounds like something straightforward to do)
+```
 
+The model block has three main elements:
 
-## Link-Tracing method
+-   We assume that the likelihood of a given estimate $\hat{\alpha}_{ij}$ for estimand $\alpha_i$ using method $j$ in location $i$ is $\phi(\hat{\alpha}_{ij}|\beta_j\alpha_{i}, \hat{\sigma_{ij}})$.
+-   We have a (wide) prior on $\alpha$: $\alpha_i \sim f(\mu_{\alpha, i}, {\sigma}_{\alpha, i})$, where the $\mu_{\alpha, i}$ is gathered from teams, $\sigma\_{\alpha}$ is large, and $f$ denotes the normal distribution. Note that we assume no relation between different elements of $\alpha$---that is we do not make use of a prior distribution on prevalence "in general."
+-   We have a (wide) prior on $\beta_j$: $\beta_j \sim g(\mu_{\beta_j}, {\sigma}_{\beta_j})$, where the $\mu_{\beta_j}$ is gathered from teams, $\sigma_{\alpha}$ is large, and $g$ denotes the log-normal distribution. Note that we assume no relation between different elements of $\beta$---that is we do not make use of a prior distribution about biases of different methods "in general."
 
-### @vincent2019 
-
-The Link-Tracing method combines ideas from RDS and capture re-capture estimation to approximate population size.Applying a multi-wave snowball sampling frame over the population, it constructs a Gibbs sampling estimator of population size given an observed network structure. The central idea behind the construction of this estimator is that links between units sampled in the waves up to but not including the last wave and all other units can be regarded as iid Bernoulli-type outcomes. The occurrences of network links thus represent binomial type experiments.
-
-#### Population and Assumptions
-
-- population is represented through a stochastic block model where all units in the population $U = (1,2,...,N)$ are assigned to one of G strata (known if unit is observed and latent otherwise) with probability $\underline{\lambda} = (\lambda_1, \lambda_2,...,\lambda_G)$ where $C_i$ is the stratum to which unit $i$ belongs.
-- strata may be considered groupings or factors that affect (explain or predict) the probability of links arising between units. 
-- all links between units are reciprocated, yielding a symmetric adjacency matrix $Y$ of the population, where for all $i,j = 1,2,...,N,Y_{ij} = Y_{ji} = 1$ if a link is present between units $i$ and $j$ and 0 otherwise. 
-- conditional on stratum membership, links occur independently between all pairs of units, such that for any $i,j = 1,2,...,N$ if $i \neq j$ then $P(Y_{ij} = 1|\underline{C} = P(Y_{ij} = 1|C_i,C_j) = \beta_{C_i,C_j}$ and if $i = j$ then $P(Y_{ii} = 1) = 0$.
-
-#### Sampling
-
-- sampling commences with the selection of an initial sample/wave $S_0$ from which all nominated links are        traced.
-- nominations outside of the initial sample comprise the first wave $S_1$.
-- this sampling procedure is continued until $W$ waves are reached (units added in wave $w$ are thus $S_w$).
-- $S = \cup_{w = 0}^{W}S_w$ is thus the final sample, and $S \setminus S_w = \cup_{w = 0}^{W-1}S_w$ is the final sample minus the units selected in the last wave.$\overline{S} = U \setminus S$ denotes the set of units not included in the final sample. 
-
-#### Required Data 
-
-The following data needs to be collected for estimation:
-
-  - stratum assignment of each unit
-  - sampling wave assignment of each unit
-  - adjacency matrix 
-
-We denote the observed data $d_{I_{gn}}$
-
-
-#### Estimation 
-
-Given that $n = n_0 + n_1 + ... + n_w$ and the population can be partitioned into $W + 2$ sets ($S_0,S_1,...,S_w$ and $\overline{S}$ (i.e. initial sample, all waves, non sampled units)) of sizes $n_0,n_1,...,n_w$ and $N-n$ in  ${N \choose n_0,n_1,...,n_w,N-n}$ ways, the following likelihood function for the parameters of interest can be written: 
-
-$\displaystyle L(N,\underline{\lambda},\underline{\beta}|d_{I_{gn}},|S_0|)$
-$\displaystyle = {N \choose n_0,n_1,...,n_w,N-n} \times \prod_{i=1}^{n-n_w}\lambda_{C_i} \times \prod_{i,j = 1,2,...,n-n_w:i<j}\left(\beta_{C_i,C_j}^{Y_{ij}}(1-\beta_{C_i,C_j})^{(1-Y_{ij})}\right) \times$ 
-$\displaystyle \left[\prod_{j = n-n_w+1}^n\left(\lambda_{C_j} \prod_{i = 1}^{n - n_w}\left( \beta_{C_i,C_j}^{Y_{ij}}(1-\beta_{C_i,C_j})^{(1-Y_{ij})}\right) \right)\right] \times \left[\sum_{k = 1}^G \left(\lambda_k \prod_{i = 1}^{n-n_w}(1 - \beta_{C_i,k})\right)\right]^{N-n}$
-
-Where: 
-
-  - the first component corresponds to reorderings of the data
-  - the second component corresponds to the stratum assignment of the units within the fist $W-1$ waves of the         reordered data
-  - the third component corresponds to the occurrence of links within the fist $W-1$ waves of the reordered data 
-  - the fourth component corresponds to the stratum assignment of the units within wave $W$ and the links between      units in wave $W$ and the first $W-1$ waves of the reordered data
-  - the fifth component corresponds to the unobserved stratum memberships of units outside the final sample and        the observed absence of links between units inside and outside of the final sample.
-  
-
-
-As the given likelihood corresponds to a multivariate distribution, Link-tracing employs a Gibbs sampling procedure for parameter estimation. That is, it iteratively samples from each parameters conditional distribution. Estimation thus proceeds as follows: 
-
-  1. initialize values for $N,\underline{\lambda}$ and $\underline{\beta}$ 
-  2. draw from $P(N|d_{I_{ng}},\underline{\lambda},\underline{\beta})$ given the values of          $\underline{\lambda}$ and $\underline{\beta}$ from the previous step
-  3. draw from $P(\underline{\lambda}|N,\underline{\beta})$ given the values of $N$ and $\underline{\beta}$ from the previous steps
-  4. draw from $P(\underline{\beta}|N,\underline{\lambda})$ given the values of $N$ and $\underline{\lambda}$ from the previous steps 
-  5. repeat steps 2-4
-
-
-##### Population Size:
-  
-  - Prior distribution of $N$ defined as $\pi(N) \propto N^{-a}, a = 0,1,2,...$
-
- 
-  - $P(N|d_{I_{gn}},\underline{\lambda},\underline{\beta}) = \frac{P(d_{I_{gn}}|N,\underline{\lambda},\underline{\beta})\pi(N)}{P(d_{I_{gn}}|\underline{\lambda},\underline{\beta})} \propto \frac{{N - n_0 \choose n_1,...,n_w,N-n}(1-P)^{N - n} \frac{1}{N^a}}{\sum_{N' \geq n} \left({N' - n_0 \choose n_1,...,n_w,N'-n}(1-p)^{N'-n \frac{1}{N'^a}}\right)}$
-$\propto {N - n_0 \choose n_1,...,n_w,N-n}(1-p)^{N-n \frac{1}{N^a}}$
-
-
-  - where $1-p = \sum_{k=1}^{G}\left(\lambda_k \prod_{i=1}^{n - n_w}(1 - \beta_{C_i,k})\right)$
-
-##### Stratum Memberships:
-
-  - Prior distribution of $\underline{\lambda}$ defined as $\pi(\underline{\lambda}) \propto \prod_{k =          1}^{G}\lambda_{k}^{a_k-1}$
-
-
-  - Given the observed data Link-tracing imputes the missing stratum assignments by sampling from the following distribution:
-
-
-  - $P(C_i = k|S,\underline{C}_{S \setminus S_W}, Y_{S \setminus S_W,i}) = \frac{\lambda_k \prod_{j=1}^{n-n_W}(1 - \beta_{C_j,k})}{\sum_{l = 1}^{G}\left(\lambda_l \prod_{j=1}^{n-n_W}(1-\beta_{C_j,l})\right)}$
-
-
-  - New $\underline{\lambda}$ values are then drawn from $Dirichlet(N_1 + 1,...,N_G + 1)$
-
-##### Links:
-
-  - Prior distribution of of $\underline{\beta}$ defined as $\pi(\underline{\beta}) \propto \prod_{k,l = 1: k \leq l}^{G}\left(\beta_{k,l}^{\gamma_1 - 1}(1- \beta_{k,l})^{\gamma_2-1}\right)$
-
-
-  - The imputed stratum assignments and population size from the previous steps update the observed data to a hypothetical full graph realization (knowledge about stratum assignment for each unit) $d_1 = \{S,\underline{C},Y_{S \setminus S_W,U}\}$ where $U$ is the population size estimate. For any $i,j \in S_W \cup \overline{S}$ where $i \ne j$ links arise independently via $P(Y_{ij} = 1|d_1) = \beta_{C_i,C_j}$ and can be imputed through sampling from this. This process yields a hypothetical full graph realization (knowledge about stratum membership and links for all units) $d = \{\underline{C},Y\}$. 
-
-
-  - New $\underline{\beta}$ values for between stratum links $\beta_{k,l}$ for $k,l = 1,2,...,G,k \ne l$ are drawn from $Beta(M_{k,l} + 1, N_k N_l - M_{k,l} + 1)$.
-
-  - New $\underline{\beta}$ values for within stratum links $\beta_{k,k}$ for $k = 1,2,...,G$ are drawn from $Beta(M_{k,k} + 1,{N_k \choose 2} - M_{k,k} + 1)$.
-
+The model thus builds in a critical assumption that the relative bias of a method is constant across sites. It is this bias that is estimated. To be clear the assumption is not that one method will always produce a higher or lower estimate than another but simply that it is potentially biased in that *in expectation* it produces a higher or lower estimate than another. Bias is relative to the bias of the benchmark method and also to the truth to the extent that the benchmark method is itself unbiased.

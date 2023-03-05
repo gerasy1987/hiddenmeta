@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_ht}
 \alias{get_study_est_ht}
-\title{Horvitz-Thompson prevalence estimator using}
+\title{Horvitz-Thompson prevalence estimator}
 \usage{
 get_study_est_ht(
   data,
@@ -39,7 +39,7 @@ get_study_est_ht(
 Data frame of HT estimates for a single study
 }
 \description{
-Horvitz-Thompson prevalence estimator using
+Horvitz-Thompson prevalence estimator
 }
 \references{
 Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}

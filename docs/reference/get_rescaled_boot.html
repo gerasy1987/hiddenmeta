@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -75,34 +72,29 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">get_rescaled_boot</span><span class="op">(</span><span class="va">data</span>, <span class="va">survey_design</span>, n_boot <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_rescaled_boot</span><span class="op">(</span><span class="va">data</span>, <span class="va">survey_design</span>, n_boot <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>data</dt>
 <dd><p>sample data frame</p></dd>
+
+
 <dt>survey_design</dt>
 <dd><p>a formula describing the design of the survey</p></dd>
+
+
 <dt>n_boot</dt>
 <dd><p>number of bootstrap resamples</p></dd>
+
 </dl></div>
-    <div id="value">
-    <h2>Value</h2>
-    
-    </div>
     <div id="references">
     <h2>References</h2>
     <p>Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). <a href="https://cran.r-project.org/package=surveybootstrap" class="external-link">https://cran.r-project.org/package=surveybootstrap</a>.
 Rust, Keith F., and J. N. K. Rao. "Variance estimation for complex surveys using replication techniques." Statistical methods in medical research 5, no. 3 (1996): 283-310.</p>
     </div>
 
-    <div id="ref-examples">
-    <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"></span>
-</code></pre></div>
-    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>
@@ -115,8 +107,7 @@ Rust, Keith F., and J. N. K. Rao. "Variance estimation for complex surveys using
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

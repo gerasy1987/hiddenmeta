@@ -88,6 +88,9 @@
     <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_ht.html</loc>
   </url>
   <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_linktrace.html</loc>
+  </url>
+  <url>
     <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_multiplier.html</loc>
   </url>
   <url>
@@ -100,16 +103,28 @@
     <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_recapture.html</loc>
   </url>
   <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_ss.html</loc>
+  </url>
+  <url>
     <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_est_sspse.html</loc>
   </url>
   <url>
     <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_estimands.html</loc>
   </url>
   <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_estimands_tidy.html</loc>
+  </url>
+  <url>
     <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_population.html</loc>
   </url>
   <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/get_study_population_tidy.html</loc>
+  </url>
+  <url>
     <loc>https://gsyunyaev.com/hiddenmeta/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/lt_gibbs_cpp.html</loc>
   </url>
   <url>
     <loc>https://gsyunyaev.com/hiddenmeta/reference/rbeta_mod.html</loc>
@@ -124,10 +139,19 @@
     <loc>https://gsyunyaev.com/hiddenmeta/reference/sample_pps.html</loc>
   </url>
   <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/sample_pps_tidy.html</loc>
+  </url>
+  <url>
     <loc>https://gsyunyaev.com/hiddenmeta/reference/sample_rds.html</loc>
   </url>
   <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/sample_rds_tidy.html</loc>
+  </url>
+  <url>
     <loc>https://gsyunyaev.com/hiddenmeta/reference/sample_tls.html</loc>
+  </url>
+  <url>
+    <loc>https://gsyunyaev.com/hiddenmeta/reference/sample_tls_tidy.html</loc>
   </url>
   <url>
     <loc>https://gsyunyaev.com/hiddenmeta/reference/sim_block_network.html</loc>

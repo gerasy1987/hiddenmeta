@@ -20,6 +20,12 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 
+
+library(GGally)
+library(grDevices)
+library(knitr)
+library(magrittr)
+
 ```
 
 ## Install and load packages
@@ -32,11 +38,10 @@ devtools::install_github("gerasy1987/hiddenmeta", build_vignettes = TRUE)
 
 ```
 
-```{r setup}
+```{r setup, eval=TRUE}
 
 library(hiddenmeta)
 library(DeclareDesign)
-library(knitr)
 
 ```
 
@@ -223,10 +228,6 @@ example_pop[sample(1:min(.N, 1000))] %>%
 ### Simulated population network
 
 ```{r plot_pop_network, fig.width=6, fig.height=8}
-
-
-library(GGally)
-library(grDevices)
 
 g <-
   example_pop %$% {
@@ -415,7 +416,7 @@ saveRDS(study1_simulations, here::here("inst/extdata/study1_sim.rds"))
 ```{r study_diagnose, eval=TRUE}
 
 study_diagnosands <-
- DeclareDesign::declare_diagnosands(
+ declare_diagnosands(
     mean_estimand = mean(estimand),
     mean_estimate = mean(estimate),
     sd_estimate = sd(estimate),
@@ -427,11 +428,11 @@ study_diagnosands <-
 study1_simulations <- 
   readRDS(system.file("extdata", "study1_sim.rds", package = "hiddenmeta"))
 
-DeclareDesign::diagnose_design(simulations_df = study1_simulations, 
+diagnose_design(simulations_df = study1_simulations, 
                 diagnosands = study_diagnosands) %>% 
-  DeclareDesign::reshape_diagnosis() %>% 
+  reshape_diagnosis() %>% 
   dplyr::select(-'Design') %>%
-  knitr::kable()
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
 
@@ -895,9 +896,9 @@ saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim.rds"))
 meta_simulations <- 
   readRDS(system.file("extdata", "meta_sim.rds", package = "hiddenmeta"))
 
-DeclareDesign::diagnose_design(simulations_df = meta_simulations, 
+diagnose_design(simulations_df = meta_simulations, 
                 diagnosands = study_diagnosands) %>% 
-  DeclareDesign::reshape_diagnosis(digits = 2) %>%
+  reshape_diagnosis(digits = 2) %>%
   dplyr::select(-'Design') %>%
   dplyr::filter(`Mean Estimate` != "NA") %>% 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))

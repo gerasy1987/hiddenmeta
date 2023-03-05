@@ -59,3 +59,4 @@ Simulate single population with given network structure using tidyverse
 }
 
 }
+\keyword{internal}

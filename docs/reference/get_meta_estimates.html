@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -75,41 +72,52 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">get_meta_estimates</span><span class="op">(</span>
-  <span class="va">data</span>,
-  sampling_variable <span class="op">=</span> <span class="st">"meta"</span>,
-  which_estimand <span class="op">=</span> <span class="st">"hidden_size"</span>,
-  benchmark <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sample <span class="op">=</span> <span class="st">"pps"</span>, estimator <span class="op">=</span> <span class="st">"ht"</span><span class="op">)</span>,
-  stan_handler <span class="op">=</span> <span class="va">get_meta_stan3</span>,
-  hidden_prior <span class="op">=</span> <span class="cn">NULL</span>,
-  rel_bias_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fl">1</span>, se <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,
-  control_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>iter <span class="op">=</span> <span class="fl">8000</span>, chains <span class="op">=</span> <span class="fl">8</span>, thin <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">872312</span>, cores <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_meta_estimates</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  sampling_variable <span class="op">=</span> <span class="st">"meta"</span>,</span>
+<span>  which_estimand <span class="op">=</span> <span class="st">"hidden_size"</span>,</span>
+<span>  benchmark <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sample <span class="op">=</span> <span class="st">"pps"</span>, estimator <span class="op">=</span> <span class="st">"ht"</span><span class="op">)</span>,</span>
+<span>  stan_handler <span class="op">=</span> <span class="va">get_meta_stan3</span>,</span>
+<span>  hidden_prior <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  rel_bias_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fl">1</span>, se <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span>
+<span>  control_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>iter <span class="op">=</span> <span class="fl">8000</span>, chains <span class="op">=</span> <span class="fl">8</span>, thin <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">872312</span>, cores <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>data</dt>
 <dd><p>pass-through meta population or meta sample data frame</p></dd>
+
+
 <dt>sampling_variable</dt>
 <dd><p>name of variable storing meta analysis sampling information</p></dd>
+
+
 <dt>which_estimand</dt>
 <dd><p>name of study level estimand for meta analysis</p></dd>
+
+
 <dt>benchmark</dt>
 <dd><p>named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)</p></dd>
+
+
 <dt>stan_handler</dt>
 <dd><p>function that takes stan_data as input and produces compilable stan model object</p></dd>
+
+
 <dt>hidden_prior</dt>
 <dd><p>list of two hyperpriors, on means and standard errors of each included sampling-estimator pairs. Names of list objects should be "mean" and "se". If one number provided for a hyperprior it gets expanded to all sampling-estimator pairs</p></dd>
+
+
 <dt>rel_bias_prior</dt>
 <dd><p>list of two hyperpriors, on means and standard errors of relative bias. Names of list objects should be "mean" and "se".</p></dd>
+
+
 <dt>control_params</dt>
 <dd><p>list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use</p></dd>
+
 </dl></div>
-    <div id="value">
-    <h2>Value</h2>
-    
-    </div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -123,8 +131,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

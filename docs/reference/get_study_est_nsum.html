@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -75,46 +72,67 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">get_study_est_nsum</span><span class="op">(</span>
-  <span class="va">data</span>,
-  <span class="va">known</span>,
-  <span class="va">hidden</span>,
-  survey_design <span class="op">=</span> <span class="op">~</span><span class="va">pps_cluster</span> <span class="op">+</span> <span class="fu">strata</span><span class="op">(</span><span class="va">pps_strata</span><span class="op">)</span>,
-  degree_ratio <span class="op">=</span> <span class="fl">1</span>,
-  transmission_rate <span class="op">=</span> <span class="fl">1</span>,
-  n_boot <span class="op">=</span> <span class="fl">1000</span>,
-  parallel_boot <span class="op">=</span> <span class="cn">FALSE</span>,
-  prefix <span class="op">=</span> <span class="st">"pps"</span>,
-  label <span class="op">=</span> <span class="st">"nsum"</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_study_est_nsum</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  <span class="va">known</span>,</span>
+<span>  <span class="va">hidden</span>,</span>
+<span>  survey_design <span class="op">=</span> <span class="op">~</span><span class="va">pps_cluster</span> <span class="op">+</span> <span class="fu">strata</span><span class="op">(</span><span class="va">pps_strata</span><span class="op">)</span>,</span>
+<span>  degree_ratio <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  transmission_rate <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  n_boot <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  parallel_boot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"pps"</span>,</span>
+<span>  label <span class="op">=</span> <span class="st">"nsum"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>data</dt>
 <dd><p>pass-through population data frame</p></dd>
+
+
 <dt>known</dt>
 <dd><p>character vector containing names of known groups</p></dd>
+
+
 <dt>hidden</dt>
 <dd><p>character vector containing names of hidden groups</p></dd>
+
+
 <dt>survey_design</dt>
 <dd><p>a formula describing the design of the survey</p></dd>
+
+
 <dt>degree_ratio</dt>
 <dd><p>numeric value between 0 and 1 representing degree ratio</p></dd>
+
+
 <dt>transmission_rate</dt>
 <dd><p>numeric value between 0 and 1 representing information transmission rate</p></dd>
+
+
 <dt>n_boot</dt>
 <dd><p>number of bootstrap resamples</p></dd>
+
+
 <dt>parallel_boot</dt>
 <dd><p>logical, whether to compute bootstrap samples in parallel using <code>foreach</code> package</p></dd>
+
+
 <dt>prefix</dt>
 <dd><p>character prefix used for PPS sample variables</p></dd>
+
+
 <dt>label</dt>
 <dd><p>character string describing the estimator</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>Data frame of NSUM estimates for a single study with PPS sample</p>
+    
+
+<p>Data frame of NSUM estimates for a single study with PPS sample</p>
     </div>
     <div id="references">
     <h2>References</h2>
@@ -135,8 +153,7 @@ Salganik, Matthew J. "Variance estimation, design effects, and sample size calcu
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

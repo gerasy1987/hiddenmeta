@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -75,19 +72,24 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">get_multi_samples</span><span class="op">(</span><span class="va">data</span>, <span class="va">samples_args</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_multi_samples</span><span class="op">(</span><span class="va">data</span>, <span class="va">samples_args</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>data</dt>
 <dd><p>pass-through populations data frame</p></dd>
+
+
 <dt>samples_args</dt>
 <dd><p>named list of named lists of arguments to sampling function</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>Meta tibble data frame with columns</p><ul><li><p>"study"Character. Study identifier</p></li>
+    
+
+<p>Meta tibble data frame with columns</p><ul><li><p>"study"Character. Study identifier</p></li>
 <li><p>"sample"Character. Sampling strategy identifier (possible multiple per study</p></li>
 <li><p>"population"List of tibble data frames. For each combination of study and sampling strategy the data frame includes full population information and respective sampling strategy information</p></li>
 </ul></div>
@@ -104,8 +106,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

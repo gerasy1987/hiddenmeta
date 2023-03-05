@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -70,17 +67,16 @@
 
     <table class="ref-index"><colgroup><col class="alias"><col class="title"></colgroup><tbody><tr><th colspan="2">
           <h2 id="study-level-functions">Study-level functions <a href="#study-level-functions" class="anchor" aria-hidden="true"></a></h2>
-          <p class="section-desc"></p><p>These function allow to simulate population and sampling and conduct
-estimation of a specific study</p>
+          <p class="section-desc"></p><p>These function allow to simulate population and sampling and conduct estimation of a specific study</p>
         </th>
       </tr></tbody><tbody><tr><td>
           <p><code><a href="get_study_population.html">get_study_population()</a></code> </p>
         </td>
-        <td><p>Simulate single population with given network structure</p></td>
+        <td><p>Simulate single population with given network structure using data.table</p></td>
       </tr><tr><td>
           <p><code><a href="sample_rds.html">sample_rds()</a></code> </p>
         </td>
-        <td><p>Draw respondent-driven sample (RDS) sample from single study</p></td>
+        <td><p>Draw respondent-driven sample (RDS) sample from single study using data.table</p></td>
       </tr><tr><td>
           <p><code><a href="sample_tls.html">sample_tls()</a></code> </p>
         </td>
@@ -92,7 +88,7 @@ estimation of a specific study</p>
       </tr><tr><td>
           <p><code><a href="get_study_estimands.html">get_study_estimands()</a></code> </p>
         </td>
-        <td><p>Get individual study estimands</p></td>
+        <td><p>Get individual study estimands using data.table</p></td>
       </tr><tr><td>
           <p><code><a href="get_study_est_sspse.html">get_study_est_sspse()</a></code> </p>
         </td>
@@ -104,9 +100,9 @@ estimation of a specific study</p>
       </tr><tr><td>
           <p><code><a href="get_study_est_ht.html">get_study_est_ht()</a></code> </p>
         </td>
-        <td><p>Horvitz-Thompson prevalence estimator using</p></td>
+        <td><p>Horvitz-Thompson prevalence estimator</p></td>
       </tr><tr><td>
-          <p><code><a href="get_study_est_rds_ss.html">get_study_est_rds_ss()</a></code> </p>
+          <p><code><a href="get_study_est_ss.html">get_study_est_ss()</a></code> </p>
         </td>
         <td><p>Sequential Sampling (SS) prevalence estimator by Gile (2011)</p></td>
       </tr><tr><td>
@@ -120,15 +116,14 @@ estimation of a specific study</p>
       </tr><tr><td>
           <p><code><a href="get_study_est_recapture.html">get_study_est_recapture()</a></code> </p>
         </td>
-        <td><p>Capture-recapture estimator for closed population</p></td>
+        <td><p>Mark-recapture estimator for closed population</p></td>
       </tr><tr><td>
-          <p><code><a href="get_study_est_gnsum.html">get_study_est_gnsum()</a></code> </p>
+          <p><code><a href="get_study_est_linktrace.html">get_study_est_linktrace()</a></code> </p>
         </td>
-        <td><p>Generalized NSUM estimatior</p></td>
+        <td><p>Link tracing estimator</p></td>
       </tr></tbody><tbody><tr><th colspan="2">
           <h2 id="multi-study-functions">Multi-study functions <a href="#multi-study-functions" class="anchor" aria-hidden="true"></a></h2>
-          <p class="section-desc"></p><p>These function allow to simulate several study population and
-sampling strategies and conduct estimation on them at the same time</p>
+          <p class="section-desc"></p><p>These function allow to simulate several study population and sampling strategies and conduct estimation on them at the same time</p>
         </th>
       </tr></tbody><tbody><tr><td>
           <p><code><a href="get_multi_populations.html">get_multi_populations()</a></code> </p>
@@ -148,8 +143,7 @@ sampling strategies and conduct estimation on them at the same time</p>
         <td><p>Calculate estimators from multiple study samples</p></td>
       </tr></tbody><tbody><tr><th colspan="2">
           <h2 id="meta-level-estimation">Meta-level estimation <a href="#meta-level-estimation" class="anchor" aria-hidden="true"></a></h2>
-          <p class="section-desc"></p><p>These functions allow to diagnose a set of studies or estimate
-relative bias of sampling-estimation strategies</p>
+          <p class="section-desc"></p><p>These functions allow to diagnose a set of studies or estimate relative bias of sampling-estimation strategies</p>
         </th>
       </tr></tbody><tbody><tr><td>
           <p><code><a href="get_meta_population.html">get_meta_population()</a></code> </p>
@@ -232,8 +226,7 @@ relative bias of sampling-estimation strategies</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

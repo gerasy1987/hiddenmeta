@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -75,37 +72,52 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">get_study_est_chords</span><span class="op">(</span>
-  <span class="va">data</span>,
-  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mle"</span>, <span class="st">"integrated"</span>, <span class="st">"jeffreys"</span><span class="op">)</span>,
-  seed_condition <span class="op">=</span> <span class="st">"rds_from == -999"</span>,
-  rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,
-  n_boot <span class="op">=</span> <span class="fl">100</span>,
-  parallel_boot <span class="op">=</span> <span class="cn">FALSE</span>,
-  label <span class="op">=</span> <span class="st">"chords"</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_study_est_chords</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mle"</span>, <span class="st">"integrated"</span>, <span class="st">"jeffreys"</span><span class="op">)</span>,</span>
+<span>  seed_condition <span class="op">=</span> <span class="st">"rds_from == -999"</span>,</span>
+<span>  rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,</span>
+<span>  n_boot <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  parallel_boot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  label <span class="op">=</span> <span class="st">"chords"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>data</dt>
 <dd><p>pass-through population data frame</p></dd>
+
+
 <dt>type</dt>
 <dd><p>a character vector with the type of estimation. Can be one of <code>mle</code>, <code>integrated</code>, or <code>jeffreys</code>. See <code><a href="https://rdrr.io/pkg/chords/man/Estimate.b.k.html" class="external-link">?chords::Estimate.b.k</a></code> and the original paper from the references for details</p></dd>
+
+
 <dt>seed_condition</dt>
 <dd><p>character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples</p></dd>
+
+
 <dt>rds_prefix</dt>
 <dd><p>character prefix used for RDS sample variables</p></dd>
+
+
 <dt>n_boot</dt>
 <dd><p>number of bootstrap resamples</p></dd>
+
+
 <dt>parallel_boot</dt>
 <dd><p>logical, whether to compute bootstrap samples in parallel using <code>foreach</code> package</p></dd>
+
+
 <dt>label</dt>
 <dd><p>character string describing the estimator</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>Data frame of Chords estimates for a single study with RDS sample</p>
+    
+
+<p>Data frame of Chords estimates for a single study with RDS sample</p>
     </div>
     <div id="references">
     <h2>References</h2>
@@ -125,8 +137,7 @@ Salganik, Matthew J. "Variance estimation, design effects, and sample size calcu
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

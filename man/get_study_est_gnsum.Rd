@@ -17,3 +17,4 @@ Data frame of HT estimates for single study
 \description{
 Generalized NSUM estimatior
 }
+\keyword{internal}
