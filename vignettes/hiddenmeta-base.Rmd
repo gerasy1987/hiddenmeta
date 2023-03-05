@@ -100,15 +100,15 @@ study_1 <-
                    strata = NULL,
                    cluster = NULL,
                    target_n_pps = 150),
-        link_trace = list(handler = sample_rds,
-                            sampling_variable = "link_trace",
-                            hidden_var = "hidden",
-                            n_seed = 50,
-                            n_coupons = 3,
-                            add_seeds = 0,
-                            target = "sample",
-                            target_n_rds = 150,
-                            linktrace = TRUE)
+        rdsplus = list(handler = sample_rds,
+                       sampling_variable = "rdsplus",
+                       hidden_var = "hidden",
+                       n_seed = 50,
+                       n_coupons = 3,
+                       n_waves = 3,
+                       target = "waves",
+                       target_n_rds = 200,
+                       linktrace = TRUE)
       ),
     inquiries = list(handler = get_study_estimands,
                      in_groups = "^target$",
@@ -188,22 +188,22 @@ study_1 <-
                              model = "Mt",
                              hidden_variable = "hidden",
                              label = "rds_tls_recap")),
-        link_trace =
-          list(link_trace = list(handler = get_study_est_linktrace,
-                                   total = 300,
-                                   strata = "hidden",
-                                   gibbs_params = list(n_samples = 5L, 
-                                                       chain_samples = 250L, 
-                                                       chain_burnin = 50L),
-                                   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
-                                   prefix = "link_trace",
-                                   label = "link_trace"))
+        rdsplus =
+          list(link = list(handler = get_study_est_linktrace,
+                           total = 200,
+                           strata = "hidden",
+                           gibbs_params = list(n_samples = 5L, 
+                                               chain_samples = 250L, 
+                                               chain_burnin = 50L),
+                           priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+                           prefix = "rdsplus",
+                           label = "link"))
       )
   )
 
 ```
 
-## Step 2. Declare study population
+## Step 2. Declare study population (M)odel
 
 ```{r example_pop}
 
@@ -220,7 +220,7 @@ example_pop[sample(1:min(.N, 1000))] %>%
 
 ```
 
-### Show the network
+### Simulated population network
 
 ```{r plot_pop_network, fig.width=6, fig.height=8}
 
@@ -252,7 +252,17 @@ GGally::ggnet2(g, mode = "fruchtermanreingold",
 
 ```
 
-## Step 3. Declare all relevant study sampling procedures
+
+## Step 3. Declare study (I)nquiries or Estimands
+
+```{r example_estimands}
+
+study_estimands <- 
+  eval(as.call(c(list(declare_inquiry), study_1$inquiries)))
+
+```
+
+## Step 4. Declare study (D)ata strategy or Sampling
 
 The sampling procedures are additive in a sense that each procedure appends several columns relevant to the sampling procedure and particular draw based on population simulation, but does not change the study population data frame (unless you specify `drop_nonsampled = TRUE`).
 
@@ -261,20 +271,12 @@ The sampling procedures are additive in a sense that each procedure appends seve
 study_sample_rds <- 
   eval(as.call(c(list(declare_sampling), study_1$sample$rds)))
 
-set.seed(872312)
-draw_data(study_population + study_sample_rds)[sample(1:.N)] |>
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
-
 ```
 
 ```{r example_pps}
 
 study_sample_pps <- 
   eval(as.call(c(list(declare_sampling), study_1$sample$pps)))
-
-set.seed(872312)
-draw_data(study_population + study_sample_rds + study_sample_pps)[sample(1:.N)]  %>% 
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
 
@@ -283,41 +285,17 @@ draw_data(study_population + study_sample_rds + study_sample_pps)[sample(1:.N)] 
 study_sample_tls <- 
   eval(as.call(c(list(declare_sampling), study_1$sample$tls)))
 
-set.seed(872312)
-draw_data(study_population + 
-            study_sample_rds + study_sample_pps + study_sample_tls)[sample(1:.N)]  %>% 
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+```
+
+```{r example_rdsplus}
+
+study_sample_rdsplus <- 
+  eval(as.call(c(list(declare_sampling), study_1$sample$rdsplus)))
 
 ```
 
-```{r example_linktrace}
 
-study_sample_link_trace <- 
-  eval(as.call(c(list(declare_sampling), study_1$sample$link_trace)))
-
-set.seed(872312)
-draw_data(study_population +
-            study_sample_rds + study_sample_pps + study_sample_tls + study_sample_link_trace)[sample(1:.N)]%>% 
-  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
-
-```
-
-## Step 4. Declare study level estimands
-
-```{r example_estimands}
-
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), study_1$inquiries)))
-
-set.seed(872312)
-draw_estimands(study_population + 
-                 # study_sample_rds + study_sample_pps + study_sample_tls + 
-                 study_estimands) %>% 
-  kable(digits = 2)
-
-```
-
-## Step 5. Declare estimators used in the study
+## Step 5. Declare study (A)nswer strategy or estimators
 
 ```{r example_estimators}
 
@@ -343,26 +321,12 @@ est_recap_tls <-
   eval(as.call(c(list(declare_estimator), study_1$estimators$tls$recap)))
 
 est_recap_rds_pps <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$rds_pps$recap1)))
+  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap1)))
 est_recap_rds_tls <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap2)))
 
-est_link_trace <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$link_trace$link_trace)))
-
-set.seed(872312)
-draw_estimates(study_population +
-                 study_sample_rds + study_sample_pps + study_sample_tls + study_sample_link_trace + 
-                 study_estimands +
-                 est_sspse +
-                 est_chords +
-                 est_multi +
-                 est_nsum_pps + est_ht_pps +
-                 est_nsum_tls + est_ht_tls + est_recap_tls +
-                 est_recap_rds_pps + est_recap_rds_tls +
-                 est_link_trace
-               )  %>% 
-  kable(digits = 2)
+est_link <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$rdsplus$link)))
 
 ```
 
@@ -371,30 +335,55 @@ draw_estimates(study_population +
 ```{r example_study, warning=FALSE}
 
 study1 <- 
-  study_population +
-  study_sample_rds + study_sample_pps + study_sample_tls + study_sample_link_trace +
-  study_estimands +
+  # model (population)
+  study_population + 
+  # inquiries
+  study_estimands + 
+  # data strategy (samples)
+  study_sample_rds + study_sample_pps + study_sample_tls + study_sample_rdsplus + 
+  # answer strategy (estimators)
   est_ss + est_sspse + est_chords +
   est_multi +
   est_nsum_pps + est_ht_pps +
   est_nsum_tls + est_ht_tls + est_recap_tls +
-  est_recap_rds_pps + est_recap_rds_tls + est_link_trace
-
-# # can draw one of the samples
-# study1$study_sample_rds(study1$study_population())
-# 
-# # can draw full data
-# study1_data <- draw_data(study1)
-# 
-# # can draw estimands
-# study1$inquiry(study1_data)
-# 
-# # can draw any of the estimators
-# study1$rds_sspse(study1_data)
-# study1$pps_ht(study1_data)
-study1$link_trace(study1_data)
+  est_recap_rds_pps + est_recap_rds_tls + est_link
 
 ```
+
+### Draw population and relevant samples
+
+```{r example_draw_data}
+
+# can draw full data
+study1_data <- draw_data(study1)
+
+set.seed(872312)
+study1_data[sample(1:.N)] %>% 
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
+
+
+```
+
+### Draw inquiries
+
+```{r example_draw_inquiries}
+
+set.seed(872312)
+draw_estimands(study1) %>% 
+  kable(digits = 2)
+
+```
+
+### Draw estimates
+
+```{r example_draw_estimates}
+
+set.seed(872312)
+draw_estimates(study1) %>% 
+  kable(digits = 2)
+
+```
+
 
 
 ## Step 7. Diagnose study design
