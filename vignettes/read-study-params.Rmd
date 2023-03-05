@@ -241,9 +241,9 @@ diagnose_design(study, sims = 1,
 
 ```
 
-```{r johnjay_costarica, eval=FALSE}
+```{r nyu_costarica, eval=FALSE}
 
-design <- study_designs$johnjay_costarica
+design <- study_designs$nyu_costarica
 
 study_population <-
   eval(as.call(c(list(declare_population), design$pop)))
@@ -282,9 +282,9 @@ diagnose_design(study, sims = 1,
 
 ```
 
-```{r johnjay_tanzania, eval=FALSE}
+```{r nyu_tanzania, eval=FALSE}
 
-design <- study_designs$johnjay_tanzania
+design <- study_designs$nyu_tanzania
 
 study_population <-
   eval(as.call(c(list(declare_population), design$pop)))

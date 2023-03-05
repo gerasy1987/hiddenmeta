@@ -24,10 +24,9 @@
 #'
 #' @export
 #'
+#' @import data.table
 #' @import dplyr
-#' @importFrom tidyr nest
-#' @importFrom purrr map_chr when
-#' @importFrom magrittr `%<>%`
+
 sample_tls <-
   function(data,
            sampling_variable = "tls", drop_nonsampled = FALSE,
@@ -49,104 +48,144 @@ sample_tls <-
       stop("There is a mismatch between type and target specified for within clusters sampling")
     }
 
-    sampling_probs <-
-      data %>%
-      # think about adding visibility here as well
-      purrr::when(
-        !is.null(hidden_var) ~ dplyr::filter(., across(all_of(hidden_var), ~ .x == 1)),
-        ~ .) %>%
-      dplyr::summarise(dplyr::across(dplyr::all_of(clusters), sum, .names = "{.col}")) %>%
-      { tibble(loc = colnames(.), n = unlist(.), loc_sampling_prob = unlist(.)/sum(.)) }
+    data.table::setDT(data)
 
-    sampled_locs <-
-      sampling_probs %>%
-      {
-        sample(x = .$loc, size = target_n_clusters, prob = .$loc_sampling_prob)
-      }
-
-    if (target_cluster_type == "prop") {
-      sampling_probs %<>%
-        dplyr::filter(loc %in% sampled_locs) %>%
-        dplyr::mutate(
-          target_n = n * target_per_cluster,
-          target_n =
-            dplyr::if_else((target_n %% 1) <= median(target_n %% 1),
-                           floor(target_n),
-                           ceiling(target_n)),
-          unit_sampling_prob = target_n/n
-        )
-    } else if (target_cluster_type == "fixed") {
-      sampling_probs %<>%
-        dplyr::filter(loc %in% sampled_locs) %>%
-        dplyr::mutate(
-          target_n = min(target_per_cluster, n),
-          unit_sampling_prob = target_n/n
-        )
-
-      if (any(target_per_cluster > sampling_probs$n))
-        warning("For some clusters number of units required by sampling procedure was larger than cluster size. Probability of unit sampling within those clusters is set to 1")
+    # get sampling probabilities for locations
+    if(!is.null(hidden_var)){
+      sampling_probs <-
+        data[data[[eval(hidden_var)]] == 1][,lapply(.SD, sum),.SDcols = clusters]
+    } else {
+      sampling_probs <-
+        data[,lapply(.SD,sum),.SDcols = clusters]
     }
 
-    data %<>% dplyr::mutate(temp_id = 1:n())
+    sampling_probs <-
+      data.table::melt(
+        data = sampling_probs,
+        variable.name = "loc",
+        value.name = "n",
+        id.vars = NULL,
+        measure.vars = colnames(sampling_probs))[
+          , loc_sampling_prob := n/sum(n)
+        ]
 
-    data %<>%
-      dplyr::filter(if_any(.cols = all_of(sampled_locs), ~ . == 1)) %>%
-      purrr::when(
-        !is.null(hidden_var) ~ dplyr::filter(., if_all(all_of(hidden_var), ~ .x == 1)),
-        ~ .) %>%
-      {
-        dplyr::bind_rows(
-          lapply(sampled_locs,
-                 function(x) tibble(.[.[[x]] == 1,], loc = x))
-        )
-      } %>%
-      dplyr::left_join(., sampling_probs, by = "loc") %>%
-      dplyr::group_by(loc) %>%
-      dplyr::mutate(
-        sampled = sample(c(rep(1, unique(target_n)),
-                           rep(0, n() - unique(target_n))),
-                         prob = if (!is.null(hidden_var)) get(paste0("p_visible_", hidden_var)))
-      ) %>%
-      dplyr::group_by(temp_id, .add = FALSE) %>%
-      purrr::when(
-        !is.null(hidden_var) ~ dplyr::summarise(
-          .,
-          sampled = as.integer(any(sampled == 1)),
-          loc_present = paste0(loc, collapse = ";"),
-          loc_sampled = dplyr::if_else(any(sampled == 1),
-                                       paste0(loc[which(sampled == 1)], collapse = ";"),
-                                       NA_character_),
-          weight = 1/(1 - prod(c(1 - unit_sampling_prob))),
-          weight_visible = 1/(1 - prod(1 - get(paste0("p_visible_", hidden_var)) * unit_sampling_prob))
-        ),
-        ~ dplyr::summarise(
-          .,
-          sampled = as.integer(any(sampled == 1)),
-          loc_present = paste0(loc, collapse = ";"),
-          loc_sampled = dplyr::if_else(any(sampled == 1),
-                                       paste0(loc[which(sampled == 1)], collapse = ";"),
-                                       NA_character_),
-          weight = 1/(1 - prod(c(1 - unit_sampling_prob))),
-          weight_visible = 1/(1 - prod(1 - unit_sampling_prob))
-      )) %>%
-      dplyr::ungroup() %>%
-      dplyr::filter(sampled == 1) %>%
-      dplyr::select(-sampled) %>%
-      dplyr::mutate(
-        locs_sampled = paste0(na.omit(unique(loc_sampled)), collapse = ";")
-      ) %>%
-      dplyr::rename_with(~ paste0(sampling_variable, "_", .), .cols = -temp_id) %>%
-      {
-        left_join(
-          dplyr::mutate(data, "{ sampling_variable }" := as.integer(temp_id %in% .$temp_id)),
-          .,
-          by = "temp_id"
-        )
-      } %>%
-      dplyr::select(-temp_id)
+    #sample locations
+    sampled_locs <-
+      sample(x = sampling_probs$loc,
+             size = target_n_clusters,
+             prob = sampling_probs$loc_sampling_prob)
 
-    if (drop_nonsampled) data %<>% dplyr::filter(if_all(all_of(sampling_variable), ~ . == 1))
+
+    if (target_cluster_type == "prop") {
+      sampling_probs <-
+        sampling_probs[
+          loc %in% sampled_locs
+        ][, target_n := n * target_per_cluster
+        ][, target_n :=
+            data.table::fifelse((target_n %% 1) <= median(target_n %% 1),
+                                floor(target_n),
+                                ceiling(target_n))
+        ][, unit_sampling_prob := target_n/n]
+    } else if (target_cluster_type == "fixed") {
+      sampling_probs <-
+        sampling_probs[
+          loc %in% sampled_locs
+        ][, target_n := min(target_per_cluster,n)
+        ][, unit_sampling_prob := target_n/n]
+
+      if (any(target_per_cluster > sampling_probs$n)) {
+        warning("For some clusters number of units required by sampling procedure was larger than cluster size. Probability of unit sampling within those clusters is set to 1")
+      }
+    }
+
+    # select sampled units that are hidden
+    data[, temp_id := .I]
+    data_sampled <- data.table::copy(data)
+    data_sampled <-
+      data_sampled[
+        data_sampled[
+          , Reduce(`|`, lapply(.SD, `==`, 1)),
+          .SDcols = as.character(sampled_locs)
+        ],
+      ]
+
+    if(!is.null(hidden_var)) {
+      data_sampled <- data_sampled[data_sampled[[hidden_var]] == 1]
+    }
+
+    # make units that are sampled in multiple locs separate observations
+    # and add sampling probabilies
+    data_sampled <-
+      sampling_probs[
+        data.table::rbindlist(
+          lapply(as.character(sampled_locs),
+                 function(x) {
+                   data_sampled[data_sampled[[x]] == 1][,loc := x]
+                 })
+        )
+        , on = "loc"
+      ][ # add binary indicator for sampled units
+        , sampled :=
+          sample(c(rep(1, unique(target_n)),
+                   rep(0, .N - unique(target_n))),
+                 prob = if (!is.null(hidden_var)) get(paste0("p_visible_", hidden_var)))
+        , by = loc
+      ][ # add tls variables
+        ,
+        `:=`(sampled = as.integer(any(sampled == 1)),
+             loc_present = paste(loc, collapse = ";"),
+             loc_sampled =
+               data.table::fifelse(test = any(sampled == 1),
+                                   yes = paste(loc[sampled == 1], collapse = ";"),
+                                   no = NA_character_),
+             weight = 1 / (1 - prod(1 - unit_sampling_prob)),
+             weight_visible =
+               if (!is.null(hidden_var)) {
+                 1 / (1 - prod(1 - get(paste0("p_visible_", hidden_var)) * unit_sampling_prob))
+               } else {
+                 1 / (1 - prod(1 - unit_sampling_prob))
+               }),
+        by = temp_id
+      ][ # select sampled units
+        sampled == 1
+        , c("temp_id","loc_present","loc_sampled","weight","weight_visible")
+        , with = FALSE
+      ][
+        , locs_sampled := paste0(as.character(sampled_locs), collapse = ";")
+      ]
+
+    data_sampled <- unique(data_sampled, by = "temp_id")
+
+    # set tls colnames
+    data.table::setnames(
+        data_sampled,
+        old = names(data_sampled),
+        new =
+          c("temp_id",
+            paste0(sampling_variable, "_", names(data_sampled)[
+              -which(names(data_sampled) == "temp_id")]))
+    )
+
+
+    data[ # add binary indicator for tls membership
+      , c(sampling_variable) :=
+        as.integer(temp_id %in% data_sampled[["temp_id"]])
+      ][ # merge by reference on temp_id
+        data_sampled
+        , on = "temp_id"
+        , names(data_sampled)[-which(names(data_sampled) == "temp_id")] :=
+          mget(paste0("i.", names(data_sampled)[-which(names(data_sampled) == "temp_id")]))
+      ][
+        , temp_id := NULL
+      ]
+
+    if (drop_nonsampled) {
+      data <- data[data[[sampling_variable]] == 1]
+    }
 
     return(data)
 
   }
+
+
+

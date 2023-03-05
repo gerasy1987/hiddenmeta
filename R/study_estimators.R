@@ -73,7 +73,8 @@ get_study_est_sspse <- function(data,
 #' Sequential Sampling (SS) prevalence estimator by Gile (2011)
 #'
 #' @param data pass-through population data frame
-#' @param hidden_var character string specifying hidden variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "hidden" for the simulations
+#' @param sampling_var character string specifying name of the group from which RDS sample was drawn (associated probability of visibility should be named \code{p_visible_[sampling_var]}). Defaults to "hidden" for the simulations
+#' @param hidden_var character string specifying names of the hidden group variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
 #' @param total integer giving the total size of known population (denominator for prevalence)
 #' @param rds_prefix character prefix used for RDS sample variables
@@ -88,13 +89,14 @@ get_study_est_sspse <- function(data,
 #' @import dplyr
 #' @importFrom RDS as.rds.data.frame RDS.SS.estimates
 #' @importFrom purrr quietly
-get_study_est_rds_ss <-
+get_study_est_ss <-
   function(data,
-           hidden_var = "hidden",
+           sampling_var = "hidden",
+           hidden_var = "target",
            n_coupons = 3,
-           total = 2000,
+           total = 1000,
            rds_prefix = "rds",
-           label = "sspse") {
+           label = "ss") {
 
     .quiet_rds_ss <- purrr::quietly(RDS::RDS.SS.estimates)
 
@@ -111,14 +113,15 @@ get_study_est_rds_ss <-
                              time = paste0(rds_prefix, "_t"),
                              max.coupons = n_coupons) %>%
       .quiet_rds_ss(., outcome.variable = hidden_var, N = total) %>%
+      .$result %>%
       .$interval %>%
       .[c(1,5)]
 
     return(
-      data.frame(estimator = paste0("hidden_prev_", label),
+      data.frame(estimator = paste0(hidden_var, "_prev_in_", sampling_var, "_", label),
                  estimate = c(unname(.fit_rds_ss[1])),
                  se =   c(unname(.fit_rds_ss[2])),
-                 inquiry = c("hidden_prev"))
+                 inquiry = paste0(hidden_var, "_prev_in_", sampling_var))
     )
   }
 
@@ -241,7 +244,7 @@ get_study_est_chords <- function(data,
     data %>%
     dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
     dplyr::mutate(
-      NS1 = apply(.[,grep(pattern = .pattern, x = names(data))], 1, sum),
+      NS1 = apply(.[, grep(pattern = .pattern, x = names(data)), with = FALSE], 1, sum),
       refCoupNum = get(paste0(rds_prefix, "_own_coupon")),
       interviewDt = get(paste0(rds_prefix, "_t"))) %>%
     dplyr::rename_with(
@@ -619,3 +622,111 @@ get_study_est_recapture <- function(
 
 
 
+#' Link tracing estimator
+#'
+#' @param data pass through sample
+#' @param total integer giving the total size of the population
+#' @param strata string specifying column name of strata vector
+#' @param gibbs_params named list of parameters passed to Gibbs sampler
+#' @param priors named list of prior specification for population size, stratum membership and links. p_n is an integer specifying the power law prior for population size (0 = flat). p_l is a positive rational numeric vector of length n_strata specifying the dirichlet prior for stratum membership (0.1 = non-informative). p_b is an integer specifying the beta distribution prior for links (1 = non-informative).
+#' @param progress logical indicating whether to display progress bar. Defaults to \code{FALSE}
+#' @param prefix character string giving name of the column with RDS+ sampling indicator
+#' @param label character string giving label for the estimator
+#' @return Data frame of link tracing estimates for single study
+#'
+#' @export
+#'
+#' @importFrom magrittr `%$%`
+
+get_study_est_linktrace <- function(
+    data,
+    total = 2000,
+    strata,
+    gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
+    priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+    progress = FALSE,
+    prefix = "rdsplus",
+    label = "link"
+){
+
+  varname_map <-
+    names(data)[which(grepl(paste0("^", prefix, "\\_"), names(data)))]
+
+  names(varname_map) <- gsub(pattern = paste0("^", prefix),
+                             replacement = "", x = varname_map)
+
+  data.table::setnames(
+    data,
+    old = varname_map,
+    new = names(varname_map)
+  )
+
+  # switch node names to sample only
+  data <-
+    data[
+      get(prefix) == 1,
+    ][
+      , c("_from", "name", "strata_id") :=
+        list(plyr::mapvalues(`_from`,
+                             from = c(-999, as.numeric(name)), to = c(NA, 1:.N),
+                             warn_missing = F),
+             plyr::mapvalues(as.numeric(name),
+                             from = as.numeric(name), to = 1:.N,
+                             warn_missing = F),
+             as.numeric(factor(get(strata))))
+    ]
+
+  .samp_graph <-
+    igraph::graph_from_data_frame(
+      data[!is.na(name) & !is.na(`_from`), .(`_from`, name)],
+      vertices = data$name,
+      directed = FALSE)
+
+  # add network data for RDS sample
+  data <-
+    igraph::as_adj_list(.samp_graph) %>%
+    lapply(function(i) as.numeric(i$name)) %>%
+    data.table::data.table(name = data$name, links_list = .) %>%
+    data[., on = "name"]
+
+  y_samp <- as.matrix(igraph::as_adjacency_matrix(.samp_graph))
+
+  n_strata <- length(unique(data$strata_id))
+
+  if(length(priors$p_l) == 1){
+    priors$p_l <- rep(priors$p_l, n_strata)
+  }
+
+  if(n_strata != length(priors$p_l)){
+    stop("mismatch between number of strata and number of priors specified for strata in p_l")
+  }
+
+  res <- lt_gibbs_cpp(links_list = data$links_list,
+                      wave = data$`_wave`,
+                      name = data$name,
+                      y_samp = y_samp,
+                      strata = data$strata_id,
+                      n_strata = n_strata,
+                      n_waves = max(data$`_wave`),
+                      total = total,
+                      chain_samples = gibbs_params$chain_samples,
+                      chain_burnin = gibbs_params$chain_burnin,
+                      prior_n = priors$p_n,
+                      prior_l = priors$p_l,
+                      prior_b = priors$p_b,
+                      n_0 = total,
+                      l_0 = rep(1/n_strata, n_strata),
+                      b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
+                      n_samples = gibbs_params$n_samples,
+                      progress = progress)
+
+  colnames(res$L) <- unique(data[[strata]])
+
+  return(
+    data.frame(estimator = paste0("hidden_size_", label),
+               estimate = mean(res$N),
+               se = sd(res$N),
+               inquiry = "hidden_size")
+  )
+
+}

@@ -16,6 +16,7 @@ Depends:
     magrittr (>= 2.0.0), 
     dplyr (>= 1.0.0)
 Imports: 
+    data.table (>= 1.14.8),
     purrr (>= 0.3.3),
     tidyr (>= 1.1.0),
     igraph (>= 1.3.0),
@@ -34,19 +35,23 @@ Imports:
     surveybootstrap (>= 0.0.1),
     rstan (>= 2.0),
     fastDummies, 
+    googlesheets4,
     MultiRNG,
     doParallel,
-    testthat, 
-    methods
+    methods,
+    Rcpp (>= 1.0.9)
+LinkingTo: 
+    Rcpp, 
+    RcppArmadillo
 Suggests: 
     covr (>= 3.5.0),
     DeclareDesign (>= 0.20.0),
     ggplot2 (>= 3.3.0),
     knitr,
+    testthat, 
     rmarkdown,
     here,
     DT,
-    googlesheets4,
     GGally
 License: MIT + file LICENSE
 Encoding: UTF-8

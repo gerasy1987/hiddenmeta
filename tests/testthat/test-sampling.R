@@ -13,7 +13,7 @@ study_1 <-
     group_names = c("known", "hidden"),
 
     # probability of visibility (show-up) for each group
-    p_visibility = list(known = .99, hidden = .7),
+    p_visible = list(known = .99, hidden = .7),
 
     # probability of service utilization in hidden population
     # for service multiplier
