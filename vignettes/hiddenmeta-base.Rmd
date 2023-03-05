@@ -108,7 +108,7 @@ study_1 <-
                        n_waves = 3,
                        target = "waves",
                        target_n_rds = 200,
-                       linktrace = TRUE)
+                       linktrace = "all")
       ),
     inquiries = list(handler = get_study_estimands,
                      in_groups = "^target$",
@@ -357,7 +357,6 @@ study1 <-
 # can draw full data
 study1_data <- draw_data(study1)
 
-set.seed(872312)
 study1_data[sample(1:.N)] %>% 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
@@ -368,7 +367,7 @@ study1_data[sample(1:.N)] %>%
 
 ```{r example_draw_inquiries}
 
-set.seed(872312)
+# can draw estimands of interest
 draw_estimands(study1) %>% 
   kable(digits = 2)
 
@@ -378,12 +377,11 @@ draw_estimands(study1) %>%
 
 ```{r example_draw_estimates}
 
-set.seed(872312)
+# can draw estimates
 draw_estimates(study1) %>% 
   kable(digits = 2)
 
 ```
-
 
 
 ## Step 7. Diagnose study design
