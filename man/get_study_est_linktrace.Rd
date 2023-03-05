@@ -11,8 +11,8 @@ get_study_est_linktrace(
   gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
   progress = FALSE,
-  prefix,
-  label = "link_trace"
+  prefix = "rdsplus",
+  label = "link"
 )
 }
 \arguments{
@@ -28,7 +28,9 @@ get_study_est_linktrace(
 
 \item{progress}{logical indicating whether to display progress bar. Defaults to \code{FALSE}}
 
-\item{label}{character string describing the estimator}
+\item{prefix}{character string giving name of the column with sampling indicator}
+
+\item{label}{character string giving label for the estimator}
 }
 \value{
 Data frame of link tracing estimates for single study
