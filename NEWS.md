@@ -28,3 +28,16 @@
 ## Bug Fixes
 
 -   Numerous bug fixes
+
+
+# hiddenmeta 0.3.0
+
+## Enhancements
+
+-   Study level population, sampling and inquiries functions are rewritten using `data.table` instead of `tidyverse` for significant speed gains
+-   `sample_rds` allows to specify RDS+ sampling with many heterogeneous seeds
+-   introducing `get_study_est_linktrace` implementing Link-Tracing population size estimation on RDS+ sample
+
+## Bug Fixes
+
+-   Numerous bug fixes
