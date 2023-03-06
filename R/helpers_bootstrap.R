@@ -54,7 +54,9 @@ make_chain <- function(seed_id, data, key, is_child_fn = is_child) {
 #'
 #' @references Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
 #' @import surveybootstrap
 #' @importFrom tidyr pivot_longer
 get_rds_boot <-
@@ -81,12 +83,12 @@ get_rds_boot <-
       dplyr::filter(eval(parse(text = seed_condition))) %>%
       dplyr::pull(in_coupon)
 
-    rds_chains <-
-      plyr::llply(seed_ids,
-                  make_chain,
-                  key = in_coupon,
-                  is_child_fn = is_child_fn,
-                  data = rds_data)
+    # rds_chains <-
+    #   plyr::llply(seed_ids,
+    #               make_chain,
+    #               key = in_coupon,
+    #               is_child_fn = is_child_fn,
+    #               data = rds_data)
 
     rds_data_nonseed <-
       rds_data %>%

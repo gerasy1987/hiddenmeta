@@ -11,7 +11,9 @@
 #' @return
 #' @export
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%` `%<>%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange
 #' @importFrom purrr map2_int
 get_meta_sample <-
   function(data, drop_nonsampled = FALSE,

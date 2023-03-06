@@ -34,7 +34,7 @@
 #' }
 #'
 #' @importFrom igraph sample_sbm vertex_attr
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr `%>%` `%$%`
 #' @importFrom plyr mapvalues
 sim_block_network <-
   function(N, K,
@@ -103,7 +103,7 @@ sim_block_network <-
 #' @importFrom stats simulate
 #' @importFrom intergraph asIgraph
 #' @importFrom igraph vertex_attr
-#' @importFrom magrittr `%>%` `%<>%`
+#' @importFrom magrittr `%>%` `%$%` `%<>%`
 #' @importFrom plyr mapvalues
 sim_ergm_network <-
   function(fit,

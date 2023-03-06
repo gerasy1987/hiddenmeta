@@ -32,6 +32,7 @@
 #' }
 #'
 #' @import data.table
+#' @importFrom magrittr `%>%` `%$%`
 sample_rds <-
   function(data,
            sampling_variable = "rds",

@@ -21,7 +21,7 @@ get_study_est_chords(
 
 \item{seed_condition}{character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples}
 
-\item{rds_prefix}{character prefix used for RDS sample variables}
+\item{rds_prefix}{character string prefix used for RDS sample variables}
 
 \item{n_boot}{number of bootstrap resamples}
 

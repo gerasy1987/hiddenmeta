@@ -24,10 +24,8 @@
 #'  }
 #' @export
 #'
-#' @import dplyr
-#' @importFrom tidyr nest unnest
-#' @importFrom magrittr `%<>%`
-#' @importFrom purrr when map_int
+#' @import data.table
+#' @importFrom magrittr `%>%` `%$%`
 sample_pps <-
   function(data, sampling_variable = "pps", drop_nonsampled = FALSE,
            target_n_pps = 400,

@@ -25,8 +25,7 @@
 #' @export
 #'
 #' @import data.table
-#' @import dplyr
-
+#' @importFrom magrittr `%>%` `%$%`
 sample_tls <-
   function(data,
            sampling_variable = "tls", drop_nonsampled = FALSE,

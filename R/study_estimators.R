@@ -15,11 +15,11 @@
 #' Handcock, Mark S., Krista J. Gile, and Corinne M. Mar. “Estimating Hidden Population Size Using Respondent-Driven Sampling Data.” Electronic Journal of Statistics 8, no. 1 (2014): 1491–1521. \url{https://doi.org/10.1214/14-EJS923}.
 #' @export
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange if_all
 #' @importFrom sspse posteriorsize
-#' @importFrom RDS as.rds.data.frame
 #' @importFrom purrr quietly
-
 get_study_est_sspse <- function(data,
                                 prior_mean = .1 * nrow(data),
                                 n_coupons = 3,
@@ -35,7 +35,7 @@ get_study_est_sspse <- function(data,
 
   .fit_sspse <-
     data %>%
-    dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
+    dplyr::filter(dplyr::if_all(all_of(rds_prefix), ~ . == 1)) %>%
     dplyr::select(name, hidden_visible_out, starts_with(rds_prefix), total) %>%
     dplyr::arrange(get(paste0(rds_prefix, "_t"))) %>%
     dplyr::pull("hidden_visible_out") %>%
@@ -86,7 +86,9 @@ get_study_est_sspse <- function(data,
 #' Gile, Krista J., Handcock, Mark S., 2010 Respondent-driven Sampling: An Assessment of Current Methodology, Sociological Methodology, 40, 285-327.
 #' @export
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange if_all
 #' @importFrom RDS as.rds.data.frame RDS.SS.estimates
 #' @importFrom purrr quietly
 get_study_est_ss <-
@@ -102,7 +104,7 @@ get_study_est_ss <-
 
     .fit_rds_ss <-
       data %>%
-      dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
+      dplyr::filter(dplyr::if_all(all_of(rds_prefix), ~ . == 1)) %>%
       dplyr::select(name,
                     all_of(paste0(hidden_var, c("", "_visible_out"))),
                     starts_with(rds_prefix)) %>%
@@ -143,7 +145,11 @@ get_study_est_ss <-
 #' @references
 #' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange
+#' @importFrom plyr laply
+#' @importFrom doParallel registerDoParallel
 get_study_est_ht <- function(data,
                              hidden_var = "hidden",
                              weight_var = "pps_weight",
@@ -159,9 +165,7 @@ get_study_est_ht <- function(data,
     doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
   }
 
-  .data_mod <-
-    data %>%
-    dplyr::filter(dplyr::if_all(dplyr::all_of(prefix), ~ . == 1))
+  .data_mod <- data[get(prefix) == 1,]
 
   if (any(is.na(.data_mod[[weight_var]])))
     stop("there are missing values in sampling weights provided")
@@ -208,7 +212,7 @@ get_study_est_ht <- function(data,
 #' @param seed_condition character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples
 #' @param n_boot number of bootstrap resamples
 #' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
-#' @param rds_prefix character prefix used for RDS sample variables
+#' @param rds_prefix character string prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of Chords estimates for a single study with RDS sample
@@ -219,10 +223,12 @@ get_study_est_ht <- function(data,
 #'
 #' @export
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
 #' @importFrom chords initializeRdsObject Estimate.b.k makeJackControl
 #' @importFrom purrr quietly
-#' @importFrom plyr `.`
+#' @importFrom doParallel registerDoParallel
 get_study_est_chords <- function(data,
                                  type = c("mle", "integrated", "jeffreys"),
                                  seed_condition = "rds_from == -999",
@@ -242,13 +248,13 @@ get_study_est_chords <- function(data,
 
   .data_mod <-
     data %>%
-    dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1)) %>%
+    dplyr::filter(dplyr::if_all(all_of(rds_prefix), ~ . == 1)) %>%
     dplyr::mutate(
       NS1 = apply(.[, grep(pattern = .pattern, x = names(data)), with = FALSE], 1, sum),
       refCoupNum = get(paste0(rds_prefix, "_own_coupon")),
       interviewDt = get(paste0(rds_prefix, "_t"))) %>%
     dplyr::rename_with(
-        .cols = dplyr::starts_with(paste0(rds_prefix, "_coupon_")),
+        .cols = starts_with(paste0(rds_prefix, "_coupon_")),
         ~ gsub(pattern = paste0(rds_prefix, "\\_coupon\\_"), replacement = "coup", .))
 
   # if (type == "leave-d-out") {
@@ -338,9 +344,12 @@ get_study_est_chords <- function(data,
 #' Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
 #' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
 #' @importFrom surveybootstrap bootstrap.estimates rescaled.bootstrap.sample
+#' @importFrom plyr llply
 #' @importFrom purrr quietly
 get_study_est_nsum <- function(data,
                                known,
@@ -358,15 +367,13 @@ get_study_est_nsum <- function(data,
     doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
   }
 
-  .data_mod <-
-    data %>%
-    dplyr::filter(dplyr::if_all(dplyr::all_of(prefix), ~ . == 1))
+  .data_mod <- data[get(prefix) == 1,]
 
   .known_pops <-
     .data_mod %>%
-    dplyr::select(total, dplyr::all_of(paste0("total_", known))) %>%
+    dplyr::select(total, all_of(paste0("total_", known))) %>%
     dplyr::rename_with(
-      .cols = dplyr::starts_with("total_"), ~ paste0(gsub("^total\\_", "", .), "_visible_out")) %>%
+      .cols = starts_with("total_"), ~ paste0(gsub("^total\\_", "", .), "_visible_out")) %>%
     apply(., MARGIN = 2, unique)
 
   .data_mod$d_est <-
@@ -411,7 +418,7 @@ get_study_est_nsum <- function(data,
             tx.rate = transmission_rate)
       },
       .parallel = parallel_boot) %>%
-    bind_rows()
+    dplyr::bind_rows()
 
   return(
     # data.frame(
@@ -449,7 +456,11 @@ get_study_est_nsum <- function(data,
 #' @references
 #' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange bind_rows
+#' @importFrom plyr laply
+#' @importFrom doParallel registerDoParallel
 get_study_est_multiplier <- function(data,
                                      service_var = "service_use",
                                      total_service = sum(data$service_use[data$hidden == 1]),
@@ -464,9 +475,7 @@ get_study_est_multiplier <- function(data,
     doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
   }
 
-  .data_mod <-
-    data %>%
-    dplyr::filter(dplyr::if_all(dplyr::all_of(rds_prefix), ~ . == 1))
+  .data_mod <- data[get(rds_prefix) == 1,]
 
   .est_out <-
     total_service/mean(.data_mod[[service_var]])
@@ -501,7 +510,9 @@ get_study_est_multiplier <- function(data,
 #'
 #' @return Data frame of HT estimates for single study
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange
 #' @importFrom estimatr lm_robust
 get_study_est_gnsum <- function(data, label = "gnsum") {
 
@@ -563,9 +574,11 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 #' @references
 #' Louis-Paul Rivest, Sophie Baillargeon. “The Rcapture package.” (2019). \url{https://cran.r-project.org/package=Rcapture}.
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @import data.table
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange bind_rows
 #' @importFrom Rcapture closedp.bc
-#' @importFrom magrittr `%$%`
 get_study_est_recapture <- function(
   data,
   capture_vars = NULL,
@@ -577,19 +590,19 @@ get_study_est_recapture <- function(
 ) {
 
   if (!is.null(sample_condition)) {
-    data <-
-      data %>%
-      dplyr::filter(eval(parse(text = sample_condition)))
+    data <- data[eval(parse(text = sample_condition)),]
   }
 
   if (!is.null(capture_parse)) {
-    capture_vars <- data %$% { eval(parse(text = capture_parse)) } %>% c(capture_vars, .)
+    capture_vars <- data[, eval(parse(text = capture_parse))]
   }
 
   .est_out <-
-    data %>%
-    dplyr::filter(if_any(all_of(capture_vars), ~ . == 1),
-                  if_any(all_of(hidden_variable), ~ . == 1))
+    data[
+      apply(sapply(capture_vars, function(x) get(x) == 1), 1, any),
+    ][
+      apply(sapply(hidden_variable, function(x) get(x) == 1), 1, any),
+    ]
 
   if (nrow(.est_out) == 0) {
     warning("There were no hidden population member recaptures in the sample!")
@@ -640,7 +653,7 @@ get_study_est_recapture <- function(
 #' Chan, Lax, Bernard W. Silverman, and Kyle Vincent. “The SparseMSE package.” (2022). \url{https://cran.r-project.org/web/packages/SparseMSE}.
 #'
 #'
-#' @import dplyr
+#' @import data.table
 #' @importFrom SparseMSE estimatepopulation.0
 get_study_est_mse <- function(
     data,
@@ -716,8 +729,8 @@ get_study_est_mse <- function(
 #' Vincent, Kyle, and Steve Thompson. "Estimating population size with link-tracing sampling." Journal of the American Statistical Association 112.519 (2017): 1286-1295.
 #' Vincent, Kyle, and Steve Thompson. "Estimating the size and distribution of networked populations with snowball sampling." Journal of Survey Statistics and Methodology 10.2 (2022): 397-418.
 #'
-#' @importFrom magrittr `%$%`
-
+#' @import data.table
+#' @importFrom magrittr `%>%` `%$%`
 get_study_est_linktrace <- function(
     data,
     total = 2000,
@@ -725,7 +738,7 @@ get_study_est_linktrace <- function(
     gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
     priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
     progress = FALSE,
-    prefix = "rdsplus",
+    prefix = "lts",
     label = "link"
 ){
 

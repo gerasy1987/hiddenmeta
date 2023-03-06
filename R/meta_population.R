@@ -7,7 +7,9 @@
 #' @return
 #' @export
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange bind_rows
 #' @importFrom DeclareDesign simulate_design
 #' @importFrom stringr str_extract str_remove
 #' @importFrom plyr llply

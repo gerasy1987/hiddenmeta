@@ -7,8 +7,11 @@
 #' @return
 #' @export
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all if_any
 #' @importFrom tidyr pivot_longer
+#' @importFrom purrr pmap_chr
 get_meta_estimands <-
   function(data,
            study_estimand = "hidden_size",

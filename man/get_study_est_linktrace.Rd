@@ -11,7 +11,7 @@ get_study_est_linktrace(
   gibbs_params = list(n_samples = 50L, chain_samples = 250L, chain_burnin = 50L),
   priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
   progress = FALSE,
-  prefix = "rdsplus",
+  prefix = "lts",
   label = "link"
 )
 }

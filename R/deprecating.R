@@ -40,7 +40,9 @@
 #'   )
 #' }
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
 #' @importFrom igraph vertex_attr as_adj as_adj_list
 #' @importFrom Matrix rowSums
 #' @importFrom fastDummies dummy_cols
@@ -163,9 +165,10 @@ get_study_population_tidy <-
 #'  }
 #' @keywords internal
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%` `%<>%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
 #' @importFrom tidyr nest unnest
-#' @importFrom magrittr `%<>%`
 #' @importFrom purrr when map_int
 sample_pps_tidy <-
   function(data, sampling_variable = "pps", drop_nonsampled = FALSE,
@@ -313,12 +316,11 @@ sample_pps_tidy <-
 #' @keywords internal
 #'
 #'
-#' @import data.table
-#' @import dplyr
+#' @import data.table tidyselect
+#' @importFrom magrittr `%>%` `%$%` `%<>%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
 #' @importFrom tidyr nest
 #' @importFrom purrr map_chr when
-#' @importFrom magrittr `%<>%`
-
 sample_tls_tidy <-
   function(data,
            sampling_variable = "tls", drop_nonsampled = FALSE,
@@ -490,9 +492,10 @@ sample_tls_tidy <-
 #' }
 #'
 #'
-#' @import dplyr
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%` `%<>%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
 #' @importFrom igraph sample_pref vertex_attr as_adj as_adj_list
-#' @importFrom magrittr `%>%` `%<>%`
 #' @importFrom purrr when
 #' @importFrom stats rbinom
 sample_rds_tidy <-
@@ -761,8 +764,9 @@ sample_rds_tidy <-
 #'
 #' @return Estimands data frame for single study
 #'
-#' @import dplyr
-#' @importFrom magrittr `%>%`
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%` `%<>%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
 #' @importFrom purrr map_int
 get_study_estimands_tidy <- function(data,
                                      known_pattern = "^known(\\_\\d|\\d)?$",

@@ -17,8 +17,9 @@
 #'                 rho_K = .05)
 #' }
 #'
-#' @import dplyr
-#' @importFrom magrittr `%>%`
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all if_any as_tibble group_by_all rowwise c_across
 #' @importFrom purrr quietly
 #' @importFrom MultiRNG draw.correlated.binary
 gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
@@ -45,7 +46,7 @@ gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
                                    corr.mat = rho) %>%
     dplyr::as_tibble(.name_repair = function(names) paste0("V", 1:length(names))) %>%
     dplyr::group_by_all() %>%
-    purrr::quietly(dplyr::summarise)(n = dplyr::n()) %>%
+    purrr::quietly(dplyr::summarize)(n = dplyr::n()) %>%
     .$result %>%
     dplyr::ungroup() %>%
     dplyr::rowwise() %>%
@@ -83,7 +84,7 @@ gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
 #'                  p_edge_between = list(known = 0.05, hidden = 0.01))
 #' }
 #'
-#' @importFrom magrittr `%>%`
+#' @importFrom magrittr `%>%` `%$%`
 gen_block_matrix <- function(p_edge_within, p_edge_between, .ord = NULL) {
 
   if (length(p_edge_within) != length(p_edge_between))
@@ -130,11 +131,10 @@ gen_block_matrix <- function(p_edge_within, p_edge_between, .ord = NULL) {
 #' rbeta_mod(4, .5, .1)
 #' }
 #'
-#' @importFrom stats rbeta
 rbeta_mod <- function(n, mu, sd) {
   alpha <- ((1 - mu) / sd^2 - 1 / mu) * mu ^ 2
   beta <- alpha * (1 / mu - 1)
-  return(rbeta(n = n, shape1 = alpha, shape2 = beta))
+  return(stats::rbeta(n = n, shape1 = alpha, shape2 = beta))
 }
 
 # HIDDEN HELPERS ------------------------------------------------------------------------------

@@ -12,9 +12,12 @@
 #' @return
 #' @export
 #'
-#' @import dplyr
+#' @import tidyselect
 #' @import rstan
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all if_any
 #' @importFrom parallel detectCores
+#' @importFrom plyr alply
 get_meta_estimates <- function(
   data,
   sampling_variable = "meta",
@@ -62,10 +65,10 @@ get_meta_estimates <- function(
   } else if (is.null(hidden_prior)) {
     .alpha_prior <-
       .stan_data %>%
-      group_by(study) %>%
-      summarize(mean = sum(estimate / (se * sum(1/se))), se = 2 * mean(se / (se * sum(1/se)))) %>%
+      dplyr::group_by(study) %>%
+      dplyr::summarize(mean = sum(estimate / (se * sum(1/se))), se = 2 * mean(se / (se * sum(1/se)))) %>%
       { .[order(match(.$study,.studies)),] } %>%
-      select(-study) %>%
+      dplyr::select(-study) %>%
       as.matrix()
   } else {
     stop("Hyperpriors on target parameters are provided in wrong format (should be NULL or list of two numeric objects)")

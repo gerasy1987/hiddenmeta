@@ -8,9 +8,9 @@
 #'
 #' @examples
 #'
-#' @import googlesheets4 dplyr
-#' @importFrom magrittr `%>%`
-#' @importFrom purrr map_chr
+#' @import googlesheets4 tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
 #' @importFrom plyr mapvalues
 read_study_params <- function(
   ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
@@ -329,8 +329,9 @@ read_study_params <- function(
 #'
 #' @examples
 #'
-#' @import dplyr
-#' @importFrom magrittr `%>%`
+#' @import tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
 #' @importFrom plyr mapvalues
 get_required_data <- function(
   multi_study_data,
@@ -446,8 +447,9 @@ get_required_data <- function(
 #'
 #' @examples
 #'
-#' @import googlesheets4 dplyr
-#' @importFrom magrittr `%>%`
+#' @import googlesheets4 tidyselect
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble tibble
 read_single_study_params <- function(
   study,
   ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
@@ -519,11 +521,12 @@ read_single_study_params <- function(
 #'
 #' @examples
 #'
-#' @import dplyr ggplot2
-#' @importFrom magrittr `%>%`
-#' @importFrom plyr mapvalues
+#' @import tidyselect ggplot2
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
 #' @importFrom purrr map2_chr map_chr
 #' @importFrom tidyr nesting expand
+#' @importFrom plyr mapvalues
 get_rmse_plots <- function(
   diagnosands_df,
   study_map = c("Brazil (FF)" = "ff_brazil",
@@ -648,8 +651,9 @@ get_rmse_plots <- function(
 #'
 #' @examples
 #'
-#' @import googlesheets4 dplyr
-#' @importFrom magrittr `%>%`
+#' @import tidyselect googlesheets4
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
 #' @importFrom stringr str_extract
 #' @importFrom DeclareDesign declare_population declare_sampling declare_inquiry declare_estimator
 get_single_study_design <- function(
