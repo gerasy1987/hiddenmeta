@@ -47,10 +47,7 @@ make_chain <- function(seed_id, data, key, is_child_fn = is_child) {
 #' @param other_vars other variables to preserve in bootstrap samples
 #' @param n_boot number of bootstrap resamples
 #'
-#' @return
 #' @export
-#'
-#' @examples
 #'
 #' @references Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
 #'
@@ -141,10 +138,7 @@ get_rds_boot <-
 #' @param survey_design a formula describing the design of the survey
 #' @param n_boot number of bootstrap resamples
 #'
-#' @return
 #' @export
-#'
-#' @examples
 #'
 #' @references
 #' Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.

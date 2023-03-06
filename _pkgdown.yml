@@ -1,14 +1,25 @@
 url: https://gsyunyaev.com/hiddenmeta/
 
+authors:
+  Georgiy Syunyaev:
+    href: https://gsyunyaev.com
+  Macartan Humphreys:
+    href: https://macartan.github.io/
+  Till Tietz:
+    href: https://github.com/till-tietz
+
 template:
   params:
-    bootstrap: 4
-    bootswatch: simplex
+    bootstrap: 5
+    bootswatch: cyborg
+    theme: gruvbox-dark
     ganalytics: G-WBZEYLFB3F
 
 home:
   title: An R package for diagnosis and meta-analysis of hard-to-reach population measurement studies
   description: Package provides a number of tools for simulation of population, sampling and estimation of size and pervalence of hard-to-reach populations. It relies on the MIDA approach proposed in DeclareDesign package
+  sidebar:
+    structure: [links, license, community, citation, authors, dev]
 
 development:
   mode: auto
@@ -20,10 +31,12 @@ navbar:
     href: articles/hiddenmeta-base.html
   - text: Articles
     menu:
+      - text: Example study diagnosis
+        href: articles/diagnose-studies.html
+      - text: Example meta-analysis
+        href: articles/meta-example.html
       - text: Reading study parameters
         href: articles/read-study-params.html
-      - text: Simple meta-analysis
-        href: articles/meta-example.html
   right:
   - text: Background
     href: articles/background.html
@@ -33,7 +46,7 @@ navbar:
     href: news/index.html
 
 reference:
-- title: Study-level functions
+- title: Study level functions
   description: These function allow to simulate population and sampling and conduct estimation of a specific study
   contents:
   - get_study_population
@@ -59,7 +72,7 @@ reference:
   - get_multi_estimands
   - get_multi_estimates
 
-- title: Meta-level estimation
+- title: Meta level estimation
   description: These functions allow to diagnose a set of studies or estimate relative bias of sampling-estimation strategies
   contents:
   - get_meta_population
@@ -77,8 +90,8 @@ reference:
   - gen_group_sizes
   - get_rds_boot
   - get_rescaled_boot
-  - read_study_params
-  - read_single_study_params
   - get_single_study_design
   - get_required_data
   - get_rmse_plots
+  - read_single_study_params
+  - read_study_params
