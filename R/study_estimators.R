@@ -557,7 +557,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 #' @param hidden_variable character string giving indicator of hidden population membership
 #' @param label character string describing the estimator
 #'
-#' @return Data frame of HT estimates for single study
+#' @return Data frame of Mark-recapture estimates for a single study
 #' @export
 #'
 #' @references
@@ -622,8 +622,83 @@ get_study_est_recapture <- function(
 }
 
 
+#' Multiple Systems estimator of population size for Sparse Capture Data by Chan et al.
+#'
+#' @param data pass-through population data frame that contains capture indicators
+#' @param capture_vars character vector giving names of variables with capture indicators
+#' @param capture_parse character string giving expression to evaluation of which produces character vector giving names of variable with capture indicators. Defaults to \code{NULL}. This is useful when capture variables are stored in one column (e.g. if using TLS sampled locations for recapture indicators)
+#' @param sample_condition character string with condition if the capture-recapture conducted on subsample of population (e.g. tls sample only)
+#' @param method character string giving the estimation method to be passed to \code{estimatepopulation.0}. See \code{?SparseMSE::estimatepopulation.0} for more details. Defaults to \code{"stepwise"}
+#' @param hidden_variable character string giving indicator of hidden population membership
+#' @param label character string describing the estimator
+#'
+#' @return Data frame of Multiple System estimates for a single study
+#' @export
+#'
+#' @references
+#' Chan, Lax, Bernard W. Silverman, and Kyle Vincent. "Multiple systems estimation for sparse capture data: Inferential challenges when there are nonoverlapping lists." Journal of the American Statistical Association 116.535 (2021): 1297-1306.
+#' Chan, Lax, Bernard W. Silverman, and Kyle Vincent. “The SparseMSE package.” (2022). \url{https://cran.r-project.org/web/packages/SparseMSE}.
+#'
+#'
+#' @import dplyr
+#' @importFrom SparseMSE estimatepopulation.0
+get_study_est_mse <- function(
+    data,
+    capture_vars = NULL,
+    capture_parse = NULL,
+    sample_condition = NULL,
+    method = "stepwise",
+    hidden_variable = "hidden",
+    label = "mse"
+) {
 
-#' Link tracing estimator
+  if (!is.null(sample_condition)) {
+    data <- data[eval(parse(text = sample_condition)),]
+  }
+
+  if (!is.null(capture_parse)) {
+    capture_vars <- data[, eval(parse(text = capture_parse))]
+  }
+
+  .est_out <-
+    data[
+      apply(sapply(capture_vars, function(x) get(x) == 1), 1, any),
+    ][
+      apply(sapply(hidden_variable, function(x) get(x) == 1), 1, any),
+    ][
+      , .(n = .N), by=capture_vars
+    ]
+
+  if (nrow(.est_out) == 0) {
+    warning("There were no hidden population member recaptures in the sample!")
+
+    return(
+      data.frame(estimator = paste0("hidden_size_", label),
+                 estimate = NA_real_,
+                 se =  NA_real_,
+                 inquiry = "hidden_size")
+    )
+
+  } else {
+
+    .est_out <-
+      SparseMSE::estimatepopulation.0(.est_out, method = method)
+
+    return(
+      data.frame(estimator = paste0("hidden_size_", label),
+                 estimate = unname(.est_out$estimate["point est."]),
+                 se =  unname(
+                   sqrt((exp(summary(.est_out$MSEfit$fit)$cov.unscaled[1, 1]) - 1) *
+                          exp(2*.est_out$MSEfit$fit$coefficients[1] +
+                                summary(.est_out$MSEfit$fit)$cov.unscaled[1, 1]))),
+                 inquiry = "hidden_size")
+    )
+
+  }
+}
+
+
+#' Estimator of population size based on Link-Tracing Sample by Vincent and Thompson
 #'
 #' @param data pass through sample
 #' @param total integer giving the total size of the population
@@ -636,6 +711,10 @@ get_study_est_recapture <- function(
 #' @return Data frame of link tracing estimates for single study
 #'
 #' @export
+#'
+#' @references
+#' Vincent, Kyle, and Steve Thompson. "Estimating population size with link-tracing sampling." Journal of the American Statistical Association 112.519 (2017): 1286-1295.
+#' Vincent, Kyle, and Steve Thompson. "Estimating the size and distribution of networked populations with snowball sampling." Journal of Survey Statistics and Methodology 10.2 (2022): 397-418.
 #'
 #' @importFrom magrittr `%$%`
 

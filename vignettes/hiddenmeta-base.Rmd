@@ -103,15 +103,15 @@ study_1 <-
                    strata = NULL,
                    cluster = NULL,
                    target_n_pps = 150),
-        rdsplus = list(handler = sample_rds,
-                       sampling_variable = "rdsplus",
-                       hidden_var = "hidden",
-                       n_seed = 50,
-                       n_coupons = 3,
-                       n_waves = 3,
-                       target = "waves",
-                       target_n_rds = 200,
-                       linktrace = "all")
+        lts = list(handler = sample_rds,
+                   sampling_variable = "lts",
+                   hidden_var = "hidden",
+                   n_seed = 50,
+                   n_coupons = 3,
+                   n_waves = 3,
+                   target = "waves",
+                   target_n_rds = 200,
+                   linktrace = "all")
       ),
     inquiries = list(handler = get_study_estimands,
                      in_groups = "^target$",
@@ -165,7 +165,14 @@ study_1 <-
                             # sample_condition = "tls == 1",
                             model = "Mt",
                             hidden_variable = "hidden",
-                            label = "tls_recap")),
+                            label = "tls_recap"),
+               mse = list(handler = get_study_est_mse,
+                          capture_parse = 
+                            "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
+                          # sample_condition = "tls == 1",
+                          method = "stepwise",
+                          hidden_variable = "hidden",
+                          label = "tls_mse")),
         pps = 
           list(ht = list(handler = get_study_est_ht,
                          hidden_var = "hidden",
@@ -187,11 +194,23 @@ study_1 <-
                recap2 = list(handler = get_study_est_recapture,
                              capture_vars = c("rds"),
                              capture_parse = 
-                              "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
+                               "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
                              model = "Mt",
                              hidden_variable = "hidden",
-                             label = "rds_tls_recap")),
-        rdsplus =
+                             label = "rds_tls_recap"),
+               mse1 = list(handler = get_study_est_mse,
+                             capture_vars = c("rds", "pps"),
+                             method = "stepwise",
+                             hidden_variable = "hidden",
+                             label = "rds_pps_mse"),
+               mse2 = list(handler = get_study_est_mse,
+                             capture_vars = c("rds"),
+                             capture_parse = 
+                               "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
+                             method = "stepwise",
+                             hidden_variable = "hidden",
+                             label = "rds_tls_mse")),
+        lts =
           list(link = list(handler = get_study_est_linktrace,
                            total = 200,
                            strata = "hidden",
@@ -199,7 +218,7 @@ study_1 <-
                                                chain_samples = 250L, 
                                                chain_burnin = 50L),
                            priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
-                           prefix = "rdsplus",
+                           prefix = "lts",
                            label = "link"))
       )
   )
@@ -209,8 +228,6 @@ study_1 <-
 ## Step 2. Declare study population (M)odel
 
 ```{r example_pop}
-
-# study_1 <- study_designs$jhu_pakistan
 
 study_population <-
   eval(as.call(c(list(declare_population), study_1$pop)))
@@ -286,10 +303,10 @@ study_sample_tls <-
 
 ```
 
-```{r example_rdsplus}
+```{r example_lts}
 
-study_sample_rdsplus <- 
-  eval(as.call(c(list(declare_sampling), study_1$sample$rdsplus)))
+study_sample_lts <- 
+  eval(as.call(c(list(declare_sampling), study_1$sample$lts)))
 
 ```
 
@@ -318,14 +335,20 @@ est_nsum_tls <-
   eval(as.call(c(list(declare_estimator), study_1$estimators$tls$nsum)))
 est_recap_tls <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$tls$recap)))
+est_mse_tls <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$mse)))
 
 est_recap_rds_pps <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap1)))
 est_recap_rds_tls <- 
   eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap2)))
+est_mse_rds_pps <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$all$mse1)))
+est_mse_rds_tls <- 
+  eval(as.call(c(list(declare_estimator), study_1$estimators$all$mse2)))
 
 est_link <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$rdsplus$link)))
+  eval(as.call(c(list(declare_estimator), study_1$estimators$lts$link)))
 
 ```
 
@@ -339,13 +362,14 @@ study1 <-
   # inquiries
   study_estimands + 
   # data strategy (samples)
-  study_sample_rds + study_sample_pps + study_sample_tls + study_sample_rdsplus + 
+  study_sample_rds + study_sample_pps + study_sample_tls + study_sample_lts + 
   # answer strategy (estimators)
   est_ss + est_sspse + est_chords +
   est_multi +
   est_nsum_pps + est_ht_pps +
-  est_nsum_tls + est_ht_tls + est_recap_tls +
-  est_recap_rds_pps + est_recap_rds_tls + est_link
+  est_nsum_tls + est_ht_tls + est_recap_tls + est_mse_tls +
+  est_recap_rds_pps + est_recap_rds_tls + est_mse_rds_pps + est_mse_rds_tls + 
+  est_link
 
 ```
 
