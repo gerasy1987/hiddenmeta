@@ -30,7 +30,7 @@ get_study_est_recapture(
 \item{label}{character string describing the estimator}
 }
 \value{
-Data frame of HT estimates for single study
+Data frame of Mark-recapture estimates for a single study
 }
 \description{
 Mark-recapture estimator for closed population

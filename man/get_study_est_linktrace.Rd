@@ -2,7 +2,7 @@
 % Please edit documentation in R/study_estimators.R
 \name{get_study_est_linktrace}
 \alias{get_study_est_linktrace}
-\title{Link tracing estimator}
+\title{Estimator of population size based on Link-Tracing Sample by Vincent and Thompson}
 \usage{
 get_study_est_linktrace(
   data,
@@ -36,5 +36,9 @@ get_study_est_linktrace(
 Data frame of link tracing estimates for single study
 }
 \description{
-Link tracing estimator
+Estimator of population size based on Link-Tracing Sample by Vincent and Thompson
+}
+\references{
+Vincent, Kyle, and Steve Thompson. "Estimating population size with link-tracing sampling." Journal of the American Statistical Association 112.519 (2017): 1286-1295.
+Vincent, Kyle, and Steve Thompson. "Estimating the size and distribution of networked populations with snowball sampling." Journal of Survey Statistics and Methodology 10.2 (2022): 397-418.
 }
