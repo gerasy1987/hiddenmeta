@@ -8,7 +8,7 @@ get_study_est_chords(
   data,
   type = c("mle", "integrated", "jeffreys"),
   seed_condition = "rds_from == -999",
-  rds_prefix = "rds",
+  prefix = "rds",
   n_boot = 100,
   parallel_boot = FALSE,
   label = "chords"
@@ -21,7 +21,7 @@ get_study_est_chords(
 
 \item{seed_condition}{character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples}
 
-\item{rds_prefix}{character string prefix used for RDS sample variables}
+\item{prefix}{character string prefix used for RDS sample variables}
 
 \item{n_boot}{number of bootstrap resamples}
 

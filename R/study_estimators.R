@@ -6,7 +6,7 @@
 #' @param mcmc_params named list of parameters passed to \code{sspse::posteriorsize} for MCMC sampling,
 #' @param additional_params named list of additional parameter passed to \code{sspse::posteriorsize} . If empty \code{sspse::posteriorsize} uses default parameters.
 #' @param total integer giving the total size of population
-#' @param rds_prefix character prefix used for RDS sample variables
+#' @param prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of SS-PSE estimates for a single study
@@ -28,22 +28,22 @@ get_study_est_sspse <- function(data,
                                                    burnin = 2000,
                                                    samplesize = 500),
                                 additional_params = list(),
-                                rds_prefix = "rds",
+                                prefix = "rds",
                                 label = "sspse") {
 
   .quiet_sspse <- purrr::quietly(sspse::posteriorsize)
 
   .fit_sspse <-
     data %>%
-    dplyr::filter(dplyr::if_all(all_of(rds_prefix), ~ . == 1)) %>%
-    dplyr::select(name, hidden_visible_out, starts_with(rds_prefix), total) %>%
-    dplyr::arrange(get(paste0(rds_prefix, "_t"))) %>%
+    dplyr::filter(dplyr::if_all(all_of(prefix), ~ . == 1)) %>%
+    dplyr::select(name, hidden_visible_out, starts_with(prefix), total) %>%
+    dplyr::arrange(get(paste0(prefix, "_t"))) %>%
     dplyr::pull("hidden_visible_out") %>%
     # RDS::as.rds.data.frame(df = .,
     #                        id = "name",
-    #                        recruiter.id = paste0(rds_prefix, "_from"),
+    #                        recruiter.id = paste0(prefix, "_from"),
     #                        network.size = "hidden_visible_out",
-    #                        time = paste0(rds_prefix, "_t"),
+    #                        time = paste0(prefix, "_t"),
     #                        # population.size = total,
     #                        max.coupons = n_coupons) %>%
     {
@@ -77,10 +77,11 @@ get_study_est_sspse <- function(data,
 #' @param hidden_var character string specifying names of the hidden group variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
 #' @param total integer giving the total size of known population (denominator for prevalence)
-#' @param rds_prefix character prefix used for RDS sample variables
+#' @param prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
-#' @return
+#' @return Data frame of SS prevalence estimates for a single study
+#'
 #' @references
 #' Gile, Krista J. 2011 Improved Inference for Respondent-Driven Sampling Data with Application to HIV Prevalence Estimation, Journal of the American Statistical Association, 106, 135-146.
 #' Gile, Krista J., Handcock, Mark S., 2010 Respondent-driven Sampling: An Assessment of Current Methodology, Sociological Methodology, 40, 285-327.
@@ -97,22 +98,22 @@ get_study_est_ss <-
            hidden_var = "target",
            n_coupons = 3,
            total = 1000,
-           rds_prefix = "rds",
+           prefix = "rds",
            label = "ss") {
 
     .quiet_rds_ss <- purrr::quietly(RDS::RDS.SS.estimates)
 
     .fit_rds_ss <-
       data %>%
-      dplyr::filter(dplyr::if_all(all_of(rds_prefix), ~ . == 1)) %>%
+      dplyr::filter(dplyr::if_all(all_of(prefix), ~ . == 1)) %>%
       dplyr::select(name,
                     all_of(paste0(hidden_var, c("", "_visible_out"))),
-                    starts_with(rds_prefix)) %>%
+                    starts_with(prefix)) %>%
       RDS::as.rds.data.frame(df = .,
                              id = "name",
-                             recruiter.id = paste0(rds_prefix, "_from"),
+                             recruiter.id = paste0(prefix, "_from"),
                              network.size = paste0(hidden_var, "_visible_out"),
-                             time = paste0(rds_prefix, "_t"),
+                             time = paste0(prefix, "_t"),
                              max.coupons = n_coupons) %>%
       .quiet_rds_ss(., outcome.variable = hidden_var, N = total) %>%
       .$result %>%
@@ -212,7 +213,7 @@ get_study_est_ht <- function(data,
 #' @param seed_condition character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples
 #' @param n_boot number of bootstrap resamples
 #' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
-#' @param rds_prefix character string prefix used for RDS sample variables
+#' @param prefix character string prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of Chords estimates for a single study with RDS sample
@@ -232,7 +233,7 @@ get_study_est_ht <- function(data,
 get_study_est_chords <- function(data,
                                  type = c("mle", "integrated", "jeffreys"),
                                  seed_condition = "rds_from == -999",
-                                 rds_prefix = "rds",
+                                 prefix = "rds",
                                  n_boot = 100,
                                  parallel_boot = FALSE,
                                  label = "chords") {
@@ -248,14 +249,14 @@ get_study_est_chords <- function(data,
 
   .data_mod <-
     data %>%
-    dplyr::filter(dplyr::if_all(all_of(rds_prefix), ~ . == 1)) %>%
+    dplyr::filter(dplyr::if_all(all_of(prefix), ~ . == 1)) %>%
     dplyr::mutate(
       NS1 = apply(.[, grep(pattern = .pattern, x = names(data)), with = FALSE], 1, sum),
-      refCoupNum = get(paste0(rds_prefix, "_own_coupon")),
-      interviewDt = get(paste0(rds_prefix, "_t"))) %>%
+      refCoupNum = get(paste0(prefix, "_own_coupon")),
+      interviewDt = get(paste0(prefix, "_t"))) %>%
     dplyr::rename_with(
-        .cols = starts_with(paste0(rds_prefix, "_coupon_")),
-        ~ gsub(pattern = paste0(rds_prefix, "\\_coupon\\_"), replacement = "coup", .))
+        .cols = starts_with(paste0(prefix, "_coupon_")),
+        ~ gsub(pattern = paste0(prefix, "\\_coupon\\_"), replacement = "coup", .))
 
   # if (type == "leave-d-out") {
   #   .jack_control <- chords::makeJackControl(1, 1e2)
@@ -344,11 +345,10 @@ get_study_est_chords <- function(data,
 #' Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
 #' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 #'
-#' @import tidyselect
+#' @import tidyselect surveybootstrap
 #' @importFrom magrittr `%>%` `%$%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows n
 #' @importFrom networkreporting kp.degree.estimator nsum.estimator
-#' @importFrom surveybootstrap bootstrap.estimates rescaled.bootstrap.sample
 #' @importFrom plyr llply
 #' @importFrom purrr quietly
 get_study_est_nsum <- function(data,
@@ -403,7 +403,7 @@ get_study_est_nsum <- function(data,
       .data = .,
       .fun = function(wgt) {
         .data_mod %>%
-          dplyr::mutate(index = 1:n()) %>%
+          dplyr::mutate(index = 1:dplyr::n()) %>%
           dplyr::left_join(., wgt, by = "index") %>%
           dplyr::mutate(rescaled_weight = weight.scale * get(paste0(prefix, "_weight"))) %>%
           networkreporting::nsum.estimator(
@@ -445,7 +445,7 @@ get_study_est_nsum <- function(data,
 #' @param seed_condition character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples
 #' @param n_boot number of bootstrap resamples
 #' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
-#' @param rds_prefix character prefix used for RDS sample variables
+#' @param prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
 #' @details Function currently requires variable "hidden_visible_out" to be present in the data supplied and represent the hidden population out-report
@@ -467,7 +467,7 @@ get_study_est_multiplier <- function(data,
                                      seed_condition = "rds_from == -999",
                                      n_boot = 100,
                                      parallel_boot = FALSE,
-                                     rds_prefix = "rds",
+                                     prefix = "rds",
                                      label = "multiplier") {
 
   if (parallel_boot) {
@@ -475,7 +475,7 @@ get_study_est_multiplier <- function(data,
     doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
   }
 
-  .data_mod <- data[get(rds_prefix) == 1,]
+  .data_mod <- data[get(prefix) == 1,]
 
   .est_out <-
     total_service/mean(.data_mod[[service_var]])
@@ -484,8 +484,8 @@ get_study_est_multiplier <- function(data,
   .est_boot <-
     get_rds_boot(data = .data_mod,
                  seed_condition = seed_condition,
-                 in_coupon = paste0(rds_prefix, "_own_coupon"),
-                 out_coupon = paste0(rds_prefix, "_coupon_"),
+                 in_coupon = paste0(prefix, "_own_coupon"),
+                 out_coupon = paste0(prefix, "_coupon_"),
                  trait_var = "hidden_visible_out",
                  other_vars = c("hidden_visible_out", service_var, "name"),
                  n_boot = n_boot) %>%
@@ -510,10 +510,6 @@ get_study_est_multiplier <- function(data,
 #'
 #' @return Data frame of HT estimates for single study
 #'
-#' @import tidyselect
-#' @importFrom magrittr `%>%` `%$%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange
-#' @importFrom estimatr lm_robust
 get_study_est_gnsum <- function(data, label = "gnsum") {
 
   # res$sample.y.F.H <- with(frame.df,
@@ -550,8 +546,8 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 
   return(
     data.frame(estimator = paste0("hidden_prev_", label),
-               estimate = fit_ht["est"],
-               se =  fit_ht["se"],
+               estimate = NA,
+               se =  NA,
                inquiry = "hidden_prev")
   )
 }
@@ -700,6 +696,8 @@ get_study_est_mse <- function(
     return(
       data.frame(estimator = paste0("hidden_size_", label),
                  estimate = unname(.est_out$estimate["point est."]),
+                 # calculate SE as SD of log-normal distribution
+                 # with logmean and logsd from MSEfit object
                  se =  unname(
                    sqrt((exp(summary(.est_out$MSEfit$fit)$cov.unscaled[1, 1]) - 1) *
                           exp(2*.est_out$MSEfit$fit$coefficients[1] +

@@ -494,10 +494,9 @@ sample_tls_tidy <-
 #'
 #' @import tidyselect
 #' @importFrom magrittr `%>%` `%$%` `%<>%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
 #' @importFrom igraph sample_pref vertex_attr as_adj as_adj_list
 #' @importFrom purrr when
-#' @importFrom stats rbinom
 sample_rds_tidy <-
   function(data,
            sampling_variable = "rds",
@@ -513,7 +512,7 @@ sample_rds_tidy <-
     target_type <- match.arg(target_type)
 
     data %<>%
-      as_tibble() %>%
+      dplyr::as_tibble() %>%
       dplyr::mutate(links_list = hiddenmeta:::retrieve_graph(links) %>% igraph::as_adj_list())
 
     # generate arrival times using rate of 2 per unit of time

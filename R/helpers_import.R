@@ -226,7 +226,7 @@ read_study_params <- function(
                                                    samplesize = 1000),
                                 total = .row$observed_n,
                                 n_coupons = .row$rds_n_coupons,
-                                rds_prefix = "rds",
+                                prefix = "rds",
                                 additional_params = list(alpha = 5),
                                 label = "rds_sspse")
                    ),
@@ -286,7 +286,7 @@ read_study_params <- function(
                    .row$prior_p_service_use * .row$observed_n * .row$prior_hidden_prev,
                  seed_condition = "rds_from == -999",
                  n_boot = 100,
-                 rds_prefix = "rds",
+                 prefix = "rds",
                  label = "rds_multi")
         }
 
@@ -297,7 +297,7 @@ read_study_params <- function(
                  type = "jeffreys",
                  seed_condition = "rds_from == -999",
                  n_boot = 100,
-                 rds_prefix = "rds",
+                 prefix = "rds",
                  label = "rds_chords")
         }
 

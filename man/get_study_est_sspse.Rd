@@ -11,7 +11,7 @@ get_study_est_sspse(
   total = 2000,
   mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
   additional_params = list(),
-  rds_prefix = "rds",
+  prefix = "rds",
   label = "sspse"
 )
 }
@@ -28,7 +28,7 @@ get_study_est_sspse(
 
 \item{additional_params}{named list of additional parameter passed to \code{sspse::posteriorsize} . If empty \code{sspse::posteriorsize} uses default parameters.}
 
-\item{rds_prefix}{character prefix used for RDS sample variables}
+\item{prefix}{character prefix used for RDS sample variables}
 
 \item{label}{character string describing the estimator}
 }

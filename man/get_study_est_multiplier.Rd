@@ -11,7 +11,7 @@ get_study_est_multiplier(
   seed_condition = "rds_from == -999",
   n_boot = 100,
   parallel_boot = FALSE,
-  rds_prefix = "rds",
+  prefix = "rds",
   label = "multiplier"
 )
 }
@@ -28,7 +28,7 @@ get_study_est_multiplier(
 
 \item{parallel_boot}{logical, whether to compute bootstrap samples in parallel using \code{foreach} package}
 
-\item{rds_prefix}{character prefix used for RDS sample variables}
+\item{prefix}{character prefix used for RDS sample variables}
 
 \item{label}{character string describing the estimator}
 }

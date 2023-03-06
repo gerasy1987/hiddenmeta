@@ -100,7 +100,6 @@ sim_block_network <-
 #'
 #' }
 #'
-#' @importFrom stats simulate
 #' @importFrom intergraph asIgraph
 #' @importFrom igraph vertex_attr
 #' @importFrom magrittr `%>%` `%$%` `%<>%`

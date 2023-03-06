@@ -73,7 +73,7 @@ get_rds_boot <-
 
     rds_data <-
       data %>%
-      # dplyr::filter(get(rds_prefix) == 1) %>%
+      # dplyr::filter(get(prefix) == 1) %>%
       dplyr::mutate(
         across(all_of(trait_var), list("b" = ~ as.integer(. > median(., na.rm = TRUE))))) %>%
       `attr<-`(., "key", in_coupon)

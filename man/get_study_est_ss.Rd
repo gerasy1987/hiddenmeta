@@ -10,7 +10,7 @@ get_study_est_ss(
   hidden_var = "target",
   n_coupons = 3,
   total = 1000,
-  rds_prefix = "rds",
+  prefix = "rds",
   label = "ss"
 )
 }
@@ -25,9 +25,12 @@ get_study_est_ss(
 
 \item{total}{integer giving the total size of known population (denominator for prevalence)}
 
-\item{rds_prefix}{character prefix used for RDS sample variables}
+\item{prefix}{character prefix used for RDS sample variables}
 
 \item{label}{character string describing the estimator}
+}
+\value{
+Data frame of SS prevalence estimates for a single study
 }
 \description{
 Sequential Sampling (SS) prevalence estimator by Gile (2011)
