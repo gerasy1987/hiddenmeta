@@ -41,3 +41,15 @@
 ## Bug Fixes
 
 -   Numerous bug fixes
+
+# hiddenmeta 0.3.2
+
+## Enhancements
+
+-   Add Multiple Systems population size estimator
+
+## Bug Fixes
+
+-   Fix imports to avoid conflicts between packages
+-   Unify naming of sample prefix arguments to be `prefix`
+-   Change RDS+ to LTS (Link-Tracing Sample)
