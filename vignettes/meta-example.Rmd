@@ -18,6 +18,9 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 
+library(tidyverse)
+library(purrr)
+
 ```
 
 ## Load packages

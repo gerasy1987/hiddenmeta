@@ -39,7 +39,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.2</span>
       </span>
     </div>
 
@@ -60,9 +60,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul>
 </li>
@@ -115,10 +112,10 @@ which the prevalence is being estimated.</p>
 <table class="table">
 <caption>Sampling-estimation pairs</caption>
 <colgroup>
-<col width="9%">
-<col width="46%">
-<col width="14%">
-<col width="29%">
+<col width="19%">
+<col width="38%">
+<col width="19%">
+<col width="23%">
 </colgroup>
 <thead><tr class="header">
 <th>Sampling</th>
@@ -138,9 +135,9 @@ which the prevalence is being estimated.</p>
 <td>
 <strong>HT</strong>: Horvitz-Thompson estimator of
 <u><em>prevalence</em></u> with re-scaled bootstrap standard errors</td>
-<td><span class="citation">Rust and Rao (<a href="#ref-rust1996variance" role="doc-biblioref">1996</a>)</span></td>
-<td>Self-coded + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap" role="doc-biblioref">Feehan and
-Salganik 2023</a>)</span>
+<td><span class="citation">Rust and Rao (<a href="#ref-rust1996variance">1996</a>)</span></td>
+<td>Self-coded + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap">Feehan and Salganik
+2023</a>)</span>
 </td>
 </tr>
 <tr class="odd">
@@ -148,11 +145,12 @@ Salganik 2023</a>)</span>
 <td>
 <strong>HT</strong>: Horvitz-Thompson estimator of
 <u><em>prevalence</em></u> with re-scaled bootstrap standard errors
-<span class="citation">(<a href="#ref-rust1996variance" role="doc-biblioref">Rust and Rao 1996</a>)</span>
+<span class="citation">(<a href="#ref-rust1996variance">Rust and Rao
+1996</a>)</span>
 </td>
-<td><span class="citation">Rust and Rao (<a href="#ref-rust1996variance" role="doc-biblioref">1996</a>)</span></td>
-<td>Self-coded + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap" role="doc-biblioref">Feehan and
-Salganik 2023</a>)</span>
+<td><span class="citation">Rust and Rao (<a href="#ref-rust1996variance">1996</a>)</span></td>
+<td>Self-coded + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap">Feehan and Salganik
+2023</a>)</span>
 </td>
 </tr>
 <tr class="even">
@@ -161,9 +159,9 @@ Salganik 2023</a>)</span>
 <strong>SS</strong>: Sequential sampling estimator of
 <u><em>prevalence</em></u>
 </td>
-<td><span class="citation">Gile (<a href="#ref-gile2011improved" role="doc-biblioref">2011</a>)</span></td>
+<td><span class="citation">Gile (<a href="#ref-gile2011improved">2011</a>)</span></td>
 <td>
-<code>RDS</code> <span class="citation">(<a href="#ref-handcock2023rds" role="doc-biblioref">Mark S. Handcock et al.
+<code>RDS</code> <span class="citation">(<a href="#ref-handcock2023rds">Mark S. Handcock et al.
 2023</a>)</span>
 </td>
 </tr>
@@ -180,12 +178,12 @@ Salganik 2023</a>)</span>
 <u><em>population size</em></u> with re-scaled bootstrap standard
 errors</td>
 <td>
-<span class="citation">Killworth et al. (<a href="#ref-killworth1998social" role="doc-biblioref">1998</a>)</span>;
-<span class="citation">Rust and Rao (<a href="#ref-rust1996variance" role="doc-biblioref">1996</a>)</span>
+<span class="citation">Killworth et al. (<a href="#ref-killworth1998social">1998</a>)</span>; <span class="citation">Rust and Rao (<a href="#ref-rust1996variance">1996</a>)</span>
 </td>
 <td>
-<code>networkreporting</code> <span class="citation">(<a href="#ref-feehan2021networkreporting" role="doc-biblioref">Feehan and
-Salganik 2016</a>)</span> + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap" role="doc-biblioref">Feehan and Salganik 2023</a>)</span>
+<code>networkreporting</code> <span class="citation">(<a href="#ref-feehan2021networkreporting">Feehan and Salganik
+2016</a>)</span> + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap">Feehan and
+Salganik 2023</a>)</span>
 </td>
 </tr>
 <tr class="odd">
@@ -193,16 +191,17 @@ Salganik 2016</a>)</span> + <code>surveybootstrap</code> <span class="citation">
 <td>
 <strong>NSUM</strong>: Network scale-up estimatior of
 <u><em>population size</em></u> with re-scaled bootstrap standard errors
-<span class="citation">(<a href="#ref-killworth1998social" role="doc-biblioref">Killworth et al. 1998</a>; <a href="#ref-rust1996variance" role="doc-biblioref">Rust and Rao
+<span class="citation">(<a href="#ref-killworth1998social">Killworth et
+al. 1998</a>; <a href="#ref-rust1996variance">Rust and Rao
 1996</a>)</span>
 </td>
 <td>
-<span class="citation">Killworth et al. (<a href="#ref-killworth1998social" role="doc-biblioref">1998</a>)</span>;
-<span class="citation">Rust and Rao (<a href="#ref-rust1996variance" role="doc-biblioref">1996</a>)</span>
+<span class="citation">Killworth et al. (<a href="#ref-killworth1998social">1998</a>)</span>; <span class="citation">Rust and Rao (<a href="#ref-rust1996variance">1996</a>)</span>
 </td>
 <td>
-<code>networkreporting</code> <span class="citation">(<a href="#ref-feehan2021networkreporting" role="doc-biblioref">Feehan and
-Salganik 2016</a>)</span> + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap" role="doc-biblioref">Feehan and Salganik 2023</a>)</span>
+<code>networkreporting</code> <span class="citation">(<a href="#ref-feehan2021networkreporting">Feehan and Salganik
+2016</a>)</span> + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap">Feehan and
+Salganik 2023</a>)</span>
 </td>
 </tr>
 <tr class="even">
@@ -210,10 +209,10 @@ Salganik 2016</a>)</span> + <code>surveybootstrap</code> <span class="citation">
 <td>
 <strong>RECAP *</strong>: Mark-recapture estimator of
 <u><em>population size</em></u> with parametric standard errors</td>
-<td><span class="citation">Hickman et al. (<a href="#ref-hickman2006estimating" role="doc-biblioref">2006</a>)</span></td>
+<td><span class="citation">Hickman et al. (<a href="#ref-hickman2006estimating">2006</a>)</span></td>
 <td>
-<code>Rcapture</code> <span class="citation">(<a href="#ref-baillargeon2007rcapture" role="doc-biblioref">Baillargeon and
-Rivest 2007</a>)</span>
+<code>Rcapture</code> <span class="citation">(<a href="#ref-baillargeon2007rcapture">Baillargeon and Rivest
+2007</a>)</span>
 </td>
 </tr>
 <tr class="odd">
@@ -222,10 +221,10 @@ Rivest 2007</a>)</span>
 <strong>SSPSE</strong>: Bayesian sequential sampling model of
 <u><em>population size</em></u>
 </td>
-<td><span class="citation">Mark S. Handcock, Gile, and Mar (<a href="#ref-handcock2014" role="doc-biblioref">2014</a>)</span></td>
+<td><span class="citation">Mark S. Handcock, Gile, and Mar (<a href="#ref-handcock2014">2014</a>)</span></td>
 <td>
-<code>sspse</code> <span class="citation">(<a href="#ref-handcock2022sspse" role="doc-biblioref">Mark S. Handcock et
-al. 2022</a>)</span>
+<code>sspse</code> <span class="citation">(<a href="#ref-handcock2022sspse">Mark S. Handcock et al.
+2022</a>)</span>
 </td>
 </tr>
 <tr class="even">
@@ -233,10 +232,10 @@ al. 2022</a>)</span>
 <td>
 <strong>CHORDS</strong>: Epidemiological model for <u><em>population
 size</em></u> estimation</td>
-<td><span class="citation">Berchenko, Rosenblatt, and Frost (<a href="#ref-berchenko2017" role="doc-biblioref">2017</a>)</span></td>
+<td><span class="citation">Berchenko, Rosenblatt, and Frost (<a href="#ref-berchenko2017">2017</a>)</span></td>
 <td>
-<code>chords</code> <span class="citation">(<a href="#ref-berchenko2017" role="doc-biblioref">Berchenko, Rosenblatt,
-and Frost 2017</a>)</span>
+<code>chords</code> <span class="citation">(<a href="#ref-berchenko2017">Berchenko, Rosenblatt, and Frost
+2017</a>)</span>
 </td>
 </tr>
 <tr class="odd">
@@ -245,20 +244,21 @@ and Frost 2017</a>)</span>
 <strong>MULTIPLIER</strong> *: Service-multiplier <u><em>population
 size</em></u> estimator with bootstrap re-sampling standard errors</td>
 <td>
-<span class="citation">Hickman et al. (<a href="#ref-hickman2006estimating" role="doc-biblioref">2006</a>)</span>;
-<span class="citation">Salganik (<a href="#ref-salganik2006variance" role="doc-biblioref">2006</a>)</span>
+<span class="citation">Hickman et al. (<a href="#ref-hickman2006estimating">2006</a>)</span>; <span class="citation">Salganik (<a href="#ref-salganik2006variance">2006</a>)</span>
 </td>
-<td>Self-coded + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap" role="doc-biblioref">Feehan and
-Salganik 2023</a>)</span>
+<td>Self-coded + <code>surveybootstrap</code> <span class="citation">(<a href="#ref-feehan2023surveybootstrap">Feehan and Salganik
+2023</a>)</span>
 </td>
 </tr>
 <tr class="even">
-<td><strong>RDS *</strong></td>
+<td><strong>LTS *</strong></td>
 <td>
 <strong>LINK</strong>: Link-tracing <u><em>population size</em></u>
 estimator based on special type of RDS</td>
-<td><span class="citation">Vincent and Thompson (<a href="#ref-vincent2019" role="doc-biblioref">2019</a>)</span></td>
-<td>Self-coded based on <span class="citation">Vincent and Thompson (<a href="#ref-vincent2019" role="doc-biblioref">2019</a>)</span>
+<td>
+<span class="citation">Vincent and Thompson (<a href="#ref-vincent2017estimating">2017</a>)</span>; <span class="citation">Vincent and Thompson (<a href="#ref-vincent2022">2022</a>)</span>
+</td>
+<td>Self-coded based on <span class="citation">Vincent and Thompson (<a href="#ref-vincent2022">2022</a>)</span>
 </td>
 </tr>
 </tbody>
@@ -272,9 +272,9 @@ requires recapture data to be collected beyond standard NSUM and direct
 indicators. <em>RDS-MULTIPLIER</em> estimation requires data from a
 provider of a service that is likely to be used by hidden group of
 interest as well as direct questions about that service use asked from
-hidden group members in RDS sample. Finally <em>RDS-LINK</em> estimation
-requires a special type of RDS sample with more initial seeds but less
-waves of link tracing and collection of data on recaptures in RDS
+hidden group members in RDS sample. Finally <em>LTS-LINK</em> estimation
+requires a special type of RDS sample, Link-Tracing Sample, with more
+initial seeds but less waves and collection of data on recaptures in RDS
 network.</p>
 </div>
 <div class="section level2">
@@ -405,9 +405,15 @@ Salganik, Matthew J. 2006. <span>“Variance Estimation, Design Effects,
 and Sample Size Calculations for Respondent-Driven Sampling.”</span>
 <em>Journal of Urban Health</em> 83 (Suppl 1): 98.
 </div>
-<div id="ref-vincent2019" class="csl-entry">
-Vincent, Kyle, and Steve Thompson. 2019. <span>“Estimating the Size and
-Distribution of Networked Populations with Snowball Sampling.”</span> <a href="https://arxiv.org/abs/1402.4372" class="external-link">https://arxiv.org/abs/1402.4372</a>.
+<div id="ref-vincent2017estimating" class="csl-entry">
+Vincent, Kyle, and Steve Thompson. 2017. <span>“Estimating Population
+Size with Link-Tracing Sampling.”</span> <em>Journal of the American
+Statistical Association</em> 112 (519): 1286–95.
+</div>
+<div id="ref-vincent2022" class="csl-entry">
+———. 2022. <span>“Estimating the Size and Distribution of Networked
+Populations with Snowball Sampling.”</span> <em>Journal of Survey
+Statistics and Methodology</em> 10 (2): 397–418.
 </div>
 </div>
 </div>

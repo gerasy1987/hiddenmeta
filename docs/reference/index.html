@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.2</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -93,21 +90,21 @@
         </td>
         <td><p>Get individual study estimands using data.table</p></td>
       </tr><tr><td>
-          <p><code><a href="get_study_est_sspse.html">get_study_est_sspse()</a></code> </p>
-        </td>
-        <td><p>SS-PSE population size estimator by Handcock, Gile and Mar</p></td>
-      </tr><tr><td>
-          <p><code><a href="get_study_est_chords.html">get_study_est_chords()</a></code> </p>
-        </td>
-        <td><p>Chords population size estimatior by Berchenko, Rosenblatt and Frost</p></td>
-      </tr><tr><td>
           <p><code><a href="get_study_est_ht.html">get_study_est_ht()</a></code> </p>
         </td>
         <td><p>Horvitz-Thompson prevalence estimator</p></td>
       </tr><tr><td>
+          <p><code><a href="get_study_est_sspse.html">get_study_est_sspse()</a></code> </p>
+        </td>
+        <td><p>SS-PSE population size estimator by Handcock, Gile and Mar</p></td>
+      </tr><tr><td>
           <p><code><a href="get_study_est_ss.html">get_study_est_ss()</a></code> </p>
         </td>
         <td><p>Sequential Sampling (SS) prevalence estimator by Gile (2011)</p></td>
+      </tr><tr><td>
+          <p><code><a href="get_study_est_chords.html">get_study_est_chords()</a></code> </p>
+        </td>
+        <td><p>Chords population size estimatior by Berchenko, Rosenblatt and Frost</p></td>
       </tr><tr><td>
           <p><code><a href="get_study_est_nsum.html">get_study_est_nsum()</a></code> </p>
         </td>
@@ -121,9 +118,13 @@
         </td>
         <td><p>Mark-recapture estimator for closed population</p></td>
       </tr><tr><td>
+          <p><code><a href="get_study_est_mse.html">get_study_est_mse()</a></code> </p>
+        </td>
+        <td><p>Multiple Systems estimator of population size for Sparse Capture Data by Chan et al.</p></td>
+      </tr><tr><td>
           <p><code><a href="get_study_est_linktrace.html">get_study_est_linktrace()</a></code> </p>
         </td>
-        <td><p>Link tracing estimator</p></td>
+        <td><p>Estimator of population size based on Link-Tracing Sample by Vincent and Thompson</p></td>
       </tr></tbody><tbody><tr><th colspan="2">
           <h2 id="multi-study-functions">Multi-study functions <a href="#multi-study-functions" class="anchor" aria-hidden="true"></a></h2>
           <p class="section-desc"></p><p>These function allow to simulate several study population and sampling strategies and conduct estimation on them at the same time</p>

@@ -24,8 +24,6 @@ navbar:
         href: articles/read-study-params.html
       - text: Simple meta-analysis
         href: articles/meta-example.html
-      - text: Diagnosing study robustness
-        href: articles/diagnose-studies.html
   right:
   - text: Background
     href: articles/background.html
@@ -43,13 +41,14 @@ reference:
   - sample_tls
   - sample_pps
   - get_study_estimands
-  - get_study_est_sspse
-  - get_study_est_chords
   - get_study_est_ht
+  - get_study_est_sspse
   - get_study_est_ss
+  - get_study_est_chords
   - get_study_est_nsum
   - get_study_est_multiplier
   - get_study_est_recapture
+  - get_study_est_mse
   - get_study_est_linktrace
 
 - title: Multi-study functions

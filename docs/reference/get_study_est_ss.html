@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.2</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -81,7 +78,7 @@
 <span>  hidden_var <span class="op">=</span> <span class="st">"target"</span>,</span>
 <span>  n_coupons <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  total <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>  rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"rds"</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"ss"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -108,7 +105,7 @@
 <dd><p>integer giving the total size of known population (denominator for prevalence)</p></dd>
 
 
-<dt>rds_prefix</dt>
+<dt>prefix</dt>
 <dd><p>character prefix used for RDS sample variables</p></dd>
 
 
@@ -116,6 +113,12 @@
 <dd><p>character string describing the estimator</p></dd>
 
 </dl></div>
+    <div id="value">
+    <h2>Value</h2>
+    
+
+<p>Data frame of SS prevalence estimates for a single study</p>
+    </div>
     <div id="references">
     <h2>References</h2>
     <p>Gile, Krista J. 2011 Improved Inference for Respondent-Driven Sampling Data with Application to HIV Prevalence Estimation, Journal of the American Statistical Association, 106, 135-146.

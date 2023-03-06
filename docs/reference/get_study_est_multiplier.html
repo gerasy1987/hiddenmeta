@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.2</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -82,7 +79,7 @@
 <span>  seed_condition <span class="op">=</span> <span class="st">"rds_from == -999"</span>,</span>
 <span>  n_boot <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  parallel_boot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"rds"</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"multiplier"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -113,7 +110,7 @@
 <dd><p>logical, whether to compute bootstrap samples in parallel using <code>foreach</code> package</p></dd>
 
 
-<dt>rds_prefix</dt>
+<dt>prefix</dt>
 <dd><p>character prefix used for RDS sample variables</p></dd>
 
 

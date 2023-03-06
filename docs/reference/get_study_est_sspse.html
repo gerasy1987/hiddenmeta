@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.2</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -82,7 +79,7 @@
 <span>  total <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  mcmc_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>interval <span class="op">=</span> <span class="fl">5</span>, burnin <span class="op">=</span> <span class="fl">2000</span>, samplesize <span class="op">=</span> <span class="fl">500</span><span class="op">)</span>,</span>
 <span>  additional_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"rds"</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"sspse"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -113,7 +110,7 @@
 <dd><p>named list of additional parameter passed to <code><a href="https://rdrr.io/pkg/sspse/man/posteriorsize.html" class="external-link">sspse::posteriorsize</a></code> . If empty <code><a href="https://rdrr.io/pkg/sspse/man/posteriorsize.html" class="external-link">sspse::posteriorsize</a></code> uses default parameters.</p></dd>
 
 
-<dt>rds_prefix</dt>
+<dt>prefix</dt>
 <dd><p>character prefix used for RDS sample variables</p></dd>
 
 

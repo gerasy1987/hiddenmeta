@@ -23,7 +23,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">hiddenmeta</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3.2</span>
       </span>
     </div>
 
@@ -42,9 +42,6 @@
     </li>
     <li>
       <a href="../articles/meta-example.html">Simple meta-analysis</a>
-    </li>
-    <li>
-      <a href="../articles/diagnose-studies.html">Diagnosing study robustness</a>
     </li>
   </ul></li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
@@ -79,7 +76,7 @@
 <span>  <span class="va">data</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mle"</span>, <span class="st">"integrated"</span>, <span class="st">"jeffreys"</span><span class="op">)</span>,</span>
 <span>  seed_condition <span class="op">=</span> <span class="st">"rds_from == -999"</span>,</span>
-<span>  rds_prefix <span class="op">=</span> <span class="st">"rds"</span>,</span>
+<span>  prefix <span class="op">=</span> <span class="st">"rds"</span>,</span>
 <span>  n_boot <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  parallel_boot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"chords"</span></span>
@@ -100,8 +97,8 @@
 <dd><p>character string containing condition to define seeds. Defaults to "rds_from == -999" that applies to simulated RDS samples</p></dd>
 
 
-<dt>rds_prefix</dt>
-<dd><p>character prefix used for RDS sample variables</p></dd>
+<dt>prefix</dt>
+<dd><p>character string prefix used for RDS sample variables</p></dd>
 
 
 <dt>n_boot</dt>
