@@ -11,8 +11,8 @@
 #'
 #' @return Data frame of SS-PSE estimates for a single study
 #'
-#' @references
-#' Handcock, Mark S., Krista J. Gile, and Corinne M. Mar. “Estimating Hidden Population Size Using Respondent-Driven Sampling Data.” Electronic Journal of Statistics 8, no. 1 (2014): 1491–1521. \url{https://doi.org/10.1214/14-EJS923}.
+#' @references {Handcock, Mark S., Krista J. Gile, and Corinne M. Mar. “Estimating Hidden Population Size Using Respondent-Driven Sampling Data.” Electronic Journal of Statistics 8, no. 1 (2014): 1491–1521. \url{https://doi.org/10.1214/14-EJS923}.}
+#'
 #' @export
 #'
 #' @import tidyselect
@@ -82,9 +82,9 @@ get_study_est_sspse <- function(data,
 #'
 #' @return Data frame of SS prevalence estimates for a single study
 #'
-#' @references
-#' Gile, Krista J. 2011 Improved Inference for Respondent-Driven Sampling Data with Application to HIV Prevalence Estimation, Journal of the American Statistical Association, 106, 135-146.
-#' Gile, Krista J., Handcock, Mark S., 2010 Respondent-driven Sampling: An Assessment of Current Methodology, Sociological Methodology, 40, 285-327.
+#' @references {Gile, Krista J. 2011 Improved Inference for Respondent-Driven Sampling Data with Application to HIV Prevalence Estimation, Journal of the American Statistical Association, 106, 135-146.}
+#' @references {Gile, Krista J., Handcock, Mark S., 2010 Respondent-driven Sampling: An Assessment of Current Methodology, Sociological Methodology, 40, 285-327.}
+#'
 #' @export
 #'
 #' @import tidyselect
@@ -143,8 +143,7 @@ get_study_est_ss <-
 #' @return Data frame of HT estimates for a single study
 #' @export
 #'
-#' @references
-#' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
+#' @references {Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}.}
 #'
 #' @import tidyselect
 #' @importFrom magrittr `%>%` `%$%`
@@ -218,9 +217,8 @@ get_study_est_ht <- function(data,
 #'
 #' @return Data frame of Chords estimates for a single study with RDS sample
 #'
-#' @references
-#' Berchenko, Yakir, Jonathan D. Rosenblatt, and Simon D. W. Frost. “Modeling and Analyzing Respondent-Driven Sampling as a Counting Process.” Biometrics 73, no. 4 (2017): 1189–98. \url{https://doi.org/10.1111/biom.12678}.
-#' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
+#' @references {Berchenko, Yakir, Jonathan D. Rosenblatt, and Simon D. W. Frost. “Modeling and Analyzing Respondent-Driven Sampling as a Counting Process.” Biometrics 73, no. 4 (2017): 1189–98. \url{https://doi.org/10.1111/biom.12678}.}
+#' @references {Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}.}
 #'
 #' @export
 #'
@@ -327,111 +325,94 @@ get_study_est_chords <- function(data,
 #' NSUM estimatior
 #'
 #' @param data pass-through population data frame
-#' @param known character vector containing names of known groups
-#' @param hidden character vector containing names of hidden groups
-#' @param survey_design a formula describing the design of the survey
-#' @param degree_ratio numeric value between 0 and 1 representing degree ratio
-#' @param transmission_rate numeric value between 0 and 1 representing information transmission rate
-#' @param n_boot number of bootstrap resamples
-#' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
+#' @param hidden_var character vector containing names of hidden groups
+#' @param known_vars character vector containing names of known groups
+#' @param total integer giving total size of population
 #' @param prefix character prefix used for PPS sample variables
 #' @param label character string describing the estimator
+#' @param weight_var character string giving name of the sampling weights variable
+#' @param survey_design a formula describing the design of the survey
+#' @param n_boot integer giving number of bootstrap re-samples
+#' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package. Defaults to \code{FALSE}
 #'
 #' @return Data frame of NSUM estimates for a single study with PPS sample
 #' @export
 #'
-#' @references
-#' Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
-#' Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
-#' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
+#' @references Zheng, Tian, Matthew J. Salganik, and Andrew Gelman. "How many people do you know in prison? Using overdispersion in count data to estimate social structure in networks." Journal of the American Statistical Association 101.474 (2006): 409-423.
+#' @references Laga, Ian, Le Bao, and Xiaoyue Niu. "A Correlated Network Scale-up Model: Finding the Connection Between Subpopulations." Journal of the American Statistical Association just-accepted (2023): 1-18.
+#' @references Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 #'
-#' @import tidyselect surveybootstrap
+#' @import surveybootstrap
 #' @importFrom magrittr `%>%` `%$%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows n
-#' @importFrom networkreporting kp.degree.estimator nsum.estimator
+#' @importFrom networkscaleup killworth
 #' @importFrom plyr llply
-#' @importFrom purrr quietly
-get_study_est_nsum <- function(data,
-                               known,
-                               hidden,
-                               survey_design = ~ pps_cluster + strata(pps_strata),
-                               degree_ratio = 1,
-                               transmission_rate = 1,
-                               n_boot = 1000,
-                               parallel_boot = FALSE,
-                               prefix = "pps",
-                               label = "nsum") {
+get_study_est_nsum <- function(
+    data,
+    hidden_var = "hidden",
+    known_vars = c("known", paste0("known_", 2:10)),
+    total = 1000,
+    prefix = "pps",
+    label = "pps_nsum",
+    weight_var = "pps_weight",
+    survey_design = ~ pps_cluster + strata(pps_strata),
+    n_boot = 1000,
+    parallel_boot = FALSE) {
 
   if (parallel_boot) {
     requireNamespace(c("doParallel", "parallel"))
     doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
   }
-
   .data_mod <- data[get(prefix) == 1,]
 
+  if (!is.null(weight_var))
+    .weights <- .data_mod[[weight_var]]
+  else
+    .weights <- 1
+
   .known_pops <-
-    .data_mod %>%
-    dplyr::select(total, all_of(paste0("total_", known))) %>%
-    dplyr::rename_with(
-      .cols = starts_with("total_"), ~ paste0(gsub("^total\\_", "", .), "_visible_out")) %>%
-    apply(., MARGIN = 2, unique)
+    unlist(.data_mod[, lapply(.SD, unique), .SDcols = paste0("total_", known_vars)])
 
-  .data_mod$d_est <-
-    purrr::quietly(networkreporting::kp.individual.estimator)(
-      resp.data = .data_mod,
-      alter.popn.size = .known_pops[1],
-      known.populations = names(.known_pops[2:length(.known_pops)]),
-      total.kp.size = sum(.known_pops[2:length(.known_pops)]))$result$dbar.Fcell.F
+  .data_est <-
+    .data_mod[
+      , c(paste0(c(known_vars, hidden_var), "_visible_out")), with = FALSE
+    ][
+      , lapply(.SD, function(x) x * .weights)
+    ]
 
-  .fit_nsum <-
-    purrr::quietly(networkreporting::nsum.estimator)(
-      survey.data = .data_mod,
-      d.hat.vals = "d_est",
-      total.popn.size = .known_pops[1],
-      killworth.se = FALSE,
-      y.vals = hidden,
-      weights = paste0(prefix, "_weight"),
-      missing = "ignore",
-      deg.ratio = degree_ratio,
-      tx.rate = transmission_rate)$result
+  .fit_nsum_est <-
+    .data_est %>%
+    networkscaleup::killworth(.,
+                              known_sizes = .known_pops,
+                              known_ind = 1:(ncol(.) - length(hidden_var)),
+                              N = total,
+                              model = "MLE") %>%
+    .$sizes
 
-  .fit_nsum_boot <-
+
+  .fit_nsum_boot_se <-
     get_rescaled_boot(data = .data_mod,
                       survey_design = survey_design,
                       n_boot = n_boot) %>%
     plyr::llply(
       .data = .,
       .fun = function(wgt) {
-        .data_mod %>%
-          dplyr::mutate(index = 1:dplyr::n()) %>%
-          dplyr::left_join(., wgt, by = "index") %>%
-          dplyr::mutate(rescaled_weight = weight.scale * get(paste0(prefix, "_weight"))) %>%
-          networkreporting::nsum.estimator(
-            survey.data = .,
-            d.hat.vals = "d_est",
-            total.popn.size = .known_pops[1],
-            killworth.se = FALSE,
-            y.vals = hidden,
-            weights = "rescaled_weight",
-            missing = "ignore",
-            deg.ratio = degree_ratio,
-            tx.rate = transmission_rate)
+        .data_est[, lapply(.SD, function(x) x * wgt[,2])] %>%
+          networkscaleup::killworth(.,
+                                    known_sizes = .known_pops,
+                                    known_ind = 1:(ncol(.) - length(hidden_var)),
+                                    N = total,
+                                    model = "MLE") %>%
+          .$sizes
+
       },
       .parallel = parallel_boot) %>%
-    dplyr::bind_rows()
+    do.call("c", .)
 
   return(
-    # data.frame(
-    #   estimator = paste0(c("hidden_size_", "degree_"), label),
-    #   estimate = c(unname(.fit_nsum$estimate),
-    #                unname(.fit_nsum$sum.d.hat/.fit_nsum$estimate)),
-    #   se = c(sd(.fit_nsum_boot$estimate),
-    #          sd(.fit_nsum_boot$sum.d.hat/.fit_nsum_boot$estimate)),
-    #   inquiry = c("hidden_size", "degree_all"))
     data.frame(
       estimator = paste0(c("hidden_size_"), label),
-      estimate = c(unname(.fit_nsum$estimate)),
-      se = c(sd(.fit_nsum_boot$estimate)),
+      estimate = .fit_nsum_est,
+      se = sd(.fit_nsum_boot_se),
       inquiry = c("hidden_size"))
   )
 }
@@ -567,8 +548,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 #' @return Data frame of Mark-recapture estimates for a single study
 #' @export
 #'
-#' @references
-#' Louis-Paul Rivest, Sophie Baillargeon. “The Rcapture package.” (2019). \url{https://cran.r-project.org/package=Rcapture}.
+#' @references Louis-Paul Rivest, Sophie Baillargeon. “The Rcapture package.” (2019). \url{https://cran.r-project.org/package=Rcapture}.
 #'
 #' @import tidyselect
 #' @import data.table
@@ -642,12 +622,11 @@ get_study_est_recapture <- function(
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of Multiple System estimates for a single study
+#'
+#' @references Chan, Lax, Bernard W. Silverman, and Kyle Vincent. "Multiple systems estimation for sparse capture data: Inferential challenges when there are nonoverlapping lists." Journal of the American Statistical Association 116.535 (2021): 1297-1306.
+#' @references Chan, Lax, Bernard W. Silverman, and Kyle Vincent. “The SparseMSE package.” (2022). \url{https://cran.r-project.org/package=SparseMSE}.
+#'
 #' @export
-#'
-#' @references
-#' Chan, Lax, Bernard W. Silverman, and Kyle Vincent. "Multiple systems estimation for sparse capture data: Inferential challenges when there are nonoverlapping lists." Journal of the American Statistical Association 116.535 (2021): 1297-1306.
-#' Chan, Lax, Bernard W. Silverman, and Kyle Vincent. “The SparseMSE package.” (2022). \url{https://cran.r-project.org/web/packages/SparseMSE}.
-#'
 #'
 #' @import data.table
 #' @importFrom SparseMSE estimatepopulation.0
@@ -723,9 +702,8 @@ get_study_est_mse <- function(
 #'
 #' @export
 #'
-#' @references
-#' Vincent, Kyle, and Steve Thompson. "Estimating population size with link-tracing sampling." Journal of the American Statistical Association 112.519 (2017): 1286-1295.
-#' Vincent, Kyle, and Steve Thompson. "Estimating the size and distribution of networked populations with snowball sampling." Journal of Survey Statistics and Methodology 10.2 (2022): 397-418.
+#' @references Vincent, Kyle, and Steve Thompson. "Estimating population size with link-tracing sampling." Journal of the American Statistical Association 112.519 (2017): 1286-1295.
+#' @references Vincent, Kyle, and Steve Thompson. "Estimating the size and distribution of networked populations with snowball sampling." Journal of Survey Statistics and Methodology 10.2 (2022): 397-418.
 #'
 #' @import data.table
 #' @importFrom magrittr `%>%` `%$%`

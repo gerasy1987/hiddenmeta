@@ -40,5 +40,6 @@ Estimator of population size based on Link-Tracing Sample by Vincent and Thompso
 }
 \references{
 Vincent, Kyle, and Steve Thompson. "Estimating population size with link-tracing sampling." Journal of the American Statistical Association 112.519 (2017): 1286-1295.
+
 Vincent, Kyle, and Steve Thompson. "Estimating the size and distribution of networked populations with snowball sampling." Journal of Survey Statistics and Methodology 10.2 (2022): 397-418.
 }

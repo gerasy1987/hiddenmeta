@@ -145,6 +145,8 @@ get_rds_boot <-
 #' Rust, Keith F., and J. N. K. Rao. "Variance estimation for complex surveys using replication techniques." Statistical methods in medical research 5, no. 3 (1996): 283-310.
 #'
 #' @import surveybootstrap
+#' @importFrom dplyr group_indices group_by across all_of group_split
+#' @importFrom plyr llply alply
 get_rescaled_boot <-
   function(data,
            survey_design,

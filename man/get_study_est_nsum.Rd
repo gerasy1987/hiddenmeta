@@ -6,37 +6,37 @@
 \usage{
 get_study_est_nsum(
   data,
-  known,
-  hidden,
-  survey_design = ~pps_cluster + strata(pps_strata),
-  degree_ratio = 1,
-  transmission_rate = 1,
-  n_boot = 1000,
-  parallel_boot = FALSE,
+  hidden_var = "hidden",
+  known_vars = c("known", paste0("known_", 2:10)),
+  total = 1000,
   prefix = "pps",
-  label = "nsum"
+  label = "pps_nsum",
+  weight_var = "pps_weight",
+  survey_design = ~pps_cluster + strata(pps_strata),
+  n_boot = 1000,
+  parallel_boot = FALSE
 )
 }
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{known}{character vector containing names of known groups}
+\item{hidden_var}{character vector containing names of hidden groups}
 
-\item{hidden}{character vector containing names of hidden groups}
+\item{known_vars}{character vector containing names of known groups}
 
-\item{survey_design}{a formula describing the design of the survey}
-
-\item{degree_ratio}{numeric value between 0 and 1 representing degree ratio}
-
-\item{transmission_rate}{numeric value between 0 and 1 representing information transmission rate}
-
-\item{n_boot}{number of bootstrap resamples}
-
-\item{parallel_boot}{logical, whether to compute bootstrap samples in parallel using \code{foreach} package}
+\item{total}{integer giving total size of population}
 
 \item{prefix}{character prefix used for PPS sample variables}
 
 \item{label}{character string describing the estimator}
+
+\item{weight_var}{character string giving name of the sampling weights variable}
+
+\item{survey_design}{a formula describing the design of the survey}
+
+\item{n_boot}{integer giving number of bootstrap re-samples}
+
+\item{parallel_boot}{logical, whether to compute bootstrap samples in parallel using \code{foreach} package. Defaults to \code{FALSE}}
 }
 \value{
 Data frame of NSUM estimates for a single study with PPS sample
@@ -45,7 +45,9 @@ Data frame of NSUM estimates for a single study with PPS sample
 NSUM estimatior
 }
 \references{
-Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
-Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
+Zheng, Tian, Matthew J. Salganik, and Andrew Gelman. "How many people do you know in prison? Using overdispersion in count data to estimate social structure in networks." Journal of the American Statistical Association 101.474 (2006): 409-423.
+
+Laga, Ian, Le Bao, and Xiaoyue Niu. "A Correlated Network Scale-up Model: Finding the Connection Between Subpopulations." Journal of the American Statistical Association just-accepted (2023): 1-18.
+
 Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 }

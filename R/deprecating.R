@@ -40,13 +40,6 @@
 #'   )
 #' }
 #'
-#' @import tidyselect
-#' @importFrom magrittr `%>%` `%$%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
-#' @importFrom igraph vertex_attr as_adj as_adj_list
-#' @importFrom Matrix rowSums
-#' @importFrom fastDummies dummy_cols
-#' @importFrom stringr str_split
 get_study_population_tidy <-
   function(network_handler = sim_block_network,
            network_handler_args,
@@ -165,11 +158,6 @@ get_study_population_tidy <-
 #'  }
 #' @keywords internal
 #'
-#' @import tidyselect
-#' @importFrom magrittr `%>%` `%$%` `%<>%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
-#' @importFrom tidyr nest unnest
-#' @importFrom purrr when map_int
 sample_pps_tidy <-
   function(data, sampling_variable = "pps", drop_nonsampled = FALSE,
            target_n_pps = 400,
@@ -316,11 +304,6 @@ sample_pps_tidy <-
 #' @keywords internal
 #'
 #'
-#' @import data.table tidyselect
-#' @importFrom magrittr `%>%` `%$%` `%<>%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
-#' @importFrom tidyr nest
-#' @importFrom purrr map_chr when
 sample_tls_tidy <-
   function(data,
            sampling_variable = "tls", drop_nonsampled = FALSE,
@@ -492,11 +475,6 @@ sample_tls_tidy <-
 #' }
 #'
 #'
-#' @import tidyselect
-#' @importFrom magrittr `%>%` `%$%` `%<>%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
-#' @importFrom igraph sample_pref vertex_attr as_adj as_adj_list
-#' @importFrom purrr when
 sample_rds_tidy <-
   function(data,
            sampling_variable = "rds",
@@ -763,10 +741,6 @@ sample_rds_tidy <-
 #'
 #' @return Estimands data frame for single study
 #'
-#' @import tidyselect
-#' @importFrom magrittr `%>%` `%$%` `%<>%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all
-#' @importFrom purrr map_int
 get_study_estimands_tidy <- function(data,
                                      known_pattern = "^known(\\_\\d|\\d)?$",
                                      hidden_var = "hidden") {
@@ -828,3 +802,108 @@ get_study_estimands_tidy <- function(data,
 
 
 
+#' NSUM estimatior
+#'
+#' @param data pass-through population data frame
+#' @param known character vector containing names of known groups
+#' @param hidden character vector containing names of hidden groups
+#' @param survey_design a formula describing the design of the survey
+#' @param degree_ratio numeric value between 0 and 1 representing degree ratio
+#' @param transmission_rate numeric value between 0 and 1 representing information transmission rate
+#' @param n_boot number of bootstrap resamples
+#' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
+#' @param prefix character prefix used for PPS sample variables
+#' @param label character string describing the estimator
+#'
+#' @return Data frame of NSUM estimates for a single study with PPS sample
+#'
+#' @keywords internal
+#'
+#' @reference {Dennis M. Feehan, Matthew J. Salganik. “The networkreporting package.” (2014). \url{https://cran.r-project.org/package=networkreporting}.
+#' @reference {Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap.}}
+#' @reference {Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}}
+#'
+get_study_est_nsum_old <- function(data,
+                               known,
+                               hidden,
+                               survey_design = ~ pps_cluster + strata(pps_strata),
+                               degree_ratio = 1,
+                               transmission_rate = 1,
+                               n_boot = 1000,
+                               parallel_boot = FALSE,
+                               prefix = "pps",
+                               label = "nsum") {
+
+  if (parallel_boot) {
+    requireNamespace(c("doParallel", "parallel"))
+    doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
+  }
+
+  .data_mod <- data[get(prefix) == 1,]
+
+  .known_pops <-
+    .data_mod %>%
+    dplyr::select(total, all_of(paste0("total_", known))) %>%
+    dplyr::rename_with(
+      .cols = starts_with("total_"), ~ paste0(gsub("^total\\_", "", .), "_visible_out")) %>%
+    apply(., MARGIN = 2, unique)
+
+  .data_mod$d_est <-
+    purrr::quietly(networkreporting::kp.individual.estimator)(
+      resp.data = .data_mod,
+      alter.popn.size = .known_pops[1],
+      known.populations = names(.known_pops[2:length(.known_pops)]),
+      total.kp.size = sum(.known_pops[2:length(.known_pops)]))$result$dbar.Fcell.F
+
+  .fit_nsum <-
+    purrr::quietly(networkreporting::nsum.estimator)(
+      survey.data = .data_mod,
+      d.hat.vals = "d_est",
+      total.popn.size = .known_pops[1],
+      killworth.se = FALSE,
+      y.vals = hidden,
+      weights = paste0(prefix, "_weight"),
+      missing = "ignore",
+      deg.ratio = degree_ratio,
+      tx.rate = transmission_rate)$result
+
+  .fit_nsum_boot <-
+    get_rescaled_boot(data = .data_mod,
+                      survey_design = survey_design,
+                      n_boot = n_boot) %>%
+    plyr::llply(
+      .data = .,
+      .fun = function(wgt) {
+        .data_mod %>%
+          dplyr::mutate(index = 1:dplyr::n()) %>%
+          dplyr::left_join(., wgt, by = "index") %>%
+          dplyr::mutate(rescaled_weight = weight.scale * get(paste0(prefix, "_weight"))) %>%
+          networkreporting::nsum.estimator(
+            survey.data = .,
+            d.hat.vals = "d_est",
+            total.popn.size = .known_pops[1],
+            killworth.se = FALSE,
+            y.vals = hidden,
+            weights = "rescaled_weight",
+            missing = "ignore",
+            deg.ratio = degree_ratio,
+            tx.rate = transmission_rate)
+      },
+      .parallel = parallel_boot) %>%
+    dplyr::bind_rows()
+
+  return(
+    # data.frame(
+    #   estimator = paste0(c("hidden_size_", "degree_"), label),
+    #   estimate = c(unname(.fit_nsum$estimate),
+    #                unname(.fit_nsum$sum.d.hat/.fit_nsum$estimate)),
+    #   se = c(sd(.fit_nsum_boot$estimate),
+    #          sd(.fit_nsum_boot$sum.d.hat/.fit_nsum_boot$estimate)),
+    #   inquiry = c("hidden_size", "degree_all"))
+    data.frame(
+      estimator = paste0(c("hidden_size_"), label),
+      estimate = c(unname(.fit_nsum$estimate)),
+      se = c(sd(.fit_nsum_boot$estimate)),
+      inquiry = c("hidden_size"))
+  )
+}
