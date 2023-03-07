@@ -11,9 +11,9 @@ authors:
 template:
   params:
     bootstrap: 5
-    bootswatch: cyborg
-    theme: gruvbox-dark
+    bootswatch: simplex
     ganalytics: G-WBZEYLFB3F
+
 
 home:
   title: An R package for diagnosis and meta-analysis of hard-to-reach population measurement studies
