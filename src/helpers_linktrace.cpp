@@ -270,9 +270,12 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
                         arma::mat b_0,
                         int n_samples,
                         bool progress) {
+
   Rcpp::Function cpp_sample("sample");
   std::vector<double> n_out(n_samples);
   arma::mat l_out(n_samples,n_strata);
+
+  //loop over chains
   for(int samps = 0; samps < n_samples; ++samps) {
     // Assign priors and initial vals -------------------------------------
     arma::mat l(chain_samples,n_strata);
@@ -293,10 +296,14 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
       last_wave = data_p_waves[n_waves - 1].size();
     }
 
-    std::vector<int> data_p_waves_id;
+    int n_units = std::accumulate(data_p_waves.begin(), data_p_waves.end(), 0,
+                                  [](int acc, const std::vector<int>& vec) { return acc + vec.size(); });
 
-    for(int i = 0; i < data_p_waves.size(); i++){
-      for(int j = 0; j < data_p_waves[i].size(); j++){
+    std::vector<int> data_p_waves_id;
+    data_p_waves_id.reserve(n_units);
+
+    for(int i = 0; i < data_p_waves.size(); ++i){
+      for(int j = 0; j < data_p_waves[i].size(); ++j){
         data_p_waves_id.push_back(data_p_waves[i][j] - 1);
       }
     }
@@ -304,23 +311,24 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
     // re-index units ------------------------------------------------------
     std::vector<int> n_p(n_waves);
 
-    for(int i = 0; i < n_waves; i++){
+    for(int i = 0; i < n_waves; ++i){
       n_p[i] = data_p_waves[i].size();
     }
 
     std::vector<std::vector<int>>  data_p_reorder(n_waves);
     data_p_reorder[0] = gen_range(1,n_p[0]);
 
-    for(int i = 1; i < n_waves; i++){
+    for(int i = 1; i < n_waves; ++i){
       int from_i = std::accumulate(n_p.begin(), n_p.begin() + i, 0) + 1;
       int to_i = std::accumulate(n_p.begin(), n_p.begin() + i + 1, 0);
       data_p_reorder[i] = gen_range(from_i,to_i);
     }
 
     std::vector<int> data_p_reorder_id;
+    data_p_reorder_id.reserve(n_units);
 
-    for(int i = 0; i < data_p_reorder.size(); i++){
-      for(int j = 0; j < data_p_reorder[i].size(); j++){
+    for(int i = 0; i < data_p_reorder.size(); ++i){
+      for(int j = 0; j < data_p_reorder[i].size(); ++j){
         data_p_reorder_id.push_back(data_p_reorder[i][j] - 1);
       }
     }
@@ -343,8 +351,8 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
     }
 
     // fill reo-rdered link matrix with known pairs ------------------------
-    int n_units = std::accumulate(n_p.begin(), n_p.end(), 0);
-    arma::mat y_known(n_units,n_units);
+    n_units = std::accumulate(n_p.begin(), n_p.end(), 0);
+    arma::mat y(n_units,n_units);
 
     std::vector<int> g1 = rep_times(gen_range(0,n_waves - 1), n_waves);
     std::vector<int> g2 = rep_each(gen_range(0, n_waves - 1), n_waves);
@@ -352,7 +360,7 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
     for(int k = 0; k < g1.size() - 1; ++k) {
       for(int i = 0; i < data_p_reorder[g1[k]].size(); i++){
         for(int j = 0; j < data_p_reorder[g2[k]].size(); j++){
-          y_known(data_p_reorder[g1[k]][i] - 1 , data_p_reorder[g2[k]][j] - 1) =
+          y(data_p_reorder[g1[k]][i] - 1 , data_p_reorder[g2[k]][j] - 1) =
             y_samp(data_p_waves[g1[k]][i] - 1 , data_p_waves[g2[k]][j] - 1);
         }
       }
@@ -366,8 +374,8 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
       //get p(no link between strata)
       std::vector<double> no_link_init(n_strata, 1);
 
-      for(int i = 0; i < n_strata; i++){
-        for(int j = 0; j < n_strata; j++){
+      for(int i = 0; i < n_strata; ++i){
+        for(int j = 0; j < n_strata; ++j){
           no_link_init[i] = no_link_init[i] * std::pow((1 - b.slice(t-1)(j,i)),strata_count[j]);
         }
       }
@@ -387,12 +395,14 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
       std::vector<int> n_post_range = gen_range(nn, total * 5);
 
       std::vector<double> n_sample_prob_vec;
+      n_sample_prob_vec.reserve(n_post_range.size());
 
-      for(int i = 0; i < n_post_range.size(); i++){
+      for(int i = 0; i < n_post_range.size(); ++i){
         std::vector<int> r_i = gen_range(n_post_range[i] + 1 - nn, n_post_range[i] - nn_0);
 
         std::vector<double> log_r_i;
-        for(int j = 0; j < r_i.size(); j++){
+        log_r_i.reserve(r_i.size());
+        for(int j = 0; j < r_i.size(); ++j){
           log_r_i.push_back(log(r_i[j]));
         }
 
@@ -406,8 +416,9 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
       double max_n_sample_prob_vec = *std::max_element(n_sample_prob_vec.begin(), n_sample_prob_vec.end());
 
       std::vector<double> n_sample_prob;
+      n_sample_prob.reserve(n_sample_prob_vec.size());
 
-      for(int i = 0; i < n_sample_prob_vec.size(); i++){
+      for(int i = 0; i < n_sample_prob_vec.size(); ++i){
         n_sample_prob.push_back(exp(n_sample_prob_vec[i] - max_n_sample_prob_vec));
       }
 
@@ -426,8 +437,9 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
       // fill stratum vector with strata of non sampled units
       std::vector<int> strat_s = gen_range(1,n_strata);
       std::vector<double> pstrat;
+      pstrat.reserve(no_link_l.size());
 
-      for(int i = 0; i < no_link_l.size(); i++){
+      for(int i = 0; i < no_link_l.size(); ++i){
         pstrat.push_back(no_link_l[i]/no_link);
       }
 
@@ -438,8 +450,6 @@ Rcpp::List lt_gibbs_cpp(std::vector<std::vector<int>> links_list,
       }
 
       // populate link matrix for reordered sample
-      arma::mat y(y_known);
-
       if(n[t] > y.n_rows){
         y.resize(n[t],n[t]);
       }
