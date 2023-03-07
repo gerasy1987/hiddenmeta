@@ -10,7 +10,7 @@ Description: Package allows analysis of individual and multiple studies of
     The functions are written so that they can be used with DeclareDesign package to 
     allow for easy declaration of one or more studies with various sampling and estimation strategies. 
     Package implements functions for estimation of hidden population size and prevalance based on 
-    RDS, TLS or PPS samples based on existing packages, specifically RDS, chords and networkreporting.
+    using existing packages, such as RDS, sspse, Rcapture, SparseMSE, chords and networkscaleup.
 Depends: 
     R (>= 4.1.0),
     magrittr (>= 2.0.0)
@@ -30,7 +30,7 @@ Imports:
     ergm (>= 3.0.0),
     intergraph (>= 2.0),
     RDS (>= 0.9),
-    networkreporting (>= 0.3.0),
+    networkscaleup (>= 0.1),
     surveybootstrap (>= 0.0.3),
     Matrix (>= 1.0.0),
     purrr (>= 1.0.0),
