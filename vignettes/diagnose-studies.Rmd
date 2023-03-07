@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 )
 
 library(tidyverse)
+library(knitr)
 
 ```
 
@@ -28,7 +29,6 @@ library(tidyverse)
 
 library(hiddenmeta)
 library(DeclareDesign)
-library(knitr)
 
 seed <- 871223
 
