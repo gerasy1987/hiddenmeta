@@ -325,7 +325,7 @@ read_study_params <- function(
 #'
 #' @import tidyselect
 #' @importFrom magrittr `%>%` `%$%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble full_join rowwise
 #' @importFrom plyr mapvalues
 get_required_data <- function(
   multi_study_data,
@@ -366,7 +366,7 @@ get_required_data <- function(
           "{ multi_study_data$study[i] }" := example
         )
     }) %>%
-    purrr::reduce(., full_join, by = c("variable", "type")) %>%
+    purrr::reduce(., dplyr::full_join, by = c("variable", "type")) %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
       example = paste0(na.omit(unique(c_across(-c(variable,type)))), collapse = ";"),
@@ -374,7 +374,7 @@ get_required_data <- function(
     ) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(
-      across(all_of(multi_study_data$study), ~ ifelse(is.na(.), "", "X")),
+      dplyr::across(all_of(multi_study_data$study), ~ ifelse(is.na(.), "", "X")),
       label =
         plyr::mapvalues(
           warn_missing = FALSE,
