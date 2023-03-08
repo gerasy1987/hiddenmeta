@@ -468,7 +468,7 @@ leave1out_sims <-
     dplyr::filter(!is.na(mean_estimate)) %>% 
     dplyr::mutate(all = abs(rmse/mean_estimand)) %>% 
     dplyr::select(c(inquiry, all)) %>% 
-    purrr::reduce(.x = leave1out_sims, .f = left_join, by = "inquiry", .init = .) %>% 
+    purrr::reduce(.x = leave1out_sims, .f = dplyr::left_join, by = "inquiry", .init = .) %>% 
     dplyr::filter(!(inquiry %in% c("rel_bias_tls_recap", "rel_bias_pps_ht")) & !grepl("hidden_size", inquiry)) %>%
     dplyr::mutate(
       across(all_of(unname(study_map)), ~ ifelse(is.na(.), "-", format(., digits = 2))),
