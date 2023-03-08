@@ -100,13 +100,18 @@ sim_block_network <-
 #'
 #' }
 #'
-#' @importFrom intergraph asIgraph
 #' @importFrom igraph vertex_attr
 #' @importFrom magrittr `%>%` `%$%` `%<>%`
-#' @importFrom plyr mapvalues
 sim_ergm_network <-
   function(fit,
            type_function) {
+
+    if (!requireNamespace("intergraph", quietly = TRUE)) {
+      stop(
+        "Package \"intergraph\" must be installed to use this function.",
+        call. = FALSE
+      )
+    }
 
     if (class(fit) != "ergm") stop("fit should be ergm object")
 

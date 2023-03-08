@@ -5,7 +5,7 @@
 #'
 #' @export
 #'
-#' @import googlesheets4 tidyselect
+#' @import tidyselect
 #' @importFrom magrittr `%>%` `%$%`
 #' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
 #' @importFrom plyr mapvalues
@@ -13,6 +13,13 @@ read_study_params <- function(
   ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
   sheet = "study_params_readable"
 ) {
+
+  if (!requireNamespace("googlesheets4", quietly = TRUE)) {
+    stop(
+      "Package \"googlesheets4\" must be installed to use this function.",
+      call. = FALSE
+    )
+  }
 
   labels <-
     googlesheets4::read_sheet(
@@ -430,75 +437,6 @@ get_required_data <- function(
 
 }
 
-#' Get Parameters and Design Features of Specific Study
-#'
-#' @param study Character string giving name of the study to pull. Have to match the names provided in Google Spreadsheet
-#' @param ss Character string giving ID of the Google spreadsheet
-#' @param sheet Character string giving name of the sheet in the Google spreadsheet to read
-#'
-#' @export
-#'
-#' @import googlesheets4 tidyselect
-#' @importFrom magrittr `%>%` `%$%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble tibble
-read_single_study_params <- function(
-  study,
-  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
-  sheet = "study_params_readable"
-) {
-
-  labels <-
-    suppressMessages(
-      googlesheets4::read_sheet(
-        ss = ss,
-        sheet = sheet,
-        skip = 0,
-        n_max = 4,
-        col_names = FALSE,
-        .name_repair = "minimal")
-    ) %>%
-    unname %>%
-    t %>%
-    `colnames<-`(c("family", "type", "name", "description")) %>%
-    dplyr::as_tibble() %>%
-    dplyr::mutate(
-      # prior_type = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][2]),
-      # family = purrr::map_chr(family, ~ strsplit(.x, "_")[[1]][1]),
-      colnames = dplyr::if_else(is.na(family), name, paste0(family, "_", name))
-    )
-
-
-  study_data <-
-    suppressMessages(
-      googlesheets4::read_sheet(
-        ss = ss,
-        sheet = sheet,
-        col_names = FALSE,
-        na = "NA",
-        col_types = paste0(labels$type, collapse = ""),
-        .name_repair = "minimal",
-        skip = 4) %>%
-        `names<-`(dplyr::pull(labels, colnames))
-    ) %>%
-    dplyr::filter(study_id == study) %>%
-    {dplyr::tibble(colnames = colnames(.), params := t(.)[,1])}
-
-  .out <- dplyr::left_join(labels, study_data, by = "colnames")
-
-  for (i in c("rds", "pps", "tls")) {
-    if (.out$params[which(.out$colnames == i)] == 0) {
-      .out <- dplyr::filter(.out, is.na(family) | (family != i))
-    }
-  }
-
-  return(
-    dplyr::select(.out,
-                  "Name" = name,
-                  "Description" = description,
-                  "Value" = params)
-  )
-
-}
 
 #' Create Diagnosis Plot of Log Normalized RMSE Across Studies
 #'
@@ -625,62 +563,5 @@ get_rmse_plots <- function(
     ))
 
   }
-
-}
-
-#' Get Parameters and Design Features of Specific Study
-#'
-#' @param study Character string giving name of the study to pull. Have to match the names provided in Google Spreadsheet
-#' @param ss Character string giving ID of the Google spreadsheet
-#' @param sheet Character string giving name of the sheet in the Google spreadsheet to read
-#'
-#' @export
-#'
-#' @import tidyselect googlesheets4
-#' @importFrom magrittr `%>%` `%$%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all as_tibble
-#' @importFrom stringr str_extract
-#' @importFrom DeclareDesign declare_population declare_sampling declare_inquiry declare_estimator
-get_single_study_design <- function(
-  study = "johnjay_tanzania",
-  ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
-  sheet = "study_params_readable") {
-
-  .type_map <-
-    list(population = DeclareDesign::declare_population,
-         sample     = DeclareDesign::declare_sampling,
-         inquiry    = DeclareDesign::declare_inquiry,
-         est        = DeclareDesign::declare_estimator)
-
-  .design_list <- read_study_params(ss, sheet)[[study]]
-
-  .declare_list <-
-    list(study_population   = .design_list$pop,
-         study_sample_rds   = .design_list$samples$rds,
-         study_sample_pps   = .design_list$samples$pps,
-         study_sample_tls   = .design_list$samples$tls,
-         study_inquiry      = .design_list$inquiries,
-         est_sspse          = .design_list$estimators$rds$sspse,
-         est_chords         = .design_list$estimators$rds$chords,
-         est_multi          = .design_list$estimators$rds$multiplier,
-         est_ht_pps         = .design_list$estimators$pps$ht,
-         est_nsum_pps       = .design_list$estimators$pps$nsum,
-         est_recap_rds_pps  = .design_list$estimators$rds_pps$recap1,
-         est_ht_tls         = .design_list$estimators$tls$ht,
-         est_nsum_tls       = .design_list$estimators$tls$nsum,
-         est_recap_tls      = .design_list$estimators$tls$recap
-         )
-
-  for (i in seq_along(.declare_list)) {
-    if (!is.null(.declare_list[[i]])) {
-      .declare_fun <- .type_map[[stringr::str_extract(pattern = paste0(names(.type_map), collapse = "|"),
-                                                    string = names(.declare_list)[i])]]
-      assign(names(.declare_list)[i], eval(as.call(c(list(.declare_fun), .declare_list[[i]]))))
-    }
-  }
-
-  return(
-    eval(parse(text = paste0(names(.declare_list)[sapply(.declare_list, function(x) !is.null(x))], collapse = " + ")))
-  )
 
 }
