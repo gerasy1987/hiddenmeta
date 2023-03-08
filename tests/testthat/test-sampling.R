@@ -38,50 +38,55 @@ pop <- do.call(what = get_study_population, args = study_1[1:5])
 testthat::test_that("RDS sampling with various parameters works", {
 
   set.seed(23121987)
-  rds_sample <-
-    do.call(what = sample_rds,
-            args = c(data = list(pop),
-                     sampling_variable = "rds",
-                     drop_nonsampled = FALSE,
-                     study_1[6:9]))
+  do.call(what = sample_rds,
+          args = c(data = list(pop),
+                   hidden_var = "hidden",
+                   sampling_variable = "rds1",
+                   drop_nonsampled = FALSE,
+                   study_1[6:9]))
 
   rds_sample_drop <-
     do.call(what = sample_rds,
-            args = c(data = list(pop),
-                     sampling_variable = "DRS",
-                     drop_nonsampled = TRUE,
-                     study_1[6:9]))
+          args = c(data = list(pop),
+                   hidden_var = "hidden",
+                   sampling_variable = "RDS_dr",
+                   drop_nonsampled = TRUE,
+                   study_1[6:9]))
 
-  rds_sample_wave <-
-    do.call(what = sample_rds,
-            args = c(data = list(pop),
-                     sampling_variable = "rds",
-                     drop_nonsampled = FALSE,
-                     n_seed = 40,
-                     n_coupons = 2,
-                     target_type = "waves",
-                     target_n_rds = 2))
+  do.call(what = sample_rds,
+          args = c(data = list(pop),
+                   hidden_var = "hidden",
+                   sampling_variable = "rds_wave",
+                   drop_nonsampled = FALSE,
+                   n_seed = 40,
+                   n_coupons = 2,
+                   n_waves = 3,
+                   target_type = "waves",
+                   target_n_rds = 70))
 
-  testthat::expect_equal(nrow(rds_sample), study_1$network_handler_args$N)
-  testthat::expect_equal(names(rds_sample)[grep(pattern = "rds", names(rds_sample))],
-                         c("rds", "rds_from", "rds_t", "rds_wave", "rds_hidden", "rds_own_coupon",
-                           paste0("rds_coupon_", 1:study_1$n_coupons)))
+  testthat::expect_equal(nrow(pop), study_1$network_handler_args$N)
+  testthat::expect_equal(
+    names(pop)[grep(pattern = "rds1", names(pop))],
+    c("rds1", "rds1_from", "rds1_t", "rds1_wave", "rds1_hidden", "rds1_own_coupon",
+      paste0("rds1_coupon_", 1:study_1$n_coupons)))
 
   testthat::expect_equal(nrow(rds_sample_drop), study_1$target_n_rds)
-  testthat::expect_true(all(!grepl(pattern = "rds", names(rds_sample_drop))))
-  testthat::expect_equal(names(rds_sample_drop)[grep(pattern = "DRS", names(rds_sample_drop))],
-                         c("DRS", "DRS_from", "DRS_t", "DRS_wave", "DRS_hidden", "DRS_own_coupon",
-                           paste0("DRS_coupon_", 1:study_1$n_coupons)))
+  testthat::expect_equal(
+    names(rds_sample_drop)[grep(pattern = "RDS\\_dr", names(rds_sample_drop))],
+    c("RDS_dr", "RDS_dr_from", "RDS_dr_t",
+      "RDS_dr_wave", "RDS_dr_hidden", "RDS_dr_own_coupon",
+      paste0("RDS_dr_coupon_", 1:study_1$n_coupons)))
 
-  testthat::expect_true(length(unique(rds_sample_wave$rds_wave)) <= 3)
-  testthat::expect_true(all(table(rds_sample_wave$rds_from) <= 2))
-  testthat::expect_equal(names(rds_sample_wave)[grep(pattern = "rds", names(rds_sample_wave))],
-                         c("rds", "rds_from", "rds_t", "rds_wave", "rds_hidden", "rds_own_coupon",
-                           paste0("rds_coupon_", 1:2)))
+  testthat::expect_true(length(stats::na.omit(unique(pop$rds_wave_wave))) <= 3)
+  testthat::expect_true(all(table(pop$rds_wave_from)[-1] <= 2))
+  testthat::expect_equal(
+    names(pop)[grep(pattern = "rds\\_wave", names(pop))],
+    c("rds_wave", "rds_wave_from", "rds_wave_t",
+      "rds_wave_wave", "rds_wave_hidden", "rds_wave_own_coupon",
+      paste0("rds_wave_coupon_", 1:2)))
 
-  testthat::expect_equal(ncol(rds_sample), ncol(rds_sample_drop))
-  testthat::expect_equal(dim(rds_sample), c(nrow(rds_sample_wave), ncol(rds_sample_wave) + 1))
-  testthat::expect_equal(ncol(rds_sample), ncol(pop) + 6 + study_1$n_coupons)
+  testthat::expect_equal(ncol(pop), ncol(rds_sample_drop))
+  testthat::expect_equal(ncol(rds_sample_drop), ncol(pop) - 6 - 2)
 
 })
 
