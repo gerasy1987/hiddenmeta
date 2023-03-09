@@ -50,7 +50,8 @@ Simulate single population with given network structure using data.table
     add_groups =
       list(
         service_use = "rbinom(.N, 1, 0.25)",
-        "paste0('loc_', 1:10) := lapply(rep(.2, times = 10), function(add) rbinom(.N, 1, 0.05 + hidden * add))",
+        "paste0('loc_', 1:10) := lapply(rep(.2, times = 10),
+        function(add) rbinom(.N, 1, 0.05 + hidden * add))",
         known_2 = 0.3,
         "paste0('known_', 3:10) := lapply(3:10, function(x) rbinom(.N, 1, 0.3))")
   )
