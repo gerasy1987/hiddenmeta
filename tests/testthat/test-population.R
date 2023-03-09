@@ -66,7 +66,7 @@ testthat::test_that("generation of population with more than two groups works", 
              directed = FALSE),
 
       group_names = c("known_1", "known_2", "hidden"),
-      p_visibility = list(known_1 = .99,
+      p_visible = list(known_1 = .99,
                           known_2 = .99,
                           hidden = .5),
       add_groups = list(service_use = 0.2,
@@ -90,9 +90,9 @@ testthat::test_that("generation of population with more than two groups works", 
   testthat::expect_equal(nrow(pop), study_2$network_handler_args$N)
 
   testthat::expect_equal(length(grep(pattern = "^hidden|^known_", names(pop))),
-                         2 * study_2$network_handler_args$K)
+                         4 * study_2$network_handler_args$K)
 
   testthat::expect_equal(length(unique(pop$type)),
-                         length(grep(pattern = "^type_visible", names(pop))))
+                         length(grep(pattern = "^type_.*_visible$", names(pop))))
 
 })
