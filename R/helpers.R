@@ -19,7 +19,7 @@
 #'
 #' @import tidyselect
 #' @importFrom magrittr `%>%` `%$%`
-#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all if_any as_tibble group_by_all rowwise c_across
+#' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all if_any as_tibble group_by_all rowwise c_across n
 #' @importFrom purrr quietly
 #' @importFrom MultiRNG draw.correlated.binary
 gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
@@ -50,8 +50,8 @@ gen_group_sizes <- function(N, prev_K, rho_K, .ord = NULL) {
     .$result %>%
     dplyr::ungroup() %>%
     dplyr::rowwise() %>%
-    dplyr::mutate(group = paste0(dplyr::c_across(dplyr::starts_with("V")), collapse = "")) %>%
-    dplyr::select(.data$group, .data$n) %>%
+    dplyr::mutate(group = paste0(dplyr::c_across(starts_with("V")), collapse = "")) %>%
+    dplyr::select(group, n) %>%
     {`names<-`(.$n, .$group)} %>%
     .[.ord]
 
@@ -131,6 +131,7 @@ gen_block_matrix <- function(p_edge_within, p_edge_between, .ord = NULL) {
 #' rbeta_mod(4, .5, .1)
 #' }
 #'
+#' @importFrom stats rbeta
 rbeta_mod <- function(n, mu, sd) {
   alpha <- ((1 - mu) / sd^2 - 1 / mu) * mu ^ 2
   beta <- alpha * (1 / mu - 1)
@@ -196,13 +197,13 @@ mutate_visibility <- function(dat, vars, p_visible, beta_sd = 0.05) {
 # helper for population simulations
 mutate_add_groups_tidy <- function(data, add_groups) {
   for (var in seq_along(add_groups)) {
-    if (class(add_groups[[var]]) == "numeric") {
+    if (inherits(add_groups[[var]], "numeric")) {
       data %<>%
         dplyr::mutate("{ names(add_groups)[var] }" := rbinom(n(), 1, add_groups[[var]]))
-    } else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] != "") {
+    } else if (inherits(add_groups[[var]], "character") & names(add_groups)[var] != "") {
       data %<>%
         dplyr::mutate("{ names(add_groups)[var] }" := eval(parse(text = add_groups[[var]])))
-    } else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] == "") {
+    } else if (inherits(add_groups[[var]], "character") & names(add_groups)[var] == "") {
       data %<>%
         dplyr::mutate(eval(parse(text = add_groups[[var]])))
     }
@@ -214,13 +215,13 @@ mutate_add_groups_tidy <- function(data, add_groups) {
 mutate_add_groups <- function (dat, add_groups) {
   # dat <- data.table::copy(dat)
   for (var in seq_along(add_groups)) {
-    if (class(add_groups[[var]]) == "numeric") {
+    if (inherits(add_groups[[var]], "numeric")) {
       dat[, names(add_groups)[var] := rbinom(.N, 1, add_groups[[var]])]
     }
-    else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] != "") {
+    else if (inherits(add_groups[[var]], "character") & names(add_groups)[var] != "") {
       dat <- dat[, `:=`(names(add_groups)[var], eval(parse(text = add_groups[[var]])))]
     }
-    else if (class(add_groups[[var]]) == "character" & names(add_groups)[var] == "") {
+    else if (inherits(add_groups[[var]], "character") & names(add_groups)[var] == "") {
       dat <- dat[, eval(parse(text = add_groups[[var]]))]
     }
   }

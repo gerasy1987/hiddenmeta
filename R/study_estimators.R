@@ -20,6 +20,7 @@
 #' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange if_all
 #' @importFrom sspse posteriorsize
 #' @importFrom purrr quietly
+#' @importFrom stats quantile
 get_study_est_sspse <- function(data,
                                 prior_mean = .1 * nrow(data),
                                 n_coupons = 3,
@@ -228,6 +229,7 @@ get_study_est_ht <- function(data,
 #' @importFrom chords initializeRdsObject Estimate.b.k makeJackControl
 #' @importFrom purrr quietly
 #' @importFrom doParallel registerDoParallel
+#' @importFrom stats weighted.mean
 get_study_est_chords <- function(data,
                                  type = c("mle", "integrated", "jeffreys"),
                                  seed_condition = "rds_from == -999",
