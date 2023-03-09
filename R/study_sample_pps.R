@@ -47,9 +47,10 @@ sample_pps <-
     # cluster <- conflict$var
     # colnames(data) <- conflict$colnames
 
-    data.table::setDT(data)
-    data[,temp_id := .I]
-    temp_data <- data.table::copy(data)
+    .data <- data.table::copy(data)
+
+    .data[,temp_id := .I]
+    temp_data <- data.table::copy(.data)
     temp_data <- temp_data[,c("temp_id", sampling_frame, strata, cluster), with=FALSE]
     nmax_per_cluster <- ceiling(target_n_pps/n_clusters)
 
@@ -156,16 +157,19 @@ sample_pps <-
     temp_data[, paste0(sampling_variable, "_cluster") := cluster_id]
     temp_data[, paste0(sampling_variable, "_strata") := strata_id]
 
-    cols <- paste("pps", cols, sep = "_")
-    cols <- c("temp_id",cols, "pps", "pps_cluster", "pps_strata")
+    cols <- paste0(sampling_variable, "_", cols)
+    cols <- c("temp_id", sampling_variable,
+              cols, paste0(sampling_variable, "_", c("cluster", "strata")))
     temp_data <- temp_data[, ..cols]
-    data <- data[temp_data, on = "temp_id"]
-    data[, temp_id := NULL]
+    .data <-
+      .data[
+        temp_data, on = "temp_id"
+      ][
+        , temp_id := NULL
+      ]
 
-    if (drop_nonsampled) {
-      data <- data[eval(as.name(sampling_variable)) == 1,,]
-    }
+    if (drop_nonsampled) .data <- .data[get(sampling_variable) == 1]
 
-    return(data)
+    return(.data)
 
   }

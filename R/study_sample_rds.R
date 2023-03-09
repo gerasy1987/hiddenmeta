@@ -33,6 +33,7 @@
 #'
 #' @import data.table
 #' @importFrom magrittr `%>%` `%$%`
+#' @importFrom stats rpois
 sample_rds <-
   function(data,
            sampling_variable = "rds",
@@ -47,14 +48,16 @@ sample_rds <-
 
     target_type <- match.arg(target_type)
 
-    data[, links_list := retrieve_adjlist(links)]
+    .data <- data.table::copy(data)
+
+    .data[, links_list := retrieve_adjlist(links)]
 
     if (!is.null(linktrace)) {
-      hidden_old <- data[[hidden_var]]
+      hidden_old <- .data[[hidden_var]]
       if (linktrace == "all")
-        data[,hidden_var] <- 1
+        .data[,hidden_var] <- 1
       else if (is.character(linktrace) & length(linktrace == 1))
-        data[,hidden_var] <- data[,linktrace]
+        .data[,hidden_var] <- .data[,linktrace]
       else
         stop("RDS+ sample indicator is incorrectly specified in linktrace argument")
     }
@@ -64,18 +67,18 @@ sample_rds <-
                         x = 1:ceiling(2*target_n_rds/arrival_rate),
                         times = stats::rpois(n = ceiling(2*target_n_rds/arrival_rate),
                                              lambda = arrival_rate)))[
-                                               1:nrow(data[get(hidden_var) == 1])]
+                                               1:nrow(.data[get(hidden_var) == 1])]
 
-    if (nrow(data[get(hidden_var) == 1,]) <= n_seed) {
-      .seeds <- data[get(hidden_var) == 1][["name"]]
+    if (nrow(.data[get(hidden_var) == 1,]) <= n_seed) {
+      .seeds <- .data[get(hidden_var) == 1][["name"]]
     } else {
       .seeds <-
         sample(
           # sample out of all people in hidden population
-          x = data[get(hidden_var) == 1][["name"]],
+          x = .data[get(hidden_var) == 1][["name"]],
           # select only prescribed number of subjects
           size = n_seed,
-          prob = data[get(hidden_var) == 1][[paste0("p_visible_", hidden_var)]],
+          prob = .data[get(hidden_var) == 1][[paste0("p_visible_", hidden_var)]],
           replace = FALSE)
     }
 
@@ -86,7 +89,7 @@ sample_rds <-
         from = -999,
         t = .arrival_time[1:length(.seeds)],
         wave = 1)[
-          , (hidden_var) := data[name %in% .seeds][[hidden_var]]
+          , (hidden_var) := .data[name %in% .seeds][[hidden_var]]
         ][
           , own_coupon := .I
         ][
@@ -105,8 +108,8 @@ sample_rds <-
 
             # presume that only hidden population links can be sampled
             .available_links <-
-              data[
-                name %in% data[name == x, links_list][[1]] &
+              .data[
+                name %in% .data[name == x, links_list][[1]] &
                   (get(hidden_var) == 1)
               ][["name"]]
 
@@ -121,7 +124,7 @@ sample_rds <-
     # join in eligible showup rates
     .eligible <-
       .eligible[
-        data[, c("name", paste0(c("p_visible_", ""), ..hidden_var))]
+        .data[, c("name", paste0(c("p_visible_", ""), ..hidden_var))]
         , on = .(to = name),
         paste0(c("p_visible_", ""), hidden_var) :=
           mget(paste0("i.", paste0(c("p_visible_", ""), ..hidden_var)))
@@ -152,7 +155,7 @@ sample_rds <-
 
           # get nodes that were not sampled yet
           .nonsampled <-
-            setdiff(data[get(hidden_var) == 1][["name"]], .sampled$name)
+            setdiff(.data[get(hidden_var) == 1][["name"]], .sampled$name)
 
           if (length(.nonsampled) == 0) break
           else {
@@ -167,7 +170,7 @@ sample_rds <-
                 x = .nonsampled,
                 size = .new_seeds,
                 prob =
-                  data[name %in% .nonsampled][[paste0("p_visible_", hidden_var)]],
+                  .data[name %in% .nonsampled][[paste0("p_visible_", hidden_var)]],
                 replace = FALSE)
 
             .eligible <-
@@ -177,7 +180,7 @@ sample_rds <-
                 wave = 1,
                 own_coupon = as.character((n_seed+1):(n_seed + length(.new_seeds)))
               )[
-                , (hidden_var) := data[name %in% .new_seeds,][[hidden_var]]
+                , (hidden_var) := .data[name %in% .new_seeds,][[hidden_var]]
               ]
 
             # update number of seeds
@@ -217,7 +220,7 @@ sample_rds <-
         .available_links <- c()
       } else {
         .available_links <-
-          data[name %in% data[name == .new$to][["links_list"]][[1]] &
+          .data[name %in% .data[name == .new$to][["links_list"]][[1]] &
                   get(hidden_var) == 1][["name"]]
       }
 
@@ -230,7 +233,7 @@ sample_rds <-
             to = .available_links,
             parent = .new$to,
             coup = n_coupons)[
-              data[, c("name", paste0(c("p_visible_", ""), ..hidden_var))]
+              .data[, c("name", paste0(c("p_visible_", ""), ..hidden_var))]
               , on = .(to = name),
               paste0(c("p_visible_", ""), hidden_var) :=
                 mget(paste0("i.", paste0(c("p_visible_", ""), ..hidden_var)))
@@ -255,7 +258,7 @@ sample_rds <-
              old = names(.sampled)[-1],
              new = paste0(sampling_variable, "_", names(.sampled)[-1]))
 
-    data[
+    .data[
       , (sampling_variable) := as.integer(name %in% .sampled$name)
     ][
       .sampled, on = .(name),
@@ -266,10 +269,10 @@ sample_rds <-
     ]
 
     # restore hidden variable
-    if (!is.null(linktrace)) data[,hidden_var] <- hidden_old
+    if (!is.null(linktrace)) .data[,hidden_var] <- hidden_old
 
-    if (drop_nonsampled) data <- data[get(sampling_variable) == 1]
+    if (drop_nonsampled) .data <- .data[get(sampling_variable) == 1]
 
-    return(data)
+    return(.data)
 
   }

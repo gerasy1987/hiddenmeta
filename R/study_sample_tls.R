@@ -47,15 +47,15 @@ sample_tls <-
       stop("There is a mismatch between type and target specified for within clusters sampling")
     }
 
-    data.table::setDT(data)
+    .data <- data.table::copy(data)
 
     # get sampling probabilities for locations
     if(!is.null(hidden_var)){
       sampling_probs <-
-        data[data[[eval(hidden_var)]] == 1][,lapply(.SD, sum),.SDcols = clusters]
+        .data[.data[[eval(hidden_var)]] == 1][,lapply(.SD, sum),.SDcols = clusters]
     } else {
       sampling_probs <-
-        data[,lapply(.SD,sum),.SDcols = clusters]
+        .data[,lapply(.SD,sum),.SDcols = clusters]
     }
 
     sampling_probs <-
@@ -98,8 +98,8 @@ sample_tls <-
     }
 
     # select sampled units that are hidden
-    data[, temp_id := .I]
-    data_sampled <- data.table::copy(data)
+    .data[, temp_id := .I]
+    data_sampled <- data.table::copy(.data)
     data_sampled <-
       data_sampled[
         data_sampled[
@@ -166,7 +166,7 @@ sample_tls <-
     )
 
 
-    data[ # add binary indicator for tls membership
+    .data[ # add binary indicator for tls membership
       , c(sampling_variable) :=
         as.integer(temp_id %in% data_sampled[["temp_id"]])
       ][ # merge by reference on temp_id
@@ -178,11 +178,9 @@ sample_tls <-
         , temp_id := NULL
       ]
 
-    if (drop_nonsampled) {
-      data <- data[data[[sampling_variable]] == 1]
-    }
+    if (drop_nonsampled) .data <- .data[get(sampling_variable) == 1]
 
-    return(data)
+    return(.data)
 
   }
 
