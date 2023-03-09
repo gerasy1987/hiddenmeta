@@ -356,7 +356,7 @@ get_required_data <- function(
             gsub(names(.), pattern = "[0-9]{1,2}", replacement = "XX"),
             sapply(unname(.), class),
             sapply(unname(.), function(x) {
-              if (class(x) == "numeric") {
+              if (inherits(x, "numeric")) {
                 paste0(format(sample(x = na.omit(x), size = 1), scientific = FALSE), collapse = ";")
               } else {
                 paste0(na.omit(sample(x = x, size = 1)), collapse = ";")

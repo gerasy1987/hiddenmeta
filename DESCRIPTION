@@ -22,7 +22,6 @@ Imports:
     tidyselect (>= 1.2.0),
     igraph (>= 1.3.0),
     sspse (>= 0.6.0),
-    estimatr (>= 0.20.0), 
     chords (>= 0.90.0),
     Rcapture (>= 1.4),
     SparseMSE (>= 2.0.0),
@@ -37,7 +36,8 @@ Imports:
     Rcpp (>= 1.0.9),
     DeclareDesign (>= 0.20.0),
     doParallel,
-    ggplot2 (>= 3.3.0)
+    ggplot2 (>= 3.3.0),
+    stats
 LinkingTo: 
     Rcpp, 
     RcppArmadillo
@@ -46,6 +46,7 @@ Suggests:
     intergraph (>= 2.0),
     sna (>= 2.7),
     covr (>= 3.5.0),
+    estimatr (>= 0.20.0), 
     knitr,
     testthat, 
     rmarkdown,

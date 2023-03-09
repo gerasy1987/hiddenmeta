@@ -102,6 +102,7 @@ sim_block_network <-
 #'
 #' @importFrom igraph vertex_attr
 #' @importFrom magrittr `%>%` `%$%` `%<>%`
+#' @importFrom stats simulate
 sim_ergm_network <-
   function(fit,
            type_function) {
@@ -113,7 +114,7 @@ sim_ergm_network <-
       )
     }
 
-    if (class(fit) != "ergm") stop("fit should be ergm object")
+    if (!inherits(fit, "ergm")) stop("fit should be ergm object")
 
     g <-
       stats::simulate(fit, nsim = 1) %>%
