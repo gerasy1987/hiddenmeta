@@ -491,12 +491,12 @@ sample_rds_tidy <-
 
     data %<>%
       dplyr::as_tibble() %>%
-      dplyr::mutate(links_list = hiddenmeta:::retrieve_graph(links) %>% igraph::as_adj_list())
+      dplyr::mutate(links_list = retrieve_graph(links) %>% igraph::as_adj_list())
 
     # generate arrival times using rate of 2 per unit of time
     # consider making rate a lambda parameter later
     .arrival_time <-
-      stats::rexp(n = length(data$name[dplyr::pull(data, hidden_var) == 1]),
+      rexp(n = length(data$name[dplyr::pull(data, hidden_var) == 1]),
                   rate = arrival_rate) %>%
       base::cumsum()
 
