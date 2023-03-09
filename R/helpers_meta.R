@@ -1,4 +1,14 @@
+#' @title Helper for meta-analysis
+#' 
+#' @description Helper for meta-analysis
+#' 
+#' @param stan_data A list of data for Stan
+#' 
+#' @return A string of Stan code
+#' 
 #' @export
+#' 
+#' @importFrom magrittr `%>%`
 get_meta_stan <- function(
   stan_data
 ) {
@@ -33,7 +43,17 @@ get_meta_stan <- function(
   )
 }
 
+#' @title Helper for meta-analysis
+#' 
+#' @description Helper for meta-analysis
+#' 
+#' @param stan_data A list of data for Stan
+#' 
+#' @return A string of Stan code
+#' 
 #' @export
+#' 
+#' @importFrom magrittr `%>%`
 get_meta_stan2 <- function(
   stan_data
 ) {
@@ -70,7 +90,17 @@ get_meta_stan2 <- function(
   )
 }
 
+#' @title Helper for meta-analysis
+#' 
+#' @description Helper for meta-analysis
+#' 
+#' @param stan_data A list of data for Stan
+#' 
+#' @return A string of Stan code
+#' 
 #' @export
+#' 
+#' @importFrom magrittr `%>%`
 get_meta_stan3 <- function(
   stan_data
 ) {
