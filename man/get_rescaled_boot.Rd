@@ -18,5 +18,6 @@ Modified Function for Rescaled Bootstrap by Rust and Rao (1996)
 }
 \references{
 Dennis M. Feehan, Matthew J. Salganik. “The surveybootstrap package.” (2016). \url{https://cran.r-project.org/package=surveybootstrap}.
+
 Rust, Keith F., and J. N. K. Rao. "Variance estimation for complex surveys using replication techniques." Statistical methods in medical research 5, no. 3 (1996): 283-310.
 }

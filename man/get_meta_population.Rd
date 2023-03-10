@@ -13,6 +13,9 @@ get_meta_population(multi_design, n_sim = 2, parallel = FALSE)
 
 \item{parallel}{logical. Whether to parallelize design simulations}
 }
+\value{
+Tibble with simulated meta level population
+}
 \description{
 Simulate meta study population using simulation of several studies
 }

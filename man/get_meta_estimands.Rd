@@ -17,6 +17,9 @@ get_meta_estimands(
 
 \item{samp_est_benchmark}{within-study benchmark sampling-estimator strategy}
 }
+\value{
+Data frame of specified meta level estimands
+}
 \description{
 Get meta-analysis estimands for specific study-level estimand
 }

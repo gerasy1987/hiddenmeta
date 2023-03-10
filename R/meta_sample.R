@@ -8,7 +8,8 @@
 #' @param estimator_per_sample number of estimation strategies to draw per sampling strategy
 #' @param force named list of length two giving the sample and estimator identifiers that are forced to be sampled across studies
 #'
-#' @return
+#' @return Tibble with simulated meta level population and sampling information
+#'
 #' @export
 #'
 #' @import tidyselect

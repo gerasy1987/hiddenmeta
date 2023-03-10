@@ -9,7 +9,8 @@
 #' @param rel_bias_prior list of two hyperpriors, on means and standard errors of relative bias. Names of list objects should be "mean" and "se".
 #' @param control_params list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use
 #'
-#' @return
+#' @return Data frame of meta level estimates and pertaining estimand names
+#'
 #' @export
 #'
 #' @import tidyselect

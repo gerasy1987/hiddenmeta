@@ -4,7 +4,8 @@
 #' @param n_sim number of simulations to use
 #' @param parallel logical. Whether to parallelize design simulations
 #'
-#' @return
+#' @return Tibble with simulated meta level population
+#'
 #' @export
 #'
 #' @import tidyselect

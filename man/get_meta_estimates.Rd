@@ -32,6 +32,9 @@ get_meta_estimates(
 
 \item{control_params}{list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use}
 }
+\value{
+Data frame of meta level estimates and pertaining estimand names
+}
 \description{
 Use Stan model to estimate bias and estimands
 }

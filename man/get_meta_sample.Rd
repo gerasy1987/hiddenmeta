@@ -29,6 +29,9 @@ get_meta_sample(
 
 \item{force}{named list of length two giving the sample and estimator identifiers that are forced to be sampled across studies}
 }
+\value{
+Tibble with simulated meta level population and sampling information
+}
 \description{
 Sample sampling-estimator strategies across studies for meta-analysis
 }

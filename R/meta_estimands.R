@@ -4,7 +4,8 @@
 #' @param study_estimand study-level estimand for meta-analysis estimands
 #' @param samp_est_benchmark within-study benchmark sampling-estimator strategy
 #'
-#' @return
+#' @return Data frame of specified meta level estimands
+#'
 #' @export
 #'
 #' @import tidyselect
