@@ -74,10 +74,10 @@ get_study_est_sspse <- function(data,
 #' Sequential Sampling (SS) prevalence estimator by Gile (2011)
 #'
 #' @param data pass-through population data frame
-#' @param sampling_var character string specifying name of the group from which RDS sample was drawn (associated probability of visibility should be named \code{p_visible_[sampling_var]}). Defaults to "hidden" for the simulations
+#' @param sampling_frame character string giving name of variable with sampling frame indicator for RDS sample. Defaults to "hidden" for the RDS samples from hidden population
 #' @param hidden_var character string specifying names of the hidden group variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
-#' @param total integer giving the total size of known population (denominator for prevalence)
+#' @param total integer giving the total size of population (denominator for prevalence)
 #' @param prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
@@ -95,7 +95,7 @@ get_study_est_sspse <- function(data,
 #' @importFrom purrr quietly
 get_study_est_ss <-
   function(data,
-           sampling_var = "hidden",
+           sampling_frame = "hidden",
            hidden_var = "target",
            n_coupons = 3,
            total = 1000,
@@ -122,10 +122,15 @@ get_study_est_ss <-
       .[c(1,5)]
 
     return(
-      data.frame(estimator = paste0(hidden_var, "_prev_in_", sampling_var, "_", label),
-                 estimate = c(unname(.fit_rds_ss[1])),
-                 se =   c(unname(.fit_rds_ss[2])),
-                 inquiry = paste0(hidden_var, "_prev_in_", sampling_var))
+      ifelse(sampling_frame == "all",
+             yes = paste0(hidden_var, "_prev"),
+             no = paste0(hidden_var, "_prev_in_", sampling_frame)) %>%
+        {
+          data.frame(estimator = paste0(., "_", label),
+                     estimate = c(unname(.fit_rds_ss[1])),
+                     se =   c(unname(.fit_rds_ss[2])),
+                     inquiry = .)
+        }
     )
   }
 
@@ -704,7 +709,6 @@ get_study_est_mse <- function(
 #'
 #' @export
 #'
-#' @references Vincent, Kyle, and Steve Thompson. "Estimating population size with link-tracing sampling." Journal of the American Statistical Association 112.519 (2017): 1286-1295.
 #' @references Vincent, Kyle, and Steve Thompson. "Estimating the size and distribution of networked populations with snowball sampling." Journal of Survey Statistics and Methodology 10.2 (2022): 397-418.
 #'
 #' @import data.table

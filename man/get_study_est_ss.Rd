@@ -6,7 +6,7 @@
 \usage{
 get_study_est_ss(
   data,
-  sampling_var = "hidden",
+  sampling_frame = "hidden",
   hidden_var = "target",
   n_coupons = 3,
   total = 1000,
@@ -17,13 +17,13 @@ get_study_est_ss(
 \arguments{
 \item{data}{pass-through population data frame}
 
-\item{sampling_var}{character string specifying name of the group from which RDS sample was drawn (associated probability of visibility should be named \code{p_visible_[sampling_var]}). Defaults to "hidden" for the simulations}
+\item{sampling_frame}{character string giving name of variable with sampling frame indicator for RDS sample. Defaults to "hidden" for the RDS samples from hidden population}
 
 \item{hidden_var}{character string specifying names of the hidden group variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations}
 
 \item{n_coupons}{The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.}
 
-\item{total}{integer giving the total size of known population (denominator for prevalence)}
+\item{total}{integer giving the total size of population (denominator for prevalence)}
 
 \item{prefix}{character prefix used for RDS sample variables}
 

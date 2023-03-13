@@ -6,7 +6,7 @@
 \usage{
 get_meta_estimates(
   data,
-  sampling_variable = "meta",
+  sample_label = "meta",
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
   stan_handler = get_meta_stan3,
@@ -18,7 +18,7 @@ get_meta_estimates(
 \arguments{
 \item{data}{pass-through meta population or meta sample data frame}
 
-\item{sampling_variable}{name of variable storing meta analysis sampling information}
+\item{sample_label}{name of variable storing meta analysis sampling information}
 
 \item{which_estimand}{name of study level estimand for meta analysis}
 

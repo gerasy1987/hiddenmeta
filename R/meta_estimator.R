@@ -1,7 +1,7 @@
 #' Use Stan model to estimate bias and estimands
 #'
 #' @param data pass-through meta population or meta sample data frame
-#' @param sampling_variable name of variable storing meta analysis sampling information
+#' @param sample_label name of variable storing meta analysis sampling information
 #' @param which_estimand name of study level estimand for meta analysis
 #' @param benchmark named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)
 #' @param stan_handler function that takes stan_data as input and produces compilable stan model object
@@ -21,7 +21,7 @@
 #' @importFrom plyr alply
 get_meta_estimates <- function(
   data,
-  sampling_variable = "meta",
+  sample_label = "meta",
   which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
   stan_handler = get_meta_stan3,
@@ -35,7 +35,7 @@ get_meta_estimates <- function(
 
   .stan_data <-
     data %>%
-    dplyr::filter(dplyr::if_any(sampling_variable, ~ . == 1),
+    dplyr::filter(dplyr::if_any(sample_label, ~ . == 1),
                   inquiry %in% which_estimand)
 
   .samp_ests <- unique(.stan_data[,c("sample", "estimator")])

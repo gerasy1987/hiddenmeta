@@ -81,7 +81,7 @@ study_1 <-
       list(
         rds = list(handler = sample_rds,
                    # RDS parameters
-                   sampling_variable = "rds",
+                   sample_label = "rds",
                    hidden_var = "hidden", # default
                    n_seed = 20,
                    n_coupons = 3,
@@ -89,7 +89,7 @@ study_1 <-
                    target_type = "sample",
                    target_n_rds = 60),
         tls = list(handler = sample_tls,
-                   sampling_variable = "tls",
+                   sample_label = "tls",
                    hidden_var = NULL,
                    # TLS sampling parameters
                    target_n_clusters = 5,
@@ -97,21 +97,21 @@ study_1 <-
                    target_per_cluster = 15,
                    clusters = paste0("loc_", 1:10)),
         pps = list(handler = sample_pps,
-                   sampling_variable = "pps",
+                   sample_label = "pps",
                    # prop sampling parameters
                    sampling_frame = NULL,
                    strata = NULL,
                    cluster = NULL,
                    target_n_pps = 150),
         lts = list(handler = sample_rds,
-                   sampling_variable = "lts",
+                   sample_label = "lts",
                    hidden_var = "hidden",
                    n_seed = 50,
                    n_coupons = 3,
                    n_waves = 3,
                    target = "waves",
                    target_n_rds = 200,
-                   linktrace = "all")
+                   sampling_frame = "all")
       ),
     inquiries = list(handler = get_study_estimands,
                      in_groups = "^target$",
@@ -121,12 +121,12 @@ study_1 <-
       list(
         rds = 
           list(ss = list(handler = get_study_est_ss,
-                         sampling_var = "hidden",
+                         sampling_frame =  "hidden",
                          hidden_var = "target", # estimates prevalence withing RDS
                          n_coupons = 3,
                          total = 1000,
                          prefix = "rds",
-                         label = "ss"),
+                         label = "rds_ss"),
                sspse = list(handler = get_study_est_sspse,
                             prior_mean = 200,
                             mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
@@ -216,7 +216,7 @@ study_1 <-
                              label = "rds_tls_mse")),
         lts =
           list(link = list(handler = get_study_est_linktrace,
-                           total = 200,
+                           total = 1000,
                            strata = "hidden",
                            gibbs_params = list(n_samples = 5L, 
                                                chain_samples = 250L, 
@@ -503,7 +503,7 @@ study_2 <-
       list(
         rds = list(handler = sample_rds,
                    # RDS parameters
-                   sampling_variable = "rds",
+                   sample_label = "rds",
                    hidden_var = "hidden",
                    n_seed = 100,
                    n_coupons = 3,
@@ -511,28 +511,28 @@ study_2 <-
                    target_type = "waves",
                    target_n_rds = 2),
         tls = list(handler = sample_tls,
-                   sampling_variable = "tls",
+                   sample_label = "tls",
                    # TLS sampling parameters
                    target_n_clusters = 8,
                    target_cluster_type = "fixed",
                    target_per_cluster = 40,
                    clusters = paste0("loc_", 1:10)),
         pps = list(handler = sample_pps,
-                   sampling_variable = "pps",
+                   sample_label = "pps",
                    # prop sampling parameters
                    sampling_frame = "frame",
                    strata = NULL,
                    cluster = NULL,
                    target_n_pps = 800),
         link_trace = list(handler = sample_rds,
-                            sampling_variable = "link_trace",
+                            sample_label = "link_trace",
                             hidden_var = "hidden",
                             n_seed = 50,
                             n_coupons = 3,
                             add_seeds = 0,
                             target = "sample",
                             target_n_rds = 150,
-                            linktrace = TRUE)
+                            sampling_frame = TRUE)
       ),
     inquiries = list(handler = get_study_estimands,
                      out_groups = "^known$|^frame$", 
@@ -642,35 +642,35 @@ study_3 <-
       list(
         rds = list(handler = sample_rds,
                    # RDS parameters
-                   sampling_variable = "rds",
+                   sample_label = "rds",
                    hidden_var = "hidden", # default
                    n_seed = 20,
                    n_coupons = 3,
                    target_type = "sample",
                    target_n_rds = 100),
         tls = list(handler = sample_tls,
-                   sampling_variable = "tls",
+                   sample_label = "tls",
                    # TLS sampling parameters
                    target_n_clusters = 4,
                    target_cluster_type = "fixed",
                    target_per_cluster = 30,
                    clusters = paste0("loc_", 1:8)),
         pps = list(handler = sample_pps,
-                   sampling_variable = "pps",
+                   sample_label = "pps",
                    # prop sampling parameters
                    sampling_frame = NULL,
                    strata = NULL,
                    cluster = NULL,
                    target_n_pps = 400),
         link_trace = list(handler = sample_rds,
-                            sampling_variable = "link_trace",
+                            sample_label = "link_trace",
                             hidden_var = "hidden",
                             n_seed = 50,
                             n_coupons = 3,
                             add_seeds = 0,
                             target = "sample",
                             target_n_rds = 150,
-                            linktrace = TRUE)
+                            sampling_frame = TRUE)
       ),
     inquiries = list(handler = get_study_estimands,
                      out_groups = "^known$", 
@@ -864,14 +864,14 @@ meta_inquiry <-
                   handler = get_meta_estimands)
 
 meta_sample <- 
-  declare_sampling(sampling_variable = "meta",
+  declare_sampling(sample_label = "meta",
                    selection_variables = c("sample", "estimator"),
                    samples_per_study = 2, estimator_per_sample = 3, 
                    force = list(sample = "pps", estimator = "ht"),
                    handler = get_meta_sample)
 
 meta_estimator <- 
-  declare_estimator(sampling_variable = "meta",
+  declare_estimator(sample_label = "meta",
                     which_estimand = "hidden_size",
                     benchmark = list(sample = "pps", estimator = "ht"),
                     control_params = list(

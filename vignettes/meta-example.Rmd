@@ -125,14 +125,14 @@ meta_inquiry <-
                   handler = get_meta_estimands)
 
 meta_sample <-
-  declare_sampling(sampling_variable = "meta",
+  declare_sampling(sample_label = "meta",
                    selection_variables = c("sample", "estimator"),
                    samples_per_study = 2, estimator_per_sample = 3,
                    force = list(sample = "pps", estimator = "ht"),
                    handler = get_meta_sample)
 
 meta_estimator <-
-  declare_estimator(sampling_variable = "meta",
+  declare_estimator(sample_label = "meta",
                     which_estimand = "hidden_size",
                     benchmark = list(sample = "pps", estimator = "ht"),
                     control_params = list(
@@ -258,11 +258,11 @@ meta_population <-
   declare_population(.)
 
 meta_sample <-
-  declare_sampling(sampling_variable = "meta",
-                   handler = function(data, sampling_variable) {
+  declare_sampling(sample_label = "meta",
+                   handler = function(data, sample_label) {
                      data %>% 
                        dplyr::mutate(
-                         "{ sampling_variable }" := as.integer(sim_ID == sample(x = unique(sim_ID), size = 1))
+                         "{ sample_label }" := as.integer(sim_ID == sample(x = unique(sim_ID), size = 1))
                        )
                    })
 
@@ -273,7 +273,7 @@ meta_inquiry <-
 
 meta_estimator <-
   declare_estimator(
-    sampling_variable = "meta",
+    sample_label = "meta",
     which_estimand = "hidden_size",
     benchmark = list(sample = "pps", estimator = "ht"),
     rel_bias_prior = list(mean = 1, se = 5),

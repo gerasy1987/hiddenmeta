@@ -47,7 +47,7 @@ testthat::test_that("RDS sampling with various parameters works", {
     do.call(what = sample_rds,
           args = c(data = list(pop_rds),
                    hidden_var = "hidden",
-                   sampling_variable = "rds1",
+                   sample_label = "rds1",
                    drop_nonsampled = FALSE,
                    study_1[6:9]))
 
@@ -55,7 +55,7 @@ testthat::test_that("RDS sampling with various parameters works", {
     do.call(what = sample_rds,
           args = c(data = list(pop_rds),
                    hidden_var = "hidden",
-                   sampling_variable = "RDS_dr",
+                   sample_label = "RDS_dr",
                    drop_nonsampled = TRUE,
                    study_1[6:9]))
 
@@ -63,7 +63,7 @@ testthat::test_that("RDS sampling with various parameters works", {
     do.call(what = sample_rds,
             args = list(data = pop_rds,
                         hidden_var = "hidden",
-                        sampling_variable = "tls",
+                        sample_label = "tls",
                         drop_nonsampled = FALSE,
                         n_seed = 40,
                         n_coupons = 2,
@@ -120,21 +120,21 @@ testthat::test_that("PPS sampling with various parameters works", {
   pps_sample <-
     do.call(what = sample_pps,
             args = c(data = list(pop_pps),
-                     sampling_variable = "pps",
+                     sample_label = "pps",
                      drop_nonsampled = FALSE,
                      study_1[10]))
 
   pps_sample_drop <-
     do.call(what = sample_pps,
             args = c(data = list(pop_pps),
-                     sampling_variable = "SPS",
+                     sample_label = "SPS",
                      drop_nonsampled = TRUE,
                      study_1[10]))
 
   pps_sample_other <-
     do.call(what = sample_pps,
             args = list(data = pop_pps,
-                        sampling_variable = "rds",
+                        sample_label = "rds",
                         drop_nonsampled = FALSE,
                         target_n_pps = 800))
 
@@ -178,7 +178,7 @@ testthat::test_that("PPS sampling with various parameters works", {
   testthat::expect_error(
     do.call(what = sample_pps,
             args = list(data = pop,
-                        sampling_variable = "rds",
+                        sample_label = "rds",
                         drop_nonsampled = FALSE,
                         target_n_pps = (study_1$network_handler_args$N + 1))),
     regexp =
@@ -195,21 +195,21 @@ testthat::test_that("TLS sampling with various parameters works", {
   tls_sample <-
     do.call(what = sample_tls,
             args = c(data = list(pop_tls),
-                     sampling_variable = "tls",
+                     sample_label = "tls",
                      drop_nonsampled = FALSE,
                      study_1[11:14]))
 
   tls_sample_drop <-
     do.call(what = sample_tls,
             args = c(data = list(pop_tls),
-                     sampling_variable = "PPS",
+                     sample_label = "PPS",
                      drop_nonsampled = TRUE,
                      study_1[11:14]))
 
   tls_sample_other <-
     do.call(what = sample_tls,
             args = list(data = pop_tls,
-                        sampling_variable = "rds",
+                        sample_label = "rds",
                         drop_nonsampled = FALSE,
                         target_n_clusters = 3,
                         target_cluster_type = "prop",
@@ -262,7 +262,7 @@ testthat::test_that("TLS sampling with various parameters works", {
   testthat::expect_error(
     do.call(what = sample_tls,
             args = list(data = pop,
-                        sampling_variable = "rds",
+                        sample_label = "rds",
                         drop_nonsampled = FALSE,
                         target_n_clusters = 20,
                         target_cluster_type = "prop",
