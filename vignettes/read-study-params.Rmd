@@ -55,358 +55,30 @@ study_diagnosands <-
 
 googlesheets4::gs4_auth(email = "gerasy@gmail.com")
 
-study_designs <- 
-  read_study_params(
+study_df <- 
+  read_gs(
     ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
     sheet = "study_params_readable"
   )
+
+study_designs <- 
+  read_populations(study_df) %>% 
+  read_samples(study_df, append_list = .) %>% 
+  read_inquiries(study_df, append_list = .) %>% 
+  read_estimators(study_df, append_list = .)
+
+```
+
+```{r save, eval=FALSE, echo=FALSE}
 
 saveRDS(study_designs, file = here::here("inst/extdata/study_designs.rds"))
 
 ```
 
-```{r read_study_designs, eval=TRUE}
+```{r read_study_designs, eval=TRUE, echo=FALSE}
 
 study_designs <- 
   readRDS(system.file("extdata", "study_designs.rds", package = "hiddenmeta"))
-
-```
-
-## Declare studies separately
-
-```{r ff_brazil, eval=FALSE}
-
-design <- study_designs$ff_brazil
-
-study_population <-
-  eval(as.call(c(list(declare_population), design$pop)))
-
-study_sample_rds <- 
-  eval(as.call(c(list(declare_sampling), design$samples$rds)))
-
-study_sample_pps <-
-  eval(as.call(c(list(declare_sampling), design$samples$pps)))
-
-# study_sample_tls <- 
-#   eval(as.call(c(list(declare_sampling), design$samples$tls)))
-
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), design$inquiries)))
-
-est_sspse <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$sspse)))
-est_chords <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))
-est_multi <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$multiplier)))
-
-est_ht_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$ht)))
-est_nsum_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$nsum)))
-
-est_recap_rds_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds_pps$recap1)))
-
-# est_ht_tls <- 
-#   eval(as.call(c(list(declare_estimator), design$estimators$tls$ht)))
-# est_nsum_tls <- 
-#   eval(as.call(c(list(declare_estimator), design$estimators$tls$nsum)))
-# est_recap_tls <- 
-#   eval(as.call(c(list(declare_estimator), design$estimators$tls$recap)))
-
-study <- 
-  study_population +
-                 study_sample_rds + 
-                 study_sample_pps + 
-                 # study_sample_tls +
-                 study_estimands +
-                 est_sspse +
-                 est_chords +
-                 est_multi +
-                 est_nsum_pps +
-                 est_ht_pps +
-                 # est_nsum_tls + 
-                 # est_ht_tls + 
-                 # est_recap_tls +
-                 est_recap_rds_pps #+
-                 # est_recap_rds_tls
-
-set.seed(seed)
-diagnose_design(study, sims = 1, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
-
-```
-
-```{r umass_tunisia, eval=FALSE}
-
-design <- study_designs$umass_tunisia
-
-study_population <-
-  eval(as.call(c(list(declare_population), design$pop)))
-
-study_sample_tls <- 
-  eval(as.call(c(list(declare_sampling), design$samples$tls)))
-
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), design$inquiries)))
-
-est_ht_tls <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$tls$ht)))
-est_nsum_tls <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$tls$nsum)))
-est_recap_tls <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$tls$recap)))
-
-study <- 
-  study_population + study_sample_tls + study_estimands + 
-  est_nsum_tls + est_ht_tls + est_recap_tls
-
-set.seed(seed)
-diagnose_design(study, sims = 1, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
-
-```
-
-```{r stanford_brazil, eval=FALSE}
-
-design <- study_designs$stanford_brazil
-
-study_population <-
-  eval(as.call(c(list(declare_population), design$pop)))
-
-study_sample_pps <-
-  eval(as.call(c(list(declare_sampling), design$samples$pps)))
-
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), design$inquiries)))
-
-est_ht_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$ht)))
-est_nsum_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$nsum)))
-
-study <- 
-  study_population + study_sample_pps +  study_estimands + 
-  est_nsum_pps + est_ht_pps
-
-set.seed(seed)
-diagnose_design(study, sims = 1, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
-
-```
-
-```{r jhu_pakistan, eval=FALSE}
-
-design <- study_designs$jhu_pakistan
-
-study_population <-
-  eval(as.call(c(list(declare_population), design$pop)))
-
-study_sample_rds <- 
-  eval(as.call(c(list(declare_sampling), design$samples$rds)))
-study_sample_pps <-
-  eval(as.call(c(list(declare_sampling), design$samples$pps)))
-
-
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), design$inquiries)))
-
-est_sspse <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$sspse)))
-# est_chords <-
-#   eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))
-
-est_ht_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$ht)))
-est_nsum_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$nsum)))
-
-est_recap_rds_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds_pps$recap1)))
-
-study <- 
-  study_population + study_sample_rds +  study_sample_pps +  study_estimands + 
-  est_sspse + est_nsum_pps + est_ht_pps + est_recap_rds_pps #+ est_chords 
-
-set.seed(seed)
-diagnose_design(study, sims = 1, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
-
-```
-
-```{r nyu_costarica, eval=FALSE}
-
-design <- study_designs$nyu_costarica
-
-study_population <-
-  eval(as.call(c(list(declare_population), design$pop)))
-
-study_sample_rds <- 
-  eval(as.call(c(list(declare_sampling), design$samples$rds)))
-study_sample_pps <-
-  eval(as.call(c(list(declare_sampling), design$samples$pps)))
-
-
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), design$inquiries)))
-
-est_sspse <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$sspse)))
-# est_chords <- 
-#   eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))
-
-est_ht_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$ht)))
-est_nsum_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$nsum)))
-
-est_recap_rds_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds_pps$recap1)))
-
-study <- 
-  study_population + study_sample_rds +  study_sample_pps +  study_estimands + 
-  est_sspse + est_nsum_pps + est_ht_pps + est_recap_rds_pps # + est_chords
-
-set.seed(seed)
-diagnose_design(study, sims = 1, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
-
-```
-
-```{r nyu_tanzania, eval=FALSE}
-
-design <- study_designs$nyu_tanzania
-
-study_population <-
-  eval(as.call(c(list(declare_population), design$pop)))
-
-study_sample_rds <- 
-  eval(as.call(c(list(declare_sampling), design$samples$rds)))
-study_sample_pps <-
-  eval(as.call(c(list(declare_sampling), design$samples$pps)))
-
-
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), design$inquiries)))
-
-est_sspse <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$sspse)))
-est_chords <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))
-
-est_ht_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$ht)))
-est_nsum_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$pps$nsum)))
-
-est_recap_rds_pps <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds_pps$recap1)))
-
-study <- 
-  study_population + study_sample_rds +  study_sample_pps +  study_estimands + 
-  est_sspse + est_chords + est_nsum_pps + est_ht_pps + est_recap_rds_pps
-
-set.seed(seed)
-diagnose_design(study, sims = 1, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
-
-```
-
-```{r norc_marocco, eval=FALSE}
-
-design <- study_designs$norc_marocco
-
-study_population <-
-  eval(as.call(c(list(declare_population), design$pop)))
-
-study_sample_rds <- 
-  eval(as.call(c(list(declare_sampling), design$samples$rds)))
-study_sample_tls <-
-  eval(as.call(c(list(declare_sampling), design$samples$tls)))
-
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), design$inquiries)))
-
-est_sspse <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$sspse)))
-est_chords <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))
-
-est_ht_tls <-
-  eval(as.call(c(list(declare_estimator), design$estimators$tls$ht)))
-est_nsum_tls <-
-  eval(as.call(c(list(declare_estimator), design$estimators$tls$nsum)))
-est_recap_tls <-
-  eval(as.call(c(list(declare_estimator), design$estimators$tls$recap)))
-
-est_recap_rds_tls <-
-  eval(as.call(c(list(declare_estimator), design$estimators$rds_tls$recap2)))
-
-study <- 
-  study_population + study_sample_rds +  study_sample_tls + study_estimands + 
-  est_sspse + est_nsum_tls + est_ht_tls + est_recap_tls + est_recap_rds_tls + est_chords
-
-set.seed(seed)
-diagnose_design(study, sims = 1, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
-
-```
-
-
-```{r rti_usa, eval=FALSE}
-
-design <- study_designs$rti_usa
-
-study_population <-
-  eval(as.call(c(list(declare_population), design$pop)))
-
-study_sample_rds <- 
-  eval(as.call(c(list(declare_sampling), design$samples$rds)))
-study_sample_tls <-
-  eval(as.call(c(list(declare_sampling), design$samples$tls)))
-
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), design$inquiries)))
-
-est_sspse <- 
-  eval(as.call(c(list(declare_estimator), design$estimators$rds$sspse)))
-# est_chords <- 
-#   eval(as.call(c(list(declare_estimator), design$estimators$rds$chords)))
-
-est_ht_tls <-
-  eval(as.call(c(list(declare_estimator), design$estimators$tls$ht)))
-est_nsum_tls <-
-  eval(as.call(c(list(declare_estimator), design$estimators$tls$nsum)))
-est_recap_tls <-
-  eval(as.call(c(list(declare_estimator), design$estimators$tls$recap)))
-
-est_recap_rds_tls <-
-  eval(as.call(c(list(declare_estimator), design$estimators$rds_tls$recap2)))
-
-study <- 
-  study_population + study_sample_rds +  study_sample_tls + study_estimands + 
-  est_sspse + est_nsum_tls + est_ht_tls + est_recap_tls + est_recap_rds_tls #+ est_chords
-
-set.seed(seed)
-diagnose_design(study, sims = 1, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
 
 ```
 
@@ -416,27 +88,19 @@ diagnose_design(study, sims = 1,
 
 multi_population <- 
   declare_population(handler = get_multi_populations, 
-                     pops_args = sapply(study_designs, 
-                                        function(x) x$pop, 
-                                        simplify = FALSE))
+                     study_designs = study_designs)
 
 multi_sampling <- 
   declare_sampling(handler = get_multi_samples,
-                   samples_args = sapply(study_designs, 
-                                        function(x) x$samples, 
-                                        simplify = FALSE)) 
+                   study_designs = study_designs) 
 
 multi_inquiry <- 
   declare_inquiry(handler = get_multi_estimands, 
-                  inquiries_args = sapply(study_designs, 
-                                        function(x) x$inquiries, 
-                                        simplify = FALSE)) 
+                  study_designs = study_designs) 
 
 multi_estimators <-
   declare_estimator(handler = get_multi_estimates,
-                    estimators_args = sapply(study_designs, 
-                                             function(x) x$estimators, 
-                                             simplify = FALSE))
+                    study_designs = study_designs)
 
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
