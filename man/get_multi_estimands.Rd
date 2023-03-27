@@ -4,12 +4,12 @@
 \alias{get_multi_estimands}
 \title{Calculate estimands from multiple study populations}
 \usage{
-get_multi_estimands(data, inquiries_args)
+get_multi_estimands(data, study_designs)
 }
 \arguments{
 \item{data}{pass-through populations data frame}
 
-\item{inquiries_args}{named list of named lists of arguments to estimands functions for each study}
+\item{study_designs}{named list of arguments for inquiries used in each study.}
 }
 \value{
 Data frame with estimands and estimand labels

@@ -58,9 +58,9 @@ study_1 <-
         network_handler = sim_block_network,
         network_handler_args = 
           list(N = 1000, K = 2, prev_K = c(known = .1, hidden = .2), rho_K = 0,
-               p_edge_within = list(known = c(0.1, 0.1), hidden = c(0.1, 0.3)),
+               p_edge_within = list(known = c(0.1, 0.1), hidden = c(0.1, 0.5)),
                p_edge_between = list(known = 0.02, hidden = 0.02),
-               directed = FALSE),
+               directed = FALSE, chunk_size = 1000),
         
         # groups
         group_names = c("known", "hidden"),
@@ -104,14 +104,23 @@ study_1 <-
                    cluster = NULL,
                    target_n_pps = 150),
         lts = list(handler = sample_rds,
-                   sample_label = "lts",
+                   sample_label = "ltsall",
                    hidden_var = "hidden",
                    n_seed = 50,
-                   n_coupons = 3,
+                   n_coupons = Inf,
                    n_waves = 3,
-                   target = "waves",
-                   target_n_rds = 200,
-                   sampling_frame = "all")
+                   target_type = "waves",
+                   target_n_rds = 150,
+                   sampling_frame = "all"),
+        lts2 = list(handler = sample_rds,
+                    sample_label = "ltsmulti",
+                    hidden_var = "hidden",
+                    n_seed = c(15, 15, 15),
+                    n_coupons = Inf,
+                    n_waves = NULL,
+                    target_type = "sample",
+                    target_n_rds = c(50, 50, 50),
+                    sampling_frame = "all")
       ),
     inquiries = list(handler = get_study_estimands,
                      in_groups = "^target$",
@@ -222,7 +231,7 @@ study_1 <-
                                                chain_samples = 250L, 
                                                chain_burnin = 50L),
                            priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
-                           prefix = "lts",
+                           prefix = "ltsall",
                            label = "link"))
       )
   )
@@ -233,8 +242,7 @@ study_1 <-
 
 ```{r example_pop}
 
-study_population <-
-  eval(as.call(c(list(declare_population), study_1$pop)))
+study_population <- do.call(declare_population, study_1$pop)
 
 set.seed(872312)
 example_pop <- study_population()
@@ -267,8 +275,7 @@ GGally::ggnet2(g, mode = "fruchtermanreingold",
                palette = pal,
                color.legend = "type",
                max_size = 4, shape = 16,
-               legend.size = 12, legend.position = "bottom") +
-  ggplot2::coord_equal()
+               legend.size = 12, legend.position = "bottom")
 
 ```
 
@@ -277,8 +284,7 @@ GGally::ggnet2(g, mode = "fruchtermanreingold",
 
 ```{r example_estimands}
 
-study_estimands <- 
-  eval(as.call(c(list(declare_inquiry), study_1$inquiries)))
+study_estimands <- do.call(declare_inquiry, study_1$inquiries)
 
 ```
 
@@ -288,29 +294,27 @@ The sampling procedures are additive in a sense that each procedure appends seve
 
 ```{r example_rds}
 
-study_sample_rds <- 
-  eval(as.call(c(list(declare_sampling), study_1$sample$rds)))
+study_sample_rds <- do.call(declare_sampling, study_1$sample$rds)
 
 ```
 
 ```{r example_pps}
 
-study_sample_pps <- 
-  eval(as.call(c(list(declare_sampling), study_1$sample$pps)))
+study_sample_pps <- do.call(declare_sampling, study_1$sample$pps)
 
 ```
 
 ```{r example_tls}
 
-study_sample_tls <- 
-  eval(as.call(c(list(declare_sampling), study_1$sample$tls)))
+study_sample_tls <- do.call(declare_sampling, study_1$sample$tls)
 
 ```
 
 ```{r example_lts}
 
-study_sample_lts <- 
-  eval(as.call(c(list(declare_sampling), study_1$sample$lts)))
+study_sample_lts <- do.call(declare_sampling, study_1$sample$lts)
+
+study_sample_ltsmulti <- do.call(declare_sampling, study_1$sample$lts2)
 
 ```
 
@@ -319,40 +323,25 @@ study_sample_lts <-
 
 ```{r example_estimators}
 
-est_ss <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$ss)))
-est_sspse <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$sspse)))
-est_chords <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$chords)))
-est_multi <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$rds$multiplier)))
+est_ss <- do.call(declare_estimator, study_1$estimators$rds$ss)
+est_sspse <- do.call(declare_estimator, study_1$estimators$rds$sspse)
+est_chords <- do.call(declare_estimator, study_1$estimators$rds$chords)
+est_multi <- do.call(declare_estimator, study_1$estimators$rds$multiplier)
 
-est_ht_pps <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$pps$ht)))
-est_nsum_pps <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$pps$nsum)))
+est_ht_pps <- do.call(declare_estimator, study_1$estimators$pps$ht)
+est_nsum_pps <- do.call(declare_estimator, study_1$estimators$pps$nsum)
 
-est_ht_tls <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$ht)))
-est_nsum_tls <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$nsum)))
-est_recap_tls <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$recap)))
-est_mse_tls <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$tls$mse)))
+est_ht_tls <- do.call(declare_estimator, study_1$estimators$tls$ht)
+est_nsum_tls <- do.call(declare_estimator, study_1$estimators$tls$nsum)
+est_recap_tls <- do.call(declare_estimator, study_1$estimators$tls$recap)
+est_mse_tls <- do.call(declare_estimator, study_1$estimators$tls$mse)
 
-est_recap_rds_pps <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap1)))
-est_recap_rds_tls <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$all$recap2)))
-est_mse_rds_pps <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$all$mse1)))
-est_mse_rds_tls <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$all$mse2)))
+est_recap_rds_pps <- do.call(declare_estimator, study_1$estimators$all$recap1)
+est_recap_rds_tls <- do.call(declare_estimator, study_1$estimators$all$recap2)
+est_mse_rds_pps <- do.call(declare_estimator, study_1$estimators$all$mse1)
+est_mse_rds_tls <- do.call(declare_estimator, study_1$estimators$all$mse2)
 
-est_link <- 
-  eval(as.call(c(list(declare_estimator), study_1$estimators$lts$link)))
+est_link <- do.call(declare_estimator, study_1$estimators$lts$link)
 
 ```
 
@@ -366,7 +355,8 @@ study1 <-
   # inquiries
   study_estimands + 
   # data strategy (samples)
-  study_sample_rds + study_sample_pps + study_sample_tls + study_sample_lts + 
+  study_sample_rds + study_sample_pps + study_sample_tls + 
+  study_sample_lts + study_sample_ltsmulti +
   # answer strategy (estimators)
   est_ss + est_sspse + est_chords +
   est_multi +
@@ -387,6 +377,59 @@ study1_data <- draw_data(study1)
 study1_data[sample(1:.N)] %>% 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
+
+```
+
+
+```{r}
+
+
+g <-
+  study1_data[
+    ltsall == 1,
+  ][
+    , c("ltsall_from", "name") :=
+      list(plyr::mapvalues(ltsall_from,
+                           from = c(-999, as.numeric(name)), to = c(NA, 1:.N),
+                           warn_missing = F),
+           plyr::mapvalues(as.numeric(name),
+                           from = as.numeric(name), to = 1:.N,
+                           warn_missing = F))
+  ]
+
+g <-
+  igraph::graph_from_data_frame(
+    g[!is.na(name) & !is.na(ltsall_from), .(ltsall_from, name)],
+    vertices = g[!is.na(name), .(name, ltsall_wave, ltsall_t)],
+    directed = TRUE)
+
+# g <-
+#   study1_data %$% {
+#     hiddenmeta:::retrieve_graph(links) %>%
+#       igraph::set_vertex_attr("name", value = name) %>%
+#       igraph::set_vertex_attr("type", value = type) %>% 
+#       igraph::set_vertex_attr("ltsall", value = ltsall) %>% 
+#       igraph::set_vertex_attr("ltsall_wave", value = ltsall_wave)
+#   }
+# 
+# g <- igraph::subgraph(g, which(igraph::V(g)$ltsall == 1))
+
+pal <- 
+  grDevices::palette.colors(n = length(unique(igraph::V(g)$ltsall_wave)), 
+                            palette = "Dark2",
+                            recycle = TRUE) %>% 
+  `names<-`(unique(igraph::V(g)$ltsall_wave)) %>% 
+  {.[order(as.numeric(names(.)))]}
+
+GGally::ggnet2(g, mode = "fruchtermanreingold",
+               edge.alpha = .5, edge.size = .2, 
+               node.alpha = .9, node.size = 2.5, 
+               node.color = "ltsall_wave",
+               palette = pal,
+               color.legend = "Link-Tracing Wave",
+               max_size = 4, shape = 16,
+               legend.size = 12, legend.position = "bottom", 
+               arrow.gap = 0.01, arrow.size = 6)
 
 ```
 
@@ -634,7 +677,7 @@ study_3 <-
         # probability of service utilization in hidden population
         # for service multiplier
         add_groups = 
-          list(service_use = "rbinom(n(), 1, 0.25 + hidden * 0.05)",
+          list(service_use = "rbinom(.N, 1, 0.25 + hidden * 0.05)",
                "paste0('loc_', 1:8) := lapply(c(.2, .1, .3, .2, .4, .1, .3, .2), function(add) rbinom(.N, 1, 0.1 + hidden * add))",
                known_2 = 0.1, known_3 = 0.2)
       ),
@@ -758,21 +801,18 @@ study_3 <-
 
 multi_population <- 
   declare_population(handler = get_multi_populations, 
-                     pops_args = list(study_1 = study_1$pop,
-                                      # study_2 = study_2$pop,
-                                      study_3 = study_3$pop))
+                     study_designs = list(study_1 = study_1,
+                                          study_3 = study_3))
 
 multi_sampling <- 
   declare_sampling(handler = get_multi_samples, 
-                   samples_args = list(study_1 = study_1$sample,
-                                       # study_2 = study_2$sample,
-                                       study_3 = study_3$sample)) 
+                   study_designs = list(study_1 = study_1,
+                                        study_3 = study_3)) 
 
 multi_inquiry <- 
   declare_inquiry(handler = get_multi_estimands, 
-                  inquiries_args = list(study_1 = study_1$inquiries,
-                                        # study_2 = study_2$inquiries,
-                                        study_3 = study_3$inquiries)) 
+                  study_designs = list(study_1 = study_1,
+                                       study_3 = study_3)) 
 
 multi_estimators <-
   declare_estimator(handler = get_multi_estimates,

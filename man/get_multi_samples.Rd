@@ -4,12 +4,12 @@
 \alias{get_multi_samples}
 \title{Draw samples from multiple study populations according to proposed strategies}
 \usage{
-get_multi_samples(data, samples_args)
+get_multi_samples(data, study_designs)
 }
 \arguments{
 \item{data}{pass-through populations data frame}
 
-\item{samples_args}{named list of named lists of arguments to sampling function}
+\item{study_designs}{named list of arguments to sampling strategies used in each study.}
 }
 \value{
 Meta tibble data frame with columns

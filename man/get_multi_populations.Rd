@@ -4,10 +4,10 @@
 \alias{get_multi_populations}
 \title{Draw population(s) with given network structure for multiple studies}
 \usage{
-get_multi_populations(pops_args)
+get_multi_populations(study_designs, cl = NULL)
 }
 \arguments{
-\item{pops_args}{named list of named lists of arguments to \code{get_study_population()}}
+\item{study_designs}{named list of arguments to \code{get_study_population()} for each study.}
 }
 \value{
 Meta tibble data frame with columns
