@@ -34,7 +34,7 @@
 #' @import data.table
 #' @importFrom magrittr `%>%` `%$%`
 #' @importFrom stats rpois
-sample_rds <-
+sample_rds_old <-
   function(data,
            sample_label = "rds",
            hidden_var,

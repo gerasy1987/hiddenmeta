@@ -1,4 +1,4 @@
-#' Draw respondent-driven sample (RDS) sample from single study using data.table
+#' Draw respondent-driven sample (RDS) or link-tracing (LTS) sample from single study using data.table
 #'
 #' Sampling handler for drawing RDS sample with given characteristics from individual study population
 #'
@@ -30,7 +30,7 @@
 #' @import data.table
 #' @importFrom magrittr `%>%` `%$%`
 #' @importFrom stats rpois
-sample_lts <-
+sample_rds <-
   function(data,
            sample_label = "lts",
            hidden_var,
@@ -198,14 +198,15 @@ sample_lts <-
                 data.table::as.data.table(
                   `names<-`(
                     list(
-                      -999,
+                      rep(-999, times = length(.new_seeds)),
                       .new_seeds,
-                      1,
+                      rep(1, times = length(.new_seeds)),
                       .data[name %in% .new_seeds,][[hidden_var]],
-                      as.character((n_seed[i] + 1):(n_seed[i] + length(.new_seeds))),
-                      w = 1/.N
+                      as.character((n_seed[i] + 1):(n_seed[i] + length(.new_seeds)))
                     ),
-                    c("from", "to", "wave", hidden_var, "own_coupon", "w")))
+                    c("from", "to", "wave", hidden_var, "own_coupon")))[
+                      , w := 1/.N
+                    ]
 
               # update number of seeds
               n_seed[i] <- n_seed[i] + length(.new_seeds)
