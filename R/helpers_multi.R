@@ -13,21 +13,17 @@
 #' @export
 #'
 #' @import data.table
-#' @importFrom pbapply pblapply pboptions
-get_multi_populations <- function(study_designs, cl = NULL) {
+get_multi_populations <- function(study_designs) {
 
   .pops_args <-
     sapply(study_designs, function(x) x$pop, simplify = FALSE)
-
-  pbapply::pboptions(type = "none")
 
   return(
     data.table::data.table(
       study = names(.pops_args),
       population =
-        pbapply::pblapply(X = names(.pops_args),
-                          FUN = function(x) { apply_args(study = x, args = .pops_args[[x]]) },
-                          cl = cl))
+        lapply(X = names(.pops_args),
+               FUN = function(x) { apply_args(study = x, args = .pops_args[[x]]) }))
   )
 
 }

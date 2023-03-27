@@ -4,7 +4,7 @@
 \alias{get_multi_populations}
 \title{Draw population(s) with given network structure for multiple studies}
 \usage{
-get_multi_populations(study_designs, cl = NULL)
+get_multi_populations(study_designs)
 }
 \arguments{
 \item{study_designs}{named list of arguments to \code{get_study_population()} for each study.}
