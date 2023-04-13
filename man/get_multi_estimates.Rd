@@ -4,12 +4,12 @@
 \alias{get_multi_estimates}
 \title{Calculate estimators from multiple study samples}
 \usage{
-get_multi_estimates(data, estimators_args)
+get_multi_estimates(data, study_designs)
 }
 \arguments{
 \item{data}{pass-through populations data frame}
 
-\item{estimators_args}{named list of named lists of arguments to estimation functions for each study and sampling strategy}
+\item{study_designs}{named list of arguments for inquiries used in each study}
 }
 \value{
 Data frame with estimands and estimand labels
