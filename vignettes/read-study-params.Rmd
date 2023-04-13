@@ -9,39 +9,37 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  eval = TRUE,
-  echo = TRUE,
-  fig.path = "vignette-",
-  message = FALSE,
-  warning = FALSE
+   collapse = TRUE,
+   comment = "#>",
+   eval = TRUE,
+   echo = TRUE,
+   fig.path = "vignette-",
+   message = FALSE,
+   warning = FALSE
 )
 
 library(magrittr)
 library(knitr)
+library(pbapply)
+library(ggplot2)
 
 ```
 
 ## Load packages
 
 ```{r setup}
-
 library(hiddenmeta)
 library(DeclareDesign)
 
-seed <- 871223
-
 study_diagnosands <-
- declare_diagnosands(
-    mean_estimand = mean(estimand),
-    mean_estimate = mean(estimate),
-    sd_estimate = sd(estimate),
-    mean_se = mean(se),
-    bias = mean(estimate - estimand),
-    rmse = sqrt(mean((estimate - estimand) ^ 2))
-  )
-
+   declare_diagnosands(
+      mean_estimand = mean(estimand),
+      mean_estimate = mean(estimate),
+      sd_estimate = sd(estimate),
+      mean_se = mean(se),
+      bias = mean(estimate - estimand),
+      rmse = sqrt(mean((estimate - estimand)^2))
+   )
 ```
 
 ## Read study designs
@@ -52,80 +50,119 @@ study_diagnosands <-
 - In addition the function currently allows to specify spreadsheet ID and specific sheet name within the spreadsheet to use for reading
 
 ```{r read, eval=FALSE}
+study_df <-
+   read_gs(
+      ss = "1x-OO6dGLWFENXdeDN2Gskd382ch1sNM1HDavPs_K-IM",
+      sheet = "sims1"
+   )
 
-googlesheets4::gs4_auth(email = "gerasy@gmail.com")
-
-study_df <- 
-  read_gs(
-    ss = "1HwMM6JwoGALLMTpC8pQRVzaQdD2X71jpZNhfpKTnF8Y",
-    sheet = "study_params_readable"
-  )
-
-study_designs <- 
-  read_populations(study_df) %>% 
-  read_samples(study_df, append_list = .) %>% 
-  read_inquiries(study_df, append_list = .) %>% 
-  read_estimators(study_df, append_list = .)
-
+study_designs <-
+   read_populations(study_df) %>%
+   read_samples(study_df, append_list = .) %>%
+   read_inquiries(study_df, append_list = .) %>%
+   read_estimators(study_df, append_list = .)
 ```
 
 ```{r save, eval=FALSE, echo=FALSE}
-
 saveRDS(study_designs, file = here::here("inst/extdata/study_designs.rds"))
-
 ```
 
 ```{r read_study_designs, eval=TRUE, echo=FALSE}
-
-study_designs <- 
-  readRDS(system.file("extdata", "study_designs.rds", package = "hiddenmeta"))
-
+study_designs <-
+   readRDS(system.file("extdata", "study_designs.rds", package = "hiddenmeta"))
 ```
 
 ## Declare all studies together
 
-```{r declare_studies, eval=FALSE}
+```{r declare_studies, eval=TRUE, echo=TRUE}
+multi_population <-
+   declare_population(
+      handler = get_multi_populations,
+      study_designs = study_designs
+   )
 
-multi_population <- 
-  declare_population(handler = get_multi_populations, 
-                     study_designs = study_designs)
+multi_sampling <-
+   declare_sampling(
+      handler = get_multi_samples,
+      study_designs = study_designs
+   )
 
-multi_sampling <- 
-  declare_sampling(handler = get_multi_samples,
-                   study_designs = study_designs) 
-
-multi_inquiry <- 
-  declare_inquiry(handler = get_multi_estimands, 
-                  study_designs = study_designs) 
+multi_inquiry <-
+   declare_inquiry(
+      handler = get_multi_estimands,
+      study_designs = study_designs
+   )
 
 multi_estimators <-
-  declare_estimator(handler = get_multi_estimates,
-                    study_designs = study_designs)
+   declare_estimator(
+      handler = get_multi_estimates,
+      study_designs = study_designs
+   )
 
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
-set.seed(seed)
-diagnose_design(multi_study, sims = 1,
-                diagnosands = study_diagnosands) %>%
-  reshape_diagnosis %>% select(-'Design') %>%
-  kable()
+# diagnose_design(multi_study, sims = 1)
 
-set.seed(seed)
-multi_study_data <- draw_data(multi_study)
+```
 
+```{r run_sims, eval=FALSE, echo=FALSE}
 
-saveRDS(multi_study_data, file = here::here("inst/extdata/multi_sim_data_draw.rds"))
+set.seed(871223)
 
+multi_simulations <-
+   pbapply::pblapply(
+      X = 1:5,
+      FUN = function(x) {
+         base::suppressWarnings(
+            DeclareDesign::simulate_design(multi_study, sims = 1) |>
+               dplyr::mutate(
+                  sim_ID = x
+               )
+         )
+      },
+      cl = 5
+   )
+
+multi_simulations <- do.call(rbind, 
+                             args = c(multi_simulations, make.row.names = FALSE))
+
+saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim_studies.rds"))
+
+# gc(verbose = TRUE)
+# mallinfo::malloc.trim()
 
 ```
 
 ## Generate required data
 
-```{r required_data}
+```{r required_data, eval=FALSE}
 
-multi_study_data <- 
-  readRDS(system.file("extdata", "multi_sim_data_draw.rds", package = "hiddenmeta"))
+data <- 
+   readRDS(system.file("extdata", "multi_sim_studies.rds", package = "hiddenmeta")) |>
+   dplyr::filter(!is.na(estimate)) |> 
+   dplyr::mutate(
+      bias = estimate - estimand,
+      study = stringr::str_match(inquiry, "^(.+?_.+?)_")[,2],
+      study_estimand = stringr::str_match(inquiry, ".*_([^_]+_[^_]+)$")[,2],
+      study_estimator = gsub(paste0(unique(study_estimand), "_", collapse = "|"), "", estimator)
+   ) |> 
+   dplyr::group_by(sim_ID, study, study_estimand) |> 
+   dplyr::mutate(
+      rel_bias = log1p(abs(bias/bias[grep(pattern = "ht", study_estimator)]))
+   ) |> 
+   dplyr::ungroup()
 
-( data_require_base <- get_required_data(multi_study_data) )
+data |> 
+   ggplot(aes(x = study_estimator, y = rel_bias, fill = study_estimator)) +
+   geom_boxplot() +
+   geom_point(position = "jitter") +
+   facet_wrap(~ study, scales = "free", ncol = 2) +
+   coord_flip() +
+   theme_minimal() +
+   labs(title = "Relative bias of sampling-estimator strategies",
+        x = "Sampling-estimator strategies",
+        y = "Log(Absolute relative bias)") +
+  theme(legend.position = "none")
+   
 
 ```
