@@ -6,8 +6,8 @@
 \usage{
 get_study_est_nsum(
   data,
-  hidden_var = "hidden",
-  known_vars = c("known", paste0("known_", 2:10)),
+  hidden_var = "hidden_visible_out",
+  known_vars = paste0(c("known", paste0("known_", 2:10)), "_visible_out"),
   total = 1000,
   prefix = "pps",
   label = "pps_nsum",

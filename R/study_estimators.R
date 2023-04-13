@@ -355,8 +355,8 @@ get_study_est_chords <- function(data,
 #' @importFrom plyr llply
 get_study_est_nsum <- function(
     data,
-    hidden_var = "hidden",
-    known_vars = c("known", paste0("known_", 2:10)),
+    hidden_var = "hidden_visible_out",
+    known_vars = paste0(c("known", paste0("known_", 2:10)), "_visible_out"),
     total = 1000,
     prefix = "pps",
     label = "pps_nsum",
@@ -377,11 +377,14 @@ get_study_est_nsum <- function(
     .weights <- 1
 
   .known_pops <-
-    unlist(.data_mod[, lapply(.SD, unique), .SDcols = paste0("total_", known_vars)])
+    unlist(.data_mod[, lapply(.SD, unique),
+                     .SDcols = paste0("total_", gsub("_visible_out",
+                                                     replacement = "",
+                                                     x = known_vars))])
 
   .data_est <-
     .data_mod[
-      , c(paste0(c(known_vars, hidden_var), "_visible_out")), with = FALSE
+      , c(known_vars, hidden_var), with = FALSE
     ][
       , lapply(.SD, function(x) x * .weights)
     ]
@@ -561,7 +564,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 #' @import data.table
 #' @importFrom magrittr `%>%` `%$%`
 #' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange bind_rows
-#' @importFrom Rcapture closedp.bc
+#' @importFrom Rcapture closedp.bc periodhist
 get_study_est_recapture <- function(
   data,
   capture_vars = NULL,
@@ -598,14 +601,33 @@ get_study_est_recapture <- function(
     )
 
   } else {
-    .est_out <-
-      .est_out %>%
-      dplyr::select(all_of(capture_vars)) %>%
-      Rcapture::closedp.bc(X = .,
-                           dfreq = FALSE,
-                           dtype = "hist",
-                           t = length(capture_vars),
-                           m = model)
+
+    if (length(capture_vars) > 10) {
+
+      .pool <- rep(length(capture_vars) %/% 5, 5)
+      .pool[seq_len(mod(length(capture_vars), 5))] <- (length(capture_vars) %/% 5) + 1
+
+      .est_out <-
+        .est_out %>%
+        dplyr::select(all_of(capture_vars)) %>%
+        Rcapture::periodhist(., vt = .pool) %>%
+        Rcapture::closedp.bc(X = .,
+                             dfreq = TRUE,
+                             dtype = "hist",
+                             # t = length(capture_vars),
+                             m = model)
+    } else {
+
+      .est_out <-
+        .est_out %>%
+        dplyr::select(all_of(capture_vars)) %>%
+        Rcapture::closedp.bc(X = .,
+                             dfreq = FALSE,
+                             dtype = "hist",
+                             # t = length(capture_vars),
+                             m = model)
+
+    }
 
     return(
       data.frame(estimator = paste0("hidden_size_", label),
@@ -637,6 +659,7 @@ get_study_est_recapture <- function(
 #'
 #' @import data.table
 #' @importFrom SparseMSE estimatepopulation.0
+#' @importFrom Rcapture periodhist
 get_study_est_mse <- function(
     data,
     capture_vars = NULL,
@@ -660,8 +683,6 @@ get_study_est_mse <- function(
       apply(sapply(capture_vars, function(x) get(x) == 1), 1, any),
     ][
       apply(sapply(hidden_variable, function(x) get(x) == 1), 1, any),
-    ][
-      , .(n = .N), by=capture_vars
     ]
 
   if (nrow(.est_out) == 0) {
@@ -676,8 +697,24 @@ get_study_est_mse <- function(
 
   } else {
 
-    .est_out <-
-      SparseMSE::estimatepopulation.0(.est_out, method = method)
+    if (length(capture_vars) > 10) {
+
+      .pool <- rep(length(capture_vars) %/% 5, 5)
+      .pool[seq_len(mod(length(capture_vars), 5))] <- (length(capture_vars) %/% 5) + 1
+
+      .est_out <-
+        .est_out %>%
+        dplyr::select(all_of(capture_vars)) %>%
+        Rcapture::periodhist(., vt = .pool) %>%
+        SparseMSE::estimatepopulation.0(., method = method)
+
+    } else {
+
+      .est_out <-
+        SparseMSE::estimatepopulation.0(.est_out[, .(n = .N), by = capture_vars],
+                                        method = method)
+
+    }
 
     return(
       data.frame(estimator = paste0("hidden_size_", label),
