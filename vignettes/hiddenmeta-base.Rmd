@@ -162,8 +162,8 @@ study_1 <-
                          prefix = "tls",
                          label = "tls_ht"),
                nsum = list(handler = get_study_est_nsum,
-                           hidden_var = "hidden",
-                           known_vars = c("known", paste0("known_", 2:10)),
+                           hidden_var = "hidden_visible_out",
+                           known_vars = paste0(c("known", paste0("known_", 2:10)), "_visible_out"),
                            total = 1000,
                            prefix = "tls",
                            label = "tls_nsum",
@@ -190,8 +190,8 @@ study_1 <-
                          prefix = "pps",
                          label = "pps_ht"),
                nsum = list(handler = get_study_est_nsum,
-                           hidden = "hidden",
-                           known = c("known", paste0("known_", 2:10)),
+                           hidden = "hidden_visible_out",
+                           known = paste0(c("known", paste0("known_", 2:10)), "_visible_out"),
                            total = 1000,
                            prefix = "pps",
                            label = "pps_nsum",
@@ -247,7 +247,7 @@ study_population <- do.call(declare_population, study_1$pop)
 set.seed(872312)
 example_pop <- study_population()
 
-example_pop[sample(1:min(.N, 1000))] %>%  
+example_pop[sample(1:min(.N, 1000))] |>
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -257,16 +257,16 @@ example_pop[sample(1:min(.N, 1000))] %>%
 ```{r plot_pop_network, fig.width=6, fig.height=8}
 
 g <-
-  example_pop %$% {
-    hiddenmeta:::retrieve_graph(links) %>%
-      igraph::set_vertex_attr("name", value = name) %>%
-      igraph::set_vertex_attr("type", value = type)
-  }
+  example_pop |> 
+  (\(.) 
+   hiddenmeta:::retrieve_graph(.$links) |> 
+     igraph::set_vertex_attr("name", value = .$name) |> 
+     igraph::set_vertex_attr("type", value = .$type))()
 
 pal <- 
   grDevices::palette.colors(n = length(unique(igraph::V(g)$type)), 
                             palette = "Dark2",
-                            recycle = TRUE) %>% 
+                            recycle = TRUE) |> 
   `names<-`(unique(igraph::V(g)$type))
 
 GGally::ggnet2(g, mode = "fruchtermanreingold",
@@ -374,15 +374,13 @@ study1 <-
 # can draw full data
 study1_data <- draw_data(study1)
 
-study1_data[sample(1:.N)] %>% 
+study1_data[sample(1:.N)] |> 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
-
 
 ```
 
 
 ```{r}
-
 
 g <-
   study1_data[
@@ -417,9 +415,9 @@ g <-
 pal <- 
   grDevices::palette.colors(n = length(unique(igraph::V(g)$ltsall_wave)), 
                             palette = "Dark2",
-                            recycle = TRUE) %>% 
-  `names<-`(unique(igraph::V(g)$ltsall_wave)) %>% 
-  {.[order(as.numeric(names(.)))]}
+                            recycle = TRUE) |> 
+  `names<-`(unique(igraph::V(g)$ltsall_wave)) |> 
+  ( \(.) .[order(as.numeric(names(.)))] )()
 
 GGally::ggnet2(g, mode = "fruchtermanreingold",
                edge.alpha = .5, edge.size = .2, 
@@ -438,7 +436,7 @@ GGally::ggnet2(g, mode = "fruchtermanreingold",
 ```{r example_draw_inquiries}
 
 # can draw estimands of interest
-draw_estimands(study1) %>% 
+draw_estimands(study1) |>  
   kable(digits = 2)
 
 ```
@@ -448,7 +446,7 @@ draw_estimands(study1) %>%
 ```{r example_draw_estimates}
 
 # can draw estimates
-draw_estimates(study1) %>% 
+draw_estimates(study1) |> 
   kable(digits = 2)
 
 ```
@@ -467,14 +465,14 @@ study1_simulations <-
     as.list(1:100),
     .fun = function(x) {
       base::suppressWarnings(
-        DeclareDesign::simulate_design(study1, sims = 1) %>%
+        DeclareDesign::simulate_design(study1, sims = 1) |> 
           dplyr::mutate(
             sim_ID = x
           )
       )
     },
     .parallel = TRUE
-  ) %>%
+  ) |>
   dplyr::bind_rows()
 
 saveRDS(study1_simulations, here::here("inst/extdata/study1_sim.rds"))
@@ -498,9 +496,9 @@ study1_simulations <-
   readRDS(system.file("extdata", "study1_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = study1_simulations, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis() %>% 
-  dplyr::select(-'Design') %>%
+                diagnosands = study_diagnosands) |>
+  reshape_diagnosis() |> 
+  dplyr::select(-'Design') |>
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -816,9 +814,8 @@ multi_inquiry <-
 
 multi_estimators <-
   declare_estimator(handler = get_multi_estimates,
-                    estimators_args = list(study_1 = study_1$estimators,
-                                           # study_2 = study_2$estimators,
-                                           study_3 = study_3$estimators))
+                    study_designs = list(study_1 = study_1,
+                                         study_3 = study_3))
 
 multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
 
