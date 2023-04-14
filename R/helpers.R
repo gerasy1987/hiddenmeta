@@ -221,8 +221,14 @@ mutate_add_groups <- function (dat, add_groups) {
     else if (inherits(add_groups[[var]], "character") & names(add_groups)[var] != "") {
       dat <- dat[, `:=`(names(add_groups)[var], eval(parse(text = add_groups[[var]])))]
     }
-    else if (inherits(add_groups[[var]], "character") & names(add_groups)[var] == "") {
+    else if (inherits(add_groups[[var]], "character") &
+             names(add_groups)[var] == "" &
+             !grepl(pattern = "^dat\\[,.*\\]$", x = add_groups[[var]])) {
       dat <- dat[, eval(parse(text = add_groups[[var]]))]
+    } else if (inherits(add_groups[[var]], "character") &
+               names(add_groups)[var] == "" &
+               grepl(pattern = "^dat\\[,.*\\]$", x = add_groups[[var]])) {
+      dat <- eval(parse(text = add_groups[[var]]))
     }
   }
   return(dat)

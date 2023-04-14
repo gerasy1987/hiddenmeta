@@ -220,8 +220,7 @@ read_populations <- function(
               .pop$add_groups,
               strata_for_pps =
                 paste0(
-                  "sample(rep(1:", strata,
-                  ", times = ceiling(.N/", strata, ")))[1:.N]")
+                  "`names<-`(rep(1:", strata, ", times = ceiling(length(unique(cluster_for_pps))/", strata, "))[1:length(unique(cluster_for_pps))], unique(cluster_for_pps))[as.character(cluster_for_pps)]")
             )
 
         }
@@ -494,6 +493,7 @@ read_estimators <- function(
             rds = list(),
             tls =
               list(ht = list(handler = get_study_est_ht,
+                             hidden_var = "hidden",
                              weight_var = "tls_weight",
                              survey_design = ~ tls_loc_sampled,
                              prefix = "tls",
@@ -525,6 +525,9 @@ read_estimators <- function(
                               label = "tls_mse")),
             pps =
               list(ht = list(handler = get_study_est_ht,
+                             hidden_var = "hidden",
+                             weight_var = "pps_weight",
+                             survey_design = ~ pps_cluster + strata(pps_strata),
                              prefix = "pps",
                              label = "pps_ht"),
                    nsum = list(handler = get_study_est_nsum,
