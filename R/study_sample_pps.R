@@ -140,7 +140,7 @@ sample_pps <-
             , `:=` (sampled = sample(c(rep(1, min(.N, target_n_pps)),
                                        rep(0, max(0, .N - target_n_pps)))))
           ][,`:=` (sampled_cluster = sampled,
-                                        weight = sum(frame)/sum(sampled))]
+                   weight = sum(frame)/sum(sampled))]
 
         temp_data[[i]] <- data.table::rbindlist(list(strat_df_2,strat_df),
                                                 use.names = TRUE)

@@ -174,9 +174,11 @@ get_study_est_ht <- function(data,
   .data_mod <- data[get(prefix) == 1,]
 
   if (any(is.na(.data_mod[[weight_var]])))
-    stop("there are missing values in sampling weights provided")
+    stop("There are missing values in sampling weights provided")
   if (any(is.na(.data_mod[[hidden_var]])))
-    stop("there are missing values in hidden population indicator provided")
+    stop("There are missing values in hidden population indicator provided")
+  if (any(sort(unique(.data_mod[[hidden_var]])) != c(0,1)))
+    stop("Hidden variable should be a binary indicator")
 
   .est_ht <-
     crossprod(.data_mod[[hidden_var]],
