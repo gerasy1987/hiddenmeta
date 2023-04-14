@@ -539,21 +539,34 @@ read_estimators <- function(
                                n_boot = 100,
                                prefix = "pps",
                                label = "pps_nsum")),
-            rds_pps =
+            ltsmulti_pps =
               list(recap1 =
+                     list(handler = get_study_est_recapture,
+                          capture_vars = c(paste0(.row$rds_seed_selection_type, 1:3), "pps"),
+                          model = "Mt",
+                          hidden_variable = "hidden",
+                          label = "ltsmulti_recap"),
+                   mse1 =
+                     list(handler = get_study_est_mse,
+                          capture_vars = c(paste0(.row$rds_seed_selection_type, 1:3), "pps"),
+                          method = "stepwise",
+                          hidden_variable = "hidden",
+                          label = "ltsmulti_mse")),
+            rds_pps =
+              list(recap =
                      list(handler = get_study_est_recapture,
                           capture_vars = c(.row$rds_seed_selection_type, "pps"),
                           model = "Mt",
                           hidden_variable = "hidden",
                           label = "rds_pps_recap"),
-                   mse1 =
+                   mse =
                      list(handler = get_study_est_mse,
                           capture_vars = c(.row$rds_seed_selection_type, "pps"),
                           method = "stepwise",
                           hidden_variable = "hidden",
                           label = "rds_pps_mse")),
             rds_tls =
-              list(recap2 =
+              list(recap =
                      list(handler = get_study_est_recapture,
                           capture_vars = c("rds"),
                           capture_parse =
@@ -561,7 +574,7 @@ read_estimators <- function(
                           model = "Mt",
                           hidden_variable = "hidden",
                           label = "rds_tls_recap"),
-                   mse2 =
+                   mse =
                      list(handler = get_study_est_mse,
                           capture_vars = .row$rds_seed_selection_type,
                           capture_parse =
@@ -608,8 +621,7 @@ read_estimators <- function(
                  label = "rds_sspse")
         }
 
-        # add link tracing estimator for LTS sample
-        if ((.row$rds == 1) &
+        if ((.row$rds == 1) & .row$rds_seed_selection_type == "rds" &
             !is.na(.row$rds_allow_non_hidden) & .row$rds_allow_non_hidden == 1) {
           .estimators$rds$ss <-
             list(handler = get_study_est_ss,
@@ -621,18 +633,57 @@ read_estimators <- function(
                  label = "rds_ss")
         }
 
-        # add link tracing estimator for LTS sample
-        if ((.row$rds == 1) & (.row$rds_seed_selection_type == "lts")) {
-          .estimators$rds$link <-
-            list(handler = get_study_est_linktrace,
-                 total = .row$rds_target_n_sample,
-                 strata = .group_names[length(.group_names)],
-                 gibbs_params = list(n_samples = 5L,
-                                     chain_samples = 250L,
-                                     chain_burnin = 50L),
-                 priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
-                 prefix = "lts",
-                 label = "rds_link")
+        # add ss estimator for LTS sample
+        if ((.row$rds == 1) & .row$rds_seed_selection_type == "ltsmulti") {
+
+          for (i in 1:3) {
+            .estimators[[paste0("ltsmulti", i)]]$ss <-
+              list(handler = get_study_est_ss,
+                   sampling_frame =  "all",
+                   hidden_var = "hidden", # estimates prevalence withing RDS
+                   n_coupons = .row$rds_n_coupons,
+                   total = .row$observed_n,
+                   prefix = paste0("ltsmulti", i),
+                   label = "ltsmulti_ss")
+          }
+
+          .estimators$ltsmulti$recap2 =
+            list(handler = get_study_est_recapture,
+                 capture_vars = paste0("ltsmulti", 1:3),
+                 model = "Mt",
+                 hidden_variable = "hidden",
+                 label = "ltsmulti_recap")
+
+          .estimators$ltsmulti$mse2 <-
+            list(handler = get_study_est_mse,
+                 capture_vars = paste0("ltsmulti", 1:3),
+                 method = "stepwise",
+                 hidden_variable = "hidden",
+                 label = "ltsmulti_mse")
+
+        }
+
+        # add link-tracing estimator for LTS sample
+        if ((.row$rds == 1) & .row$rds_seed_selection_type == "ltsall") {
+          # .estimators$ltsall$link <-
+          #   list(handler = get_study_est_linktrace,
+          #        total = .row$observed_n,
+          #        strata = .group_names[length(.group_names)],
+          #        gibbs_params = list(n_samples = 5L,
+          #                            chain_samples = 250L,
+          #                            chain_burnin = 50L),
+          #        priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+          #        prefix = "ltsall",
+          #        label =  "ltsall_link")
+
+          .estimators$ltsall$ss <-
+            list(handler = get_study_est_ss,
+                 sampling_frame =  "all",
+                 hidden_var = "hidden", # estimates prevalence withing RDS
+                 n_coupons = .row$rds_n_coupons,
+                 total = .row$observed_n,
+                 prefix = "ltsall",
+                 label = "ltsall_ss")
         }
 
         if (is.null(append_list)) {
@@ -640,8 +691,18 @@ read_estimators <- function(
         } else {
 
           .estimators <-
-            .estimators[sapply(strsplit(names(.estimators), "_"),
-                               function(x) all(x %in% names(append_list[[which(names(append_list) == study)]][["samples"]])))]
+            .estimators[
+              sapply(
+                strsplit(names(.estimators), "_"),
+                function(x) {
+                  all(
+                    sapply(x,
+                           function(s)
+                             grepl(paste0(names(append_list[[which(names(append_list) ==
+                                                                     study)]][["samples"]]), collapse = "|"), s)
+                    ))
+                })
+            ]
 
           append_list[[study]][["estimators"]] <- .estimators
           return(append_list[[study]])
