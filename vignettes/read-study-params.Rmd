@@ -105,19 +105,17 @@ multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimat
 
 ```
 
-```{r run_sims, eval=FALSE, echo=FALSE}
+```{r run_sims, eval=FALSE, echo=TRUE}
 
 set.seed(871223)
 
 multi_simulations <-
    pbapply::pblapply(
-      X = 1:5,
+      X = 1:50,
       FUN = function(x) {
          base::suppressWarnings(
             DeclareDesign::simulate_design(multi_study, sims = 1) |>
-               dplyr::mutate(
-                  sim_ID = x
-               )
+               dplyr::mutate(sim_ID = x)
          )
       },
       cl = 5
@@ -139,30 +137,63 @@ saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim_studies.rds
 
 data <- 
    readRDS(system.file("extdata", "multi_sim_studies.rds", package = "hiddenmeta")) |>
+   # multi_simulations |>
    dplyr::filter(!is.na(estimate)) |> 
    dplyr::mutate(
-      bias = estimate - estimand,
+      bias = estimate/estimand,
       study = stringr::str_match(inquiry, "^(.+?_.+?)_")[,2],
       study_estimand = stringr::str_match(inquiry, ".*_([^_]+_[^_]+)$")[,2],
       study_estimator = gsub(paste0(unique(study_estimand), "_", collapse = "|"), "", estimator)
    ) |> 
    dplyr::group_by(sim_ID, study, study_estimand) |> 
    dplyr::mutate(
-      rel_bias = log1p(abs(bias/bias[grep(pattern = "ht", study_estimator)]))
+      rel_bias = log(bias/bias[grep(pattern = "ht", study_estimator)])
    ) |> 
    dplyr::ungroup()
 
+# data |> 
+#    dplyr::filter(sim_ID == 1) |> 
+#    dplyr::select(inquiry, estimator, bias) |> 
+#    print(n = 32)
+
 data |> 
    ggplot(aes(x = study_estimator, y = rel_bias, fill = study_estimator)) +
-   geom_boxplot() +
-   geom_point(position = "jitter") +
-   facet_wrap(~ study, scales = "free", ncol = 2) +
+   geom_boxplot(notch = TRUE, notchwidth = .8, outlier.shape = NA) +
+   geom_jitter(size = .7, alpha = .3, width = .2) +
+   facet_wrap(~ study, scales = "free_y", ncol = 2) +
    coord_flip() +
    theme_minimal() +
    labs(title = "Relative bias of sampling-estimator strategies",
         x = "Sampling-estimator strategies",
         y = "Log(Absolute relative bias)") +
   theme(legend.position = "none")
-   
+
+data <- 
+   readRDS(system.file("extdata", "multi_sim_studies.rds", package = "hiddenmeta")) |>
+   # multi_simulations |>
+   dplyr::filter(!is.na(estimate)) |> 
+   dplyr::mutate(
+      bias = estimate/estimand,
+      study = stringr::str_match(inquiry, "^(.+?_.+?)_")[,2],
+      study_estimand = stringr::str_match(inquiry, ".*_([^_]+_[^_]+)$")[,2],
+      study_estimator = gsub(paste0(unique(study_estimand), "_", collapse = "|"), "", estimator)
+   ) |> 
+   dplyr::group_by(sim_ID, study_estimand) |> 
+   dplyr::mutate(
+      rel_bias = log(bias/median(bias[grep(pattern = "pps_ht", study_estimator)]))
+   ) |> 
+   dplyr::ungroup()
+
+data |> 
+   ggplot(aes(x = study_estimator, y = rel_bias, fill = study_estimator)) +
+   geom_boxplot(notch = TRUE, notchwidth = .8, outlier.shape = NA) +
+   geom_jitter(size = .7, alpha = .3, width = .2) +
+   # facet_wrap(~ study, scales = "free_y", ncol = 2) +
+   coord_flip() +
+   theme_minimal() +
+   labs(title = "Relative bias of sampling-estimator strategies",
+        x = "Sampling-estimator strategies",
+        y = "Log(Absolute relative bias)") +
+  theme(legend.position = "none")
 
 ```
