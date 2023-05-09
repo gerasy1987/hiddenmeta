@@ -101,7 +101,7 @@ sim_pop <- function(sims = 100,
 meta_population <-
   declare_population(sims = 100,
                      possible_samp_est =
-                       tibble(
+                       dplyr::tibble(
                          sample = list("pps", "pps",
                                        "rds", "rds", "rds",
                                        "tls", "tls", "tls",
@@ -114,8 +114,16 @@ meta_population <-
                          absolute_bias = .8 * rel_bias,
                          se = (1 + (1 - rel_bias)^2) * 20),
                      estimands =
-                       tibble(estimand = rnbinom(n = 8, size = 10, mu = 300),
-                              study = paste0("study_", 1:8)),
+                       dplyr::tibble(estimand = rnbinom(n = 8, size = 10, mu = 300),
+                              study = 
+                                c("ff_brazil", 
+                                  "stanford_brazil", 
+                                  "nyu_costarica",  
+                                  "norc_marocco", 
+                                  "jhu_pakistan",  
+                                  "nyu_tanzania", 
+                                  "umass_tunisia", 
+                                  "rti_usa")),
                      pop = TRUE,
                      handler = sim_pop)
 
@@ -126,23 +134,35 @@ meta_inquiry <-
 
 meta_sample <-
   declare_sampling(sample_label = "meta",
-                   selection_variables = c("sample", "estimator"),
                    samples_per_study = 2, estimator_per_sample = 3,
-                   force = list(sample = "pps", estimator = "ht"),
+                   force_sample = list(c("pps", "rds"), c("tls", "rds")),
+                   force_estimators = c("ht"),
                    handler = get_meta_sample)
 
 meta_estimator <-
   declare_estimator(sample_label = "meta",
-                    which_estimand = "hidden_size",
                     benchmark = list(sample = "pps", estimator = "ht"),
+                    hidden_prior =
+                      list(mean = c(ff_brazil_hidden_size = 293,
+                                    stanford_brazil_hidden_size = 334,
+                                    nyu_costarica_hidden_size = 248,
+                                    norc_marocco_hidden_size = 181,
+                                    jhu_pakistan_hidden_size = 488,
+                                    nyu_tanzania_hidden_size = 344,
+                                    umass_tunisia_hidden_size = 335,
+                                    rti_usa_hidden_size = 518),
+                           sd = rep(25, times = 8)),
+                    bias_prior = list(mean = 1, se = 10),
+                    stan_handler = get_meta_stan4,
                     control_params = list(
                       iter = 4000, chains = 4, thin = 5,
                       seed = 872312,
                       cores = 1),
-                    stan_handler = get_meta_stan2,
                     handler = get_meta_estimates)
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
+
+# draw_estimates(meta_study)
 
 ```
 
@@ -207,17 +227,17 @@ study_diagnosands <-
 
 ## Use actual study designs
 
-
 ```{r declare_meta_base, eval=TRUE}
 
-study_map <- c("Brazil (FF)" = "ff_brazil",
-               "Tunisia (UMass)" = "umass_tunisia",
-               "Brazil (Stanford)" = "stanford_brazil",
-               "Pakistan (JHU)" = "jhu_pakistan",
-               "Costa Rica (John Jay)" = "johnjay_costarica",
-               "Tanzania (John Jay)" = "johnjay_tanzania",
-               "Morocco (NORC)" = "norc_marocco",
-               "USA (RTI)" = "rti_usa")
+study_map <- 
+  c("Brazil (FF)" = "ff_brazil", 
+    "Brazil (Stanford)" = "stanford_brazil", 
+    "Costa Rica (NYU)" = "johnjay_costarica",  
+    "Morocco (NORC)" = "norc_marocco", 
+    "Pakistan (JHU)" = "jhu_pakistan",  
+    "Tanzania (NYU)" = "johnjay_tanzania", 
+    "Tunisia (UMass)" = "umass_tunisia", 
+    "USA (RTI)" = "rti_usa")
 
 study_designs_base <- 
   readRDS(system.file("extdata", "multi_sim_real_original.rds", package = "hiddenmeta")) %>% 
@@ -282,7 +302,7 @@ meta_estimator <-
       seed = 872312,
       cores = 1),
     stan_handler = get_meta_stan3,
-    handler = get_meta_estimates)
+    handler = get_meta_estimates_old)
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
