@@ -7,11 +7,13 @@
 get_meta_estimates(
   data,
   sample_label = "meta",
-  which_estimand = "hidden_size",
   benchmark = list(sample = "pps", estimator = "ht"),
-  stan_handler = get_meta_stan3,
-  hidden_prior = NULL,
-  rel_bias_prior = list(mean = 1, se = 10),
+  hidden_prior = list(mean = c(ff_brazil_hidden_size = 293, stanford_brazil_hidden_size =
+    334, nyu_costarica_hidden_size = 248, norc_marocco_hidden_size = 181,
+    jhu_pakistan_hidden_size = 488, nyu_tanzania_hidden_size = 344,
+    umass_tunisia_hidden_size = 335, rti_usa_hidden_size = 518), sd = rep(25, times = 8)),
+  bias_prior = list(mean = 1, se = 10),
+  stan_handler = get_meta_stan4,
   control_params = list(iter = 8000, chains = 8, thin = 10, seed = 872312, cores = 1)
 )
 }
@@ -20,17 +22,15 @@ get_meta_estimates(
 
 \item{sample_label}{name of variable storing meta analysis sampling information}
 
-\item{which_estimand}{name of study level estimand for meta analysis}
-
 \item{benchmark}{named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)}
-
-\item{stan_handler}{function that takes stan_data as input and produces compilable stan model object}
 
 \item{hidden_prior}{list of two hyperpriors, on means and standard errors of each included sampling-estimator pairs. Names of list objects should be "mean" and "se". If one number provided for a hyperprior it gets expanded to all sampling-estimator pairs}
 
-\item{rel_bias_prior}{list of two hyperpriors, on means and standard errors of relative bias. Names of list objects should be "mean" and "se".}
+\item{stan_handler}{function that takes stan_data as input and produces compilable stan model object}
 
 \item{control_params}{list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use}
+
+\item{rel_bias_prior}{list of two hyperpriors, on means and standard errors of relative bias. Names of list objects should be "mean" and "se".}
 }
 \value{
 Data frame of meta level estimates and pertaining estimand names
