@@ -8,13 +8,11 @@ get_meta_estimates(
   data,
   sample_label = "meta",
   benchmark = list(sample = "pps", estimator = "ht"),
-  hidden_prior = list(mean = c(ff_brazil_hidden_size = 293, stanford_brazil_hidden_size =
-    334, nyu_costarica_hidden_size = 248, norc_marocco_hidden_size = 181,
-    jhu_pakistan_hidden_size = 488, nyu_tanzania_hidden_size = 344,
-    umass_tunisia_hidden_size = 335, rti_usa_hidden_size = 518), sd = rep(25, times = 8)),
-  bias_prior = list(mean = 1, se = 10),
+  hidden_prior = list(mean = 0.3, sd = 0.2),
+  bias_prior = list(mean = 1, sd = 3),
   stan_handler = get_meta_stan4,
-  control_params = list(iter = 8000, chains = 8, thin = 10, seed = 872312, cores = 1)
+  control_params = list(iter = 8000, chains = 8, thin = 10, seed = 872312, cores = 1),
+  return_stanfit = FALSE
 )
 }
 \arguments{
@@ -29,6 +27,8 @@ get_meta_estimates(
 \item{stan_handler}{function that takes stan_data as input and produces compilable stan model object}
 
 \item{control_params}{list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use}
+
+\item{return_stanfit}{logical value identifying whether the Stan model fit object should be returned in addition to estimates data frame}
 
 \item{rel_bias_prior}{list of two hyperpriors, on means and standard errors of relative bias. Names of list objects should be "mean" and "se".}
 }

@@ -177,6 +177,7 @@ get_meta_estimates_old <- function(
 #' @param rel_bias_prior list of two hyperpriors, on means and standard errors of relative bias. Names of list objects should be "mean" and "se".
 #' @param stan_handler function that takes stan_data as input and produces compilable stan model object
 #' @param control_params list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use
+#' @param return_stanfit logical value identifying whether the Stan model fit object should be returned in addition to estimates data frame
 #'
 #' @return Data frame of meta level estimates and pertaining estimand names
 #'
@@ -191,22 +192,14 @@ get_meta_estimates <- function(
     data,
     sample_label = "meta",
     benchmark = list(sample = "pps", estimator = "ht"),
-    hidden_prior =
-      list(mean = c(ff_brazil_hidden_size = 293,
-                    stanford_brazil_hidden_size = 334,
-                    nyu_costarica_hidden_size = 248,
-                    norc_marocco_hidden_size = 181,
-                    jhu_pakistan_hidden_size = 488,
-                    nyu_tanzania_hidden_size = 344,
-                    umass_tunisia_hidden_size = 335,
-                    rti_usa_hidden_size = 518),
-           sd = rep(25, times = 8)),
-    bias_prior = list(mean = 1, se = 10),
+    hidden_prior = list(mean = .3, sd = .2),
+    bias_prior = list(mean = 1, sd = 3),
     stan_handler = get_meta_stan4,
     control_params = list(
       iter = 8000, chains = 8, thin = 10,
       seed = 872312,
-      cores = 1)
+      cores = 1),
+    return_stanfit = FALSE
 ) {
 
   # allow for NULL sample label to keep all data
@@ -221,7 +214,9 @@ get_meta_estimates <- function(
   if (is.null(names(hidden_prior$mean)) & length(hidden_prior$mean) == 1) {
     .study_order <- unique(paste0(.stan_data$study, "_", .stan_data$inquiry))
   } else if (is.null(names(hidden_prior$mean)) & length(hidden_prior$mean) != 1) {
-    stop("Provide study names for study inquiry priors")
+    warning("Study level estimand names are inferred from the sample data")
+
+    .study_order <- unique(paste0(.stan_data$study, "_", .stan_data$inquiry))
   } else {
     .study_order <- names(hidden_prior$mean)
   }
@@ -252,7 +247,7 @@ get_meta_estimates <- function(
         as.integer((lapply(sample, paste0, collapse = "_") %in% benchmark$sample) &
         (estimator == benchmark$estimator)),
       bias_prior_mean = bias_prior$mean,
-      bias_prior_sd = dplyr::if_else(benchmark == 1, 0.001, bias_prior$se)
+      bias_prior_sd = dplyr::if_else(benchmark == 1, 0.001, bias_prior$sd)
     ) |>
     dplyr::arrange(study_design_id)
 
@@ -261,6 +256,7 @@ get_meta_estimates <- function(
   .K <- nrow(.designs)
 
   # prepare priors for study level inquiries
+  # if no priors are provided use provided estimates
   if (!is.null(hidden_prior) & is.list(hidden_prior)) {
     .alpha_prior <-
       do.call(cbind, hidden_prior) |>
@@ -321,7 +317,7 @@ get_meta_estimates <- function(
                 .fun = function(x) c(est = mean(x),
                                      se = sd(x)))
 
-  return(
+  .out <-
     data.frame(
       estimator =
         c(paste0("rel_bias_", .designs$study_design[.designs$benchmark != 1], "_meta"),
@@ -338,6 +334,14 @@ get_meta_estimates <- function(
                    .alpha_prior[,"sd"]),
       stringsAsFactors = FALSE
     )
-  )
+
+  if (!return_stanfit) {
+    return(.out)
+  } else {
+    return(
+      list(estimates = .out,
+           fit = .fit)
+    )
+  }
 
 }
