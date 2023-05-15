@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include <RcppArmadillo.h>
+#include <RcppEigen.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
@@ -40,8 +41,13 @@ BEGIN_RCPP
 END_RCPP
 }
 
+RcppExport SEXP _rcpp_module_boot_stan_fit4stan_prev_mod();
+RcppExport SEXP _rcpp_module_boot_stan_fit4stan_size_mod();
+
 static const R_CallMethodDef CallEntries[] = {
     {"_hiddenmeta_lt_gibbs_cpp", (DL_FUNC) &_hiddenmeta_lt_gibbs_cpp, 18},
+    {"_rcpp_module_boot_stan_fit4stan_prev_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4stan_prev_mod, 0},
+    {"_rcpp_module_boot_stan_fit4stan_size_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4stan_size_mod, 0},
     {NULL, NULL, 0}
 };
 

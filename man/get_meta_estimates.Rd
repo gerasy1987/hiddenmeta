@@ -10,7 +10,7 @@ get_meta_estimates(
   benchmark = list(sample = "pps", estimator = "ht"),
   hidden_prior = list(mean = 0.3, sd = 0.2),
   bias_prior = list(mean = 1, sd = 3),
-  stan_handler = get_meta_stan4,
+  stan_model = "stan_prev",
   control_params = list(iter = 8000, chains = 8, thin = 10, seed = 872312, cores = 1),
   return_stanfit = FALSE
 )
@@ -24,7 +24,7 @@ get_meta_estimates(
 
 \item{hidden_prior}{list of two hyperpriors, on means and standard errors of each included sampling-estimator pairs. Names of list objects should be "mean" and "se". If one number provided for a hyperprior it gets expanded to all sampling-estimator pairs}
 
-\item{stan_handler}{function that takes stan_data as input and produces compilable stan model object}
+\item{stan_model}{function that takes \code{stan_data} as input and produces compilable stan model object. Alternatively this can me character string that specifies name of model pre-compiled by the package, either \code{"stan_prev"} or \code{"stan_size"}}
 
 \item{control_params}{list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use}
 

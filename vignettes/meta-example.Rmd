@@ -21,6 +21,16 @@ knitr::opts_chunk$set(
 library(magrittr)
 library(knitr)
 
+study_map <- 
+  c("Brazil (FF)" = "ff_brazil", 
+    "Brazil (Stanford)" = "stanford_brazil", 
+    "Costa Rica (NYU)" = "johnjay_costarica",  
+    "Morocco (NORC)" = "norc_marocco", 
+    "Pakistan (JHU)" = "jhu_pakistan",  
+    "Tanzania (NYU)" = "johnjay_tanzania", 
+    "Tunisia (UMass)" = "umass_tunisia", 
+    "USA (RTI)" = "rti_usa")
+
 ```
 
 ## Load packages
@@ -152,8 +162,8 @@ meta_estimator <-
                                     umass_tunisia_hidden_size = 335,
                                     rti_usa_hidden_size = 518),
                            sd = rep(25, times = 8)),
-                    bias_prior = list(mean = 1, se = 10),
-                    stan_handler = get_meta_stan4,
+                    bias_prior = list(mean = 1, sd = 10),
+                    stan_model = "stan_size",
                     control_params = list(
                       iter = 4000, chains = 4, thin = 5,
                       seed = 872312,
@@ -162,7 +172,8 @@ meta_estimator <-
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
-# draw_estimates(meta_study)
+draw_estimates(meta_study) |>
+  DT::datatable(options = list(scrollX = TRUE, pageLength = 17))
 
 ```
 
@@ -227,17 +238,7 @@ study_diagnosands <-
 
 ## Use actual study designs
 
-```{r declare_meta_base, eval=TRUE}
-
-study_map <- 
-  c("Brazil (FF)" = "ff_brazil", 
-    "Brazil (Stanford)" = "stanford_brazil", 
-    "Costa Rica (NYU)" = "johnjay_costarica",  
-    "Morocco (NORC)" = "norc_marocco", 
-    "Pakistan (JHU)" = "jhu_pakistan",  
-    "Tanzania (NYU)" = "johnjay_tanzania", 
-    "Tunisia (UMass)" = "umass_tunisia", 
-    "USA (RTI)" = "rti_usa")
+```{r declare_meta_base, eval=FALSE}
 
 study_designs_base <- 
   readRDS(system.file("extdata", "multi_sim_real_original.rds", package = "hiddenmeta")) %>% 

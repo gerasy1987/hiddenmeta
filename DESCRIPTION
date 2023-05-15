@@ -11,11 +11,12 @@ Description: Package allows analysis of individual and multiple studies of
     allow for easy declaration of one or more studies with various sampling and estimation strategies. 
     Package implements functions for estimation of hidden population size and prevalance based on 
     using existing packages, such as RDS, sspse, Rcapture, SparseMSE, chords and networkscaleup.
+Biarch: true
 Depends: 
-    R (>= 4.2.0),
-    magrittr (>= 2.0.0)
+    R (>= 4.2.0)
 Imports: 
     data.table (>= 1.14.8),
+    magrittr (>= 2.0.0),
     dplyr (>= 1.1.0),
     plyr (>= 1.5.0),
     tidyr (>= 1.2.0),
@@ -31,16 +32,24 @@ Imports:
     Matrix (>= 1.0.0),
     purrr (>= 1.0.0),
     stringr (>= 1.0.0), 
-    rstan (>= 2.0),
     MultiRNG,
     Rcpp (>= 1.0.9),
+    RcppParallel (>= 5.1.0),
+    methods,
+    rstan (>= 2.21.0),
+    rstantools (>= 2.3.1),
     DeclareDesign (>= 0.20.0),
     doParallel,
     ggplot2 (>= 3.3.0),
     stats
 LinkingTo: 
-    Rcpp, 
-    RcppArmadillo
+    BH (>= 1.80.0),
+    Rcpp (>= 0.12.0),
+    RcppArmadillo,
+    RcppEigen (>= 0.3.3.3.0),
+    RcppParallel (>= 5.1.0),
+    rstan (>= 2.21.0),
+    StanHeaders (>= 2.21.0)
 Suggests: 
     googlesheets4,
     intergraph (>= 2.0),
@@ -58,5 +67,6 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
 VignetteBuilder: knitr
+SystemRequirements: GNU make
 URL: https://gsyunyaev.com/hiddenmeta/
 BugReports: https://github.com/gerasy1987/hiddenmeta/issues

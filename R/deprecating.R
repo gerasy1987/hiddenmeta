@@ -1160,3 +1160,260 @@
 #'   return(as.data.frame(.est_out, stringsAsFactors = FALSE))
 #'
 #' }
+#'
+#'
+#'
+#' #' Use Stan model to estimate bias and estimands
+#' #'
+#' #' @param data pass-through meta population or meta sample data frame
+#' #' @param sample_label name of variable storing meta analysis sampling information
+#' #' @param which_estimand name of study level estimand for meta analysis
+#' #' @param benchmark named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)
+#' #' @param stan_handler function that takes stan_data as input and produces compilable stan model object
+#' #' @param hidden_prior list of two hyperpriors, on means and standard errors of each included sampling-estimator pairs. Names of list objects should be "mean" and "se". If one number provided for a hyperprior it gets expanded to all sampling-estimator pairs
+#' #' @param rel_bias_prior list of two hyperpriors, on means and standard errors of relative bias. Names of list objects should be "mean" and "se".
+#' #' @param control_params list of additional parameters to pass to Stan fit function. These can include number of iterations, chains, thinning, seed and number of cores to use
+#' #'
+#' #' @return Data frame of meta level estimates and pertaining estimand names
+#' #'
+#' #'
+#' #' @import tidyselect
+#' #' @import rstan
+#' #' @importFrom magrittr `%>%` `%$%`
+#' #' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange rename_with left_join bind_rows if_all if_any
+#' #' @importFrom parallel detectCores
+#' #' @importFrom plyr alply
+#' get_meta_estimates_old <- function(
+#'     data,
+#'     sample_label = "meta",
+#'     which_estimand = "hidden_size",
+#'     benchmark = list(sample = "pps", estimator = "ht"),
+#'     stan_handler = get_meta_stan3,
+#'     hidden_prior = NULL,
+#'     rel_bias_prior = list(mean = 1, se = 10),
+#'     control_params = list(
+#'       iter = 8000, chains = 8, thin = 10,
+#'       seed = 872312,
+#'       cores = 1)
+#' ) {
+#'
+#'   # allow for NULL sample label to keep all data
+#'   if (is.null(sample_label)) {
+#'     .stan_data <- data
+#'   } else if (is.character(sample_label)) {
+#'     .stan_data <-
+#'       data %>%
+#'       dplyr::filter(dplyr::if_any(sample_label, ~ . == 1),
+#'                     inquiry %in% which_estimand)
+#'   }
+#'
+#'   .samp_ests <- unique(.stan_data[,c("sample", "estimator")])
+#'
+#'
+#'   .benchmark_sample_est <-
+#'     which(lapply(.samp_ests$sample, paste0, collapse = "_") ==
+#'             paste0(benchmark$sample, collapse = "_") &
+#'             .samp_ests$estimator == benchmark$estimator)
+#'   .samp_ests <-
+#'     rbind(.samp_ests[.benchmark_sample_est,],
+#'           .samp_ests[-.benchmark_sample_est,])
+#'   .samp_est_names <-
+#'     paste0(sapply(.samp_ests$sample, paste0, collapse = "_"), "_", .samp_ests$estimator)
+#'   .studies <- unique(.stan_data$study)
+#'
+#'   .N <- length(.studies)
+#'   .K <- nrow(.samp_ests)
+#'
+#'   if (!is.null(hidden_prior) & is.list(hidden_prior)) {
+#'     .alpha_prior <- do.call(cbind, hidden_prior)
+#'
+#'     if (nrow(.alpha_prior) == 1) {
+#'       .alpha_prior <- .alpha_prior[rep(1, times = .N),]
+#'     } else if (nrow(.alpha_prior) == .N) {
+#'       .alpha_prior <- .alpha_prior[.studies,]
+#'     } else {
+#'       stop("There is mismatch in length of hyperpriors on mean and std. error of target parameters. Length of each element should be equal either to length of number of studies included or to 1")
+#'     }
+#'   } else if (is.null(hidden_prior)) {
+#'     .alpha_prior <-
+#'       .stan_data %>%
+#'       dplyr::group_by(study) %>%
+#'       dplyr::summarize(mean = sum(estimate / (se * sum(1/se))), se = 2 * mean(se / (se * sum(1/se)))) %>%
+#'       { .[order(match(.$study,.studies)),] } %>%
+#'       dplyr::select(-study) %>%
+#'       as.matrix()
+#'   } else {
+#'     stop("Hyperpriors on target parameters are provided in wrong format (should be NULL or list of two numeric objects)")
+#'   }
+#'
+#'   # get ids of unique samp-est pairs in observed data
+#'   .samp_est_ids <-
+#'     mapply(
+#'       x = .samp_ests$sample, y = .samp_ests$estimator,
+#'       function(x, y) {
+#'         lapply(.stan_data$sample, paste0, collapse = "_") ==
+#'           paste0(x, collapse = "_") & .stan_data$estimator == y
+#'       },
+#'       SIMPLIFY = FALSE
+#'     )
+#'
+#'   .stan_data <-
+#'     .samp_est_ids %>%
+#'     {
+#'       c(lapply(X = ., FUN = sum),
+#'         lapply(X = ., FUN = function(x) which(.studies %in% .stan_data$study[x])),
+#'         lapply(X = ., FUN = function(x) .stan_data$estimate[x]),
+#'         lapply(X = ., FUN = function(x) .stan_data$se[x]))
+#'     } %>%
+#'     `names<-`(
+#'       .,
+#'       apply(X = expand.grid(1:.K, c("n", "observed", "est", "est_se")),
+#'             MARGIN = 1,
+#'             FUN = function(x) paste0(x[2], as.integer(x[1])))
+#'     ) %>%
+#'     c(list(N = .N, K = .K,
+#'            alpha_mean = unname(.alpha_prior[,"mean"]), alpha_se = unname(.alpha_prior[,"se"]),
+#'            rel_bias_mean = rel_bias_prior$mean, rel_bias_se = rel_bias_prior$se),
+#'       .)
+#'
+#'   .stan_model <-
+#'     rstan::stan_model(model_code = stan_handler(.stan_data))
+#'
+#'   .fit <-
+#'     do.call(rstan::sampling, c(list(object = .stan_model,
+#'                                     data = .stan_data,
+#'                                     verbose = FALSE,
+#'                                     refresh = 0),
+#'                                control_params)) %>%
+#'     rstan::extract(.)
+#'
+#'   .biases <-
+#'     .fit$rel_bias %>%
+#'     cbind(1, .) %>%
+#'     plyr::alply(
+#'       .margins = 1,
+#'       .fun = function(x) {
+#'         c(matrix(x, nrow = .K, ncol = .K, byrow = TRUE) /
+#'             matrix(x, nrow = .K, ncol = .K, byrow = FALSE))
+#'       }) %>%
+#'     do.call(rbind, .) %>%
+#'     plyr::aaply(.margins = 2,
+#'                 .fun = function(x) c(est = mean(x),
+#'                                      se = sd(x))) %>%
+#'     plyr::alply(.margins = 2,
+#'                 function(x) {
+#'                   matrix(data = x,
+#'                          nrow = .K, ncol = .K,
+#'                          byrow = FALSE,
+#'                          dimnames = list(.samp_est_names,
+#'                                          .samp_est_names))
+#'                 })
+#'
+#'
+#'   .study_ests <-
+#'     .fit$alpha %>%
+#'     plyr::aaply(.margins = 2,
+#'                 .fun = function(x) c(est = mean(x),
+#'                                      se = sd(x)))
+#'
+#'   return(
+#'     data.frame(estimator = c(paste0("rel_bias_", .samp_est_names, "_meta"),
+#'                              paste0(.studies, "_meta")),
+#'                estimate = c(unname(.biases[[1]][1,]), unname(.study_ests[,1])),
+#'                se =   c(unname(.biases[[2]][1,]), unname(.study_ests[,2])),
+#'                inquiry = c(paste0("rel_bias_", .samp_est_names),
+#'                            paste0(.studies, "_", which_estimand)),
+#'                # note assumes first item is benchmark
+#'                prior = c(1, rep(rel_bias_prior[[1]], .K-1), .alpha_prior[,1]) %>% unlist,
+#'                prior_sd = c(0, rep(rel_bias_prior[[2]], .K-1), .alpha_prior[,2]) %>% unlist,
+#'                stringsAsFactors = FALSE
+#'     )
+#'   )
+#'
+#' }
+#'
+#' #' @title Helper for meta-analysis
+#' #'
+#' #' @description Helper for meta-analysis
+#' #'
+#' #' @param stan_data A list of data for Stan
+#' #'
+#' #' @return A string of Stan code
+#' #'
+#' #' @export
+#' #'
+#' get_meta_stan_size <- function(
+#'     stan_data
+#' ) {
+#'
+#'   return(
+#'     "data {
+#'          int<lower=0> N;
+#'          int<lower=0> K;
+#'          int<lower=0> n_ests;
+#'          real<lower=0> alpha_prior_mean[N];
+#'          real<lower=0> alpha_prior_sd[N];
+#'          real<lower=0> bias_prior_mean[K];
+#'          real<lower=0> bias_prior_sd[K];
+#'          int<lower=1> study[n_ests];
+#'          int<lower=1> design[n_ests];
+#'          vector<lower=0>[n_ests] ests;
+#'          vector<lower=0>[n_ests] ses;
+#'        }
+#'        parameters {
+#'          vector<lower=0.01>[K] bias;
+#'          vector<lower=0>[N] alpha;
+#'        }
+#'
+#'        model {
+#'
+#'          target += normal_lpdf(ests | bias[design].*alpha[study], ses);
+#'          alpha ~ normal(alpha_prior_mean, alpha_prior_sd);
+#'          bias ~ lognormal(log(bias_prior_mean), bias_prior_sd);
+#'
+#'        }"
+#'   )
+#' }
+#'
+#' #' @title Helper for meta-analysis
+#' #'
+#' #' @description Helper for meta-analysis
+#' #'
+#' #' @param stan_data A list of data for Stan
+#' #'
+#' #' @return A string of Stan code
+#' #'
+#' #' @export
+#' #'
+#' get_meta_stan_prev <- function(
+#'     stan_data
+#' ) {
+#'
+#'   return(
+#'     "data {
+#'          int<lower=0> N;
+#'          int<lower=0> K;
+#'          int<lower=0> n_ests;
+#'          real<lower=0> alpha_prior_mean[N];
+#'          real<lower=0> alpha_prior_sd[N];
+#'          real<lower=0> bias_prior_mean[K];
+#'          real<lower=0> bias_prior_sd[K];
+#'          int<lower=1> study[n_ests];
+#'          int<lower=1> design[n_ests];
+#'          vector<lower=0>[n_ests] ests;
+#'          vector<lower=0>[n_ests] ses;
+#'        }
+#'        parameters {
+#'          vector<lower=0.01>[K] bias;
+#'          vector<lower=0,upper=1>[N] alpha;
+#'        }
+#'
+#'        model {
+#'
+#'          target += normal_lpdf(ests | bias[design].*alpha[study], ses);
+#'          alpha ~ normal(alpha_prior_mean, alpha_prior_sd);
+#'          bias ~ lognormal(log(bias_prior_mean), bias_prior_sd);
+#'
+#'        }"
+#'   )
+#' }
