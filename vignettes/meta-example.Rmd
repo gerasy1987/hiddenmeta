@@ -172,7 +172,8 @@ meta_estimator <-
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
-draw_estimates(meta_study) |>
+data <- 
+draw_data(meta_study) |>
   DT::datatable(options = list(scrollX = TRUE, pageLength = 17))
 
 ```
