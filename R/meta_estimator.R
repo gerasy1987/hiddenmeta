@@ -143,28 +143,29 @@ get_meta_estimates <- function(
                                       data = .stan_data,
                                       verbose = TRUE,
                                       refresh = 0),
-                                 control_params)) |>
-      rstan::extract()
+                                 control_params))
 
   }
 
+  .fit_extract <- rstan::extract(.fit)
+
   .biases <-
-    .fit$bias |>
+    .fit_extract$bias |>
     plyr::aaply(.margins = 2,
                 .fun = function(x) c(est = mean(x),
                                      se = sd(x))) |>
     (\(.) .[.designs$benchmark != 1,])()
 
-  .fit$bias <-
-    .fit$bias[,.designs$benchmark != 1] |>
+  .fit_extract$bias <-
+    .fit_extract$bias[,.designs$benchmark != 1] |>
     `colnames<-`(.designs$study_design[.designs$benchmark != 1])
 
-  .fit$alpha <-
-    .fit$alpha |>
+  .fit_extract$alpha <-
+    .fit_extract$alpha |>
     `colnames<-`(.study_order)
 
   .study_ests <-
-    plyr::aaply(.data = .fit$alpha,
+    plyr::aaply(.data = .fit_extract$alpha,
                 .margins = 2,
                 .fun = function(x) c(est = mean(x),
                                      se = sd(x)))
