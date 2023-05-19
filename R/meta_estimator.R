@@ -164,6 +164,15 @@ get_meta_estimates <- function(
     .fit_extract$alpha |>
     `colnames<-`(.study_order)
 
+  .fit_summary <-
+    .fit |>
+    (\(.) summary(.fit)$summary)() |>
+    as.data.frame() |>
+    (\(.) dplyr::filter(., rownames(.) != "lp__"))() |>
+    dplyr::mutate(param = c(.designs$study_design, .study_order)) |>
+    dplyr::filter(param != .designs$study_design[.designs$benchmark == 1]) |>
+    `rownames<-`(NULL)
+
   .study_ests <-
     plyr::aaply(.data = .fit_extract$alpha,
                 .margins = 2,
@@ -191,7 +200,9 @@ get_meta_estimates <- function(
   if (!return_stanfit) {
     return(.out)
   } else {
-    return( list(estimates = .out, fit = .fit) )
+    return( list(estimates = .out,
+                 fit = .fit_extract,
+                 fit_summary = .fit_summary) )
   }
 
 }
