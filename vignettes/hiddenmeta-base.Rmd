@@ -902,20 +902,19 @@ meta_inquiry <-
 
 meta_sample <- 
   declare_sampling(sample_label = "meta",
-                   selection_variables = c("sample", "estimator"),
-                   samples_per_study = 2, estimator_per_sample = 3, 
-                   force = list(sample = "pps", estimator = "ht"),
+                   samples_per_study = 2, estimator_per_sample = 3,
+                   force_sample = list(c("pps", "rds"), c("tls", "rds")),
+                   force_estimators = c("ht"),
                    handler = get_meta_sample)
 
 meta_estimator <- 
   declare_estimator(sample_label = "meta",
-                    which_estimand = "hidden_size",
                     benchmark = list(sample = "pps", estimator = "ht"),
                     control_params = list(
                       iter = 8000, chains = 8, thin = 10,
                       seed = 872312,
                       cores = 1),
-                    stan_handler = get_meta_stan,
+                    stan_model = "stan_prev",
                     handler = get_meta_estimates)
 
 meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
