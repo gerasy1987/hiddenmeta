@@ -42,16 +42,12 @@ END_RCPP
 }
 
 RcppExport SEXP _rcpp_module_boot_stan_fit4stan_prev_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4stan_prev_het_mod();
 RcppExport SEXP _rcpp_module_boot_stan_fit4stan_size_mod();
-RcppExport SEXP _rcpp_module_boot_stan_fit4stan_size_het_mod();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_hiddenmeta_lt_gibbs_cpp", (DL_FUNC) &_hiddenmeta_lt_gibbs_cpp, 18},
     {"_rcpp_module_boot_stan_fit4stan_prev_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4stan_prev_mod, 0},
-    {"_rcpp_module_boot_stan_fit4stan_prev_het_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4stan_prev_het_mod, 0},
     {"_rcpp_module_boot_stan_fit4stan_size_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4stan_size_mod, 0},
-    {"_rcpp_module_boot_stan_fit4stan_size_het_mod", (DL_FUNC) &_rcpp_module_boot_stan_fit4stan_size_het_mod, 0},
     {NULL, NULL, 0}
 };
 
