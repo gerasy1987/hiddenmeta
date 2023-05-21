@@ -8,7 +8,7 @@ get_study_est_ht(
   data,
   hidden_var = "hidden",
   weight_var = "pps_weight",
-  total_var = "total",
+  total = unique(data$total),
   survey_design = ~pps_cluster + strata(pps_strata),
   n_boot = 100,
   parallel_boot = FALSE,
@@ -23,8 +23,6 @@ get_study_est_ht(
 
 \item{weight_var}{variable containing sampling weights}
 
-\item{total_var}{variable containing size of population for prevalence estimation}
-
 \item{survey_design}{a formula describing the design of the survey (for bootstrap)}
 
 \item{n_boot}{number of bootstrap resamples}
@@ -34,6 +32,8 @@ get_study_est_ht(
 \item{prefix}{character prefix used for sampling variables (has to include \code{[prefix]_weights})}
 
 \item{label}{character string describing the estimator}
+
+\item{total_var}{variable containing size of population for prevalence estimation}
 }
 \value{
 Data frame of HT estimates for a single study

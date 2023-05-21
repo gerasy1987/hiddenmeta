@@ -147,15 +147,14 @@ get_study_est_ss <-
 #'
 #' @references {Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}.}
 #'
-#' @import tidyselect
-#' @importFrom magrittr `%>%` `%$%`
+#' @import tidyselect data.table
 #' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange
 #' @importFrom plyr laply
 #' @importFrom doParallel registerDoParallel
 get_study_est_ht <- function(data,
                              hidden_var = "hidden",
                              weight_var = "pps_weight",
-                             total_var = "total",
+                             total = unique(data$total),
                              survey_design = ~ pps_cluster + strata(pps_strata),
                              n_boot = 100,
                              parallel_boot = FALSE,
@@ -166,6 +165,9 @@ get_study_est_ht <- function(data,
     requireNamespace(c("doParallel", "parallel"))
     doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
   }
+
+  if (!data.table::is.data.table(data))
+    data <- data.table::as.data.table(data)
 
   .data_mod <- data[get(prefix) == 1,]
 
@@ -181,33 +183,25 @@ get_study_est_ht <- function(data,
               .data_mod[[weight_var]])
 
   .est_ht_boot <-
-    get_rescaled_boot(data = .data_mod,
-                      survey_design = survey_design,
-                      n_boot = n_boot) %>%
-    plyr::laply(., function(samp) {
-      .data_mod %>%
-        dplyr::mutate(rescale_wgt = samp$weight.scale) %>%
-        dplyr::filter(rescale_wgt != 0) %>%
-        {
-          crossprod(.[[hidden_var]],
-                    .$rescale_wgt * .[[weight_var]])
-        }
+    hiddenmeta:::get_rescaled_boot(data = .data_mod,
+                                   survey_design = survey_design,
+                                   n_boot = n_boot) |>
+    plyr::laply(function(samp) {
+      .data_mod  |>
+        dplyr::mutate(rescale_wgt = samp$weight.scale)  |>
+        dplyr::filter(rescale_wgt != 0)  |>
+        (\(.) crossprod(.[[hidden_var]],
+                        .$rescale_wgt * .[[weight_var]])
+        )()
     }, .parallel = parallel_boot)
 
-  # .fit_ht <-
-  #   data %>%
-  #   dplyr::filter(dplyr::if_all(dplyr::all_of(prefix), ~ . == 1)) %>%
-  #   estimatr::horvitz_thompson(hidden ~ 1, weights = get(paste0(prefix, "_weight")), data = .) %>%
-  #   {c(est = unname(.$coefficients), se = unname(.$std.error))}
-
- return(
-   data.frame(estimator = paste0(c("hidden_size", "hidden_prev"), "_", label),
-              estimate = c(.est_ht, .est_ht/unique(.data_mod[[total_var]])),
-              se =  c(sd(.est_ht_boot), sd(.est_ht_boot/unique(.data_mod[[total_var]]))),
-              inquiry = c("hidden_size", "hidden_prev"))
- )
+  return(
+    data.frame(estimator = paste0(c("hidden_size", "hidden_prev"), "_", label),
+               estimate = c(.est_ht, .est_ht/total),
+               se =  c(sd(.est_ht_boot), sd(.est_ht_boot/total)),
+               inquiry = c("hidden_size", "hidden_prev"))
+  )
 }
-
 
 #' Chords population size estimatior by Berchenko, Rosenblatt and Frost
 #'
