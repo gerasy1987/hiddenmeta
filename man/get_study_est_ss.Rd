@@ -8,26 +8,26 @@ get_study_est_ss(
   data,
   sampling_frame = "hidden",
   hidden_var = "target",
+  total_var = "total",
   n_coupons = 3,
-  total = unique(data$total),
   prefix = "rds",
   label = "ss"
 )
 }
 \arguments{
-\item{data}{pass-through population data frame}
+\item{data}{pass-through population data frame.}
 
-\item{sampling_frame}{character string giving name of variable with sampling frame indicator for RDS sample. Defaults to "hidden" for the RDS samples from hidden population}
+\item{sampling_frame}{character string giving name of variable with sampling frame indicator for RDS sample. Defaults to "hidden" for the RDS samples from hidden population.}
 
-\item{hidden_var}{character string specifying names of the hidden group variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations}
+\item{hidden_var}{character string specifying names of the hidden group variable name (associated probability of visibility should be named. \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations}
+
+\item{total_var}{name of variable containing size of population for prevalence estimation. Defaults to column named "total" in \code{data}.}
 
 \item{n_coupons}{The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.}
 
-\item{total}{integer giving the total size of population (denominator for prevalence). By default looked up as unique value stored in column named "total" in provided data}
+\item{prefix}{character prefix used for RDS sample variables.}
 
-\item{prefix}{character prefix used for RDS sample variables}
-
-\item{label}{character string describing the estimator}
+\item{label}{character string describing the estimator.}
 }
 \value{
 Data frame of SS prevalence estimates for a single study

@@ -73,13 +73,13 @@ get_study_est_sspse <- function(data,
 
 #' Sequential Sampling (SS) prevalence estimator by Gile (2011)
 #'
-#' @param data pass-through population data frame
-#' @param sampling_frame character string giving name of variable with sampling frame indicator for RDS sample. Defaults to "hidden" for the RDS samples from hidden population
-#' @param hidden_var character string specifying names of the hidden group variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations
+#' @param data pass-through population data frame.
+#' @param sampling_frame character string giving name of variable with sampling frame indicator for RDS sample. Defaults to "hidden" for the RDS samples from hidden population.
+#' @param hidden_var character string specifying names of the hidden group variable name (associated probability of visibility should be named. \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations
+#' @param total_var name of variable containing size of population for prevalence estimation. Defaults to column named "total" in \code{data}.
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
-#' @param total integer giving the total size of population (denominator for prevalence). By default looked up as unique value stored in column named "total" in provided data
-#' @param prefix character prefix used for RDS sample variables
-#' @param label character string describing the estimator
+#' @param prefix character prefix used for RDS sample variables.
+#' @param label character string describing the estimator.
 #'
 #' @return Data frame of SS prevalence estimates for a single study
 #'
@@ -96,16 +96,23 @@ get_study_est_ss <-
   function(data,
            sampling_frame = "hidden",
            hidden_var = "target",
+           total_var = "total",
            n_coupons = 3,
-           total = unique(data$total),
            prefix = "rds",
            label = "ss") {
 
     .quiet_rds_ss <- purrr::quietly(RDS::RDS.SS.estimates)
 
-    .fit_rds_ss <-
+    .data_mod <-
       data |>
-      dplyr::filter(dplyr::if_all(all_of(prefix), ~ . == 1)) |>
+      dplyr::filter(dplyr::if_all(all_of(prefix), ~ . == 1))
+
+    .total <- unique(.data_mod[[total_var]])
+
+    if (length(.total) != 1) stop("Specified 'total_var' has more than one unique value in the sample.")
+
+    .fit_rds_ss <-
+      .data_mod |>
       dplyr::select(name,
                     all_of(c(hidden_var, paste0(sampling_frame, "_visible_out"))),
                     starts_with(prefix)) |>
@@ -114,7 +121,7 @@ get_study_est_ss <-
                              network.size = paste0(sampling_frame, "_visible_out"),
                              time = paste0(prefix, "_t"),
                              max.coupons = n_coupons) |>
-      .quiet_rds_ss(outcome.variable = hidden_var, N = total)  |>
+      .quiet_rds_ss(outcome.variable = hidden_var, N = .total)  |>
       (\(.) .$result$interval[c(1,5)])()
 
     return(
@@ -135,7 +142,7 @@ get_study_est_ss <-
 #' @param data pass-through population data frame
 #' @param hidden_var variable containing hidden group membership indicator
 #' @param weight_var variable containing sampling weights
-#' @param total_var variable containing size of population for prevalence estimation
+#' @param total_var name of variable containing size of population for prevalence estimation
 #' @param survey_design a formula describing the design of the survey (for bootstrap)
 #' @param n_boot number of bootstrap resamples
 #' @param parallel_boot logical, whether to compute bootstrap samples in parallel using \code{foreach} package
@@ -154,7 +161,7 @@ get_study_est_ss <-
 get_study_est_ht <- function(data,
                              hidden_var = "hidden",
                              weight_var = "pps_weight",
-                             total = unique(data$total),
+                             total_var = "total",
                              survey_design = ~ pps_cluster + strata(pps_strata),
                              n_boot = 100,
                              parallel_boot = FALSE,
@@ -170,6 +177,10 @@ get_study_est_ht <- function(data,
     data <- data.table::as.data.table(data)
 
   .data_mod <- data[get(prefix) == 1,]
+
+  .total <- unique(.data_mod[[total_var]])
+
+  if (length(.total) != 1) stop("Specified 'total_var' has more than one unique value in the sample.")
 
   if (any(is.na(.data_mod[[weight_var]])))
     stop("There are missing values in sampling weights provided")
@@ -197,8 +208,8 @@ get_study_est_ht <- function(data,
 
   return(
     data.frame(estimator = paste0(c("hidden_size", "hidden_prev"), "_", label),
-               estimate = c(.est_ht, .est_ht/total),
-               se =  c(sd(.est_ht_boot), sd(.est_ht_boot/total)),
+               estimate = c(.est_ht, .est_ht/.total),
+               se =  c(sd(.est_ht_boot), sd(.est_ht_boot/.total)),
                inquiry = c("hidden_size", "hidden_prev"))
   )
 }
@@ -439,7 +450,7 @@ get_study_est_nsum <- function(
 #' @references
 #' Salganik, Matthew J. "Variance estimation, design effects, and sample size calculations for respondent-driven sampling." Journal of Urban Health 83, no. 1 (2006): 98. \url{https://doi.org/10.1007/s11524-006-9106-x}
 #'
-#' @import tidyselect
+#' @import tidyselect data.table
 #' @importFrom magrittr `%>%` `%$%`
 #' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange bind_rows
 #' @importFrom plyr laply
@@ -457,6 +468,9 @@ get_study_est_multiplier <- function(data,
     requireNamespace(c("doParallel", "parallel"))
     doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
   }
+
+  if (!data.table::is.data.table(data))
+    data <- data.table::as.data.table(data)
 
   .data_mod <- data[get(prefix) == 1,]
 
@@ -552,9 +566,7 @@ get_study_est_gnsum <- function(data, label = "gnsum") {
 #'
 #' @references Louis-Paul Rivest, Sophie Baillargeon. “The Rcapture package.” (2019). \url{https://cran.r-project.org/package=Rcapture}.
 #'
-#' @import tidyselect
-#' @import data.table
-#' @importFrom magrittr `%>%` `%$%`
+#' @import tidyselect data.table
 #' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange bind_rows
 #' @importFrom Rcapture closedp.bc periodhist
 get_study_est_recapture <- function(
@@ -566,6 +578,9 @@ get_study_est_recapture <- function(
   hidden_variable = "hidden",
   label = "recapture"
 ) {
+
+  if (!data.table::is.data.table(data))
+    data <- data.table::as.data.table(data)
 
   if (!is.null(sample_condition)) {
     data <- data[eval(parse(text = sample_condition)),]
@@ -597,24 +612,22 @@ get_study_est_recapture <- function(
     if (length(capture_vars) > 10) {
 
       .pool <- rep(length(capture_vars) %/% 5, 5)
-      .pool[seq_len(mod(length(capture_vars), 5))] <- (length(capture_vars) %/% 5) + 1
+      .pool[seq_len(length(capture_vars) %% 5)] <- (length(capture_vars) %/% 5) + 1
 
       .est_out <-
-        .est_out %>%
-        dplyr::select(all_of(capture_vars)) %>%
-        Rcapture::periodhist(., vt = .pool) %>%
-        Rcapture::closedp.bc(X = .,
-                             dfreq = TRUE,
+        .est_out  |>
+        dplyr::select(all_of(capture_vars))  |>
+        Rcapture::periodhist(vt = .pool) |>
+        Rcapture::closedp.bc(dfreq = TRUE,
                              dtype = "hist",
                              # t = length(capture_vars),
                              m = model)
     } else {
 
       .est_out <-
-        .est_out %>%
-        dplyr::select(all_of(capture_vars)) %>%
-        Rcapture::closedp.bc(X = .,
-                             dfreq = FALSE,
+        .est_out |>
+        dplyr::select(all_of(capture_vars)) |>
+        Rcapture::closedp.bc(dfreq = FALSE,
                              dtype = "hist",
                              # t = length(capture_vars),
                              m = model)
@@ -639,7 +652,9 @@ get_study_est_recapture <- function(
 #' @param capture_parse character string giving expression to evaluation of which produces character vector giving names of variable with capture indicators. Defaults to \code{NULL}. This is useful when capture variables are stored in one column (e.g. if using TLS sampled locations for recapture indicators)
 #' @param sample_condition character string with condition if the capture-recapture conducted on subsample of population (e.g. tls sample only)
 #' @param method character string giving the estimation method to be passed to \code{estimatepopulation.0}. See \code{?SparseMSE::estimatepopulation.0} for more details. Defaults to \code{"stepwise"}
+#' @param n_boot number of bootstrap resamples. Defaults to \code{NULL} which runs parametric estimation
 #' @param hidden_variable character string giving indicator of hidden population membership
+#' @param total_var name of variable containing size of population for prevalence estimation
 #' @param label character string describing the estimator
 #'
 #' @return Data frame of Multiple System estimates for a single study
@@ -658,13 +673,22 @@ get_study_est_mse <- function(
     capture_parse = NULL,
     sample_condition = NULL,
     method = "stepwise",
+    n_boot = NULL,
     hidden_variable = "hidden",
+    total_var = "total",
     label = "mse"
 ) {
+
+  if (!data.table::is.data.table(data))
+    data <- data.table::as.data.table(data)
 
   if (!is.null(sample_condition)) {
     data <- data[eval(parse(text = sample_condition)),]
   }
+
+  .total <- unique(data[[total_var]])
+
+  if (length(.total) != 1) stop("Specified 'total_var' has more than one unique value in the sample.")
 
   if (!is.null(capture_parse)) {
     capture_vars <- data[, eval(parse(text = capture_parse))]
@@ -676,6 +700,8 @@ get_study_est_mse <- function(
     ][
       apply(sapply(hidden_variable, function(x) get(x) == 1), 1, any),
     ]
+
+
 
   if (nrow(.est_out) == 0) {
     warning("There were no hidden population member recaptures in the sample!")
@@ -690,36 +716,57 @@ get_study_est_mse <- function(
   } else {
 
     if (length(capture_vars) > 10) {
-
       .pool <- rep(length(capture_vars) %/% 5, 5)
-      .pool[seq_len(mod(length(capture_vars), 5))] <- (length(capture_vars) %/% 5) + 1
+      .pool[seq_len(length(capture_vars) %% 5)] <- (length(capture_vars) %/% 5) + 1
 
-      .est_out <-
-        .est_out %>%
-        dplyr::select(all_of(capture_vars)) %>%
-        Rcapture::periodhist(., vt = .pool) %>%
-        SparseMSE::estimatepopulation.0(., method = method)
+      if (!is.null(n_boot)) {
+        .est_out <-
+          .est_out |>
+          dplyr::select(all_of(capture_vars)) |>
+          Rcapture::periodhist(vt = .pool) |>
+          SparseMSE::estimatepopulation(method = method, nboot = n_boot)
+      } else {
+        .est_out <-
+          .est_out |>
+          dplyr::select(all_of(capture_vars)) |>
+          Rcapture::periodhist(vt = .pool) |>
+          SparseMSE::estimatepopulation.0(method = method)
+      }
 
-    } else {
-
-      .est_out <-
-        SparseMSE::estimatepopulation.0(.est_out[, .(n = .N), by = capture_vars],
+    } else if (length(capture_vars) <= 10 & !is.null(n_boot)) {
+      if (!is.null(n_boot)) {
+        .est_out <-
+          SparseMSE::estimatepopulation(.est_out[, .(n = .N), by = capture_vars],
+                                        method = method, nboot = n_boot)
+      } else {
+        .est_out <-
+          SparseMSE::estimatepopulation(.est_out[, .(n = .N), by = capture_vars],
                                         method = method)
-
+      }
     }
 
-    return(
-      data.frame(estimator = paste0("hidden_size_", label),
-                 estimate = unname(.est_out$estimate["point est."]),
-                 # calculate SE as SD of log-normal distribution
-                 # with logmean and logsd from MSEfit object
-                 se =  unname(
-                   sqrt((exp(summary(.est_out$MSEfit$fit)$cov.unscaled[1, 1]) - 1) *
-                          exp(2*.est_out$MSEfit$fit$coefficients[1] +
-                                summary(.est_out$MSEfit$fit)$cov.unscaled[1, 1]))),
-                 inquiry = "hidden_size")
-    )
 
+    if (!is.null(n_boot)) {
+      return(
+        data.frame(estimator = paste0(c("hidden_size", "hidden_prev"), "_", label),
+                   estimate = c(unname(.est_out$popest["point est."]),
+                                unname(.est_out$popest["point est."])/.total),
+                   se =  c(sd(.est_out$bootreps), sd(.est_out$bootreps/.total)),
+                   inquiry = c("hidden_size", "hidden_prev"))
+      )
+    } else {
+      return(
+        data.frame(estimator = paste0("hidden_size_", label),
+                   estimate = unname(.est_out$estimate["point est."]),
+                   # calculate SE as SD of log-normal distribution
+                   # with logmean and logsd from MSEfit object
+                   se =  unname(
+                     sqrt((exp(summary(.est_out$MSEfit$fit)$cov.unscaled[1, 1]) - 1) *
+                            exp(2*.est_out$MSEfit$fit$coefficients[1] +
+                                  summary(.est_out$MSEfit$fit)$cov.unscaled[1, 1]))),
+                   inquiry = "hidden_size")
+      )
+    }
   }
 }
 

@@ -10,7 +10,9 @@ get_study_est_mse(
   capture_parse = NULL,
   sample_condition = NULL,
   method = "stepwise",
+  n_boot = NULL,
   hidden_variable = "hidden",
+  total_var = "total",
   label = "mse"
 )
 }
@@ -25,7 +27,11 @@ get_study_est_mse(
 
 \item{method}{character string giving the estimation method to be passed to \code{estimatepopulation.0}. See \code{?SparseMSE::estimatepopulation.0} for more details. Defaults to \code{"stepwise"}}
 
+\item{n_boot}{number of bootstrap resamples. Defaults to \code{NULL} which runs parametric estimation}
+
 \item{hidden_variable}{character string giving indicator of hidden population membership}
+
+\item{total_var}{name of variable containing size of population for prevalence estimation}
 
 \item{label}{character string describing the estimator}
 }
