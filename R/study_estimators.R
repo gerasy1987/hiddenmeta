@@ -77,7 +77,7 @@ get_study_est_sspse <- function(data,
 #' @param sampling_frame character string giving name of variable with sampling frame indicator for RDS sample. Defaults to "hidden" for the RDS samples from hidden population
 #' @param hidden_var character string specifying names of the hidden group variable name (associated probability of visibility should be named \code{p_visible_[hidden_var]}). Defaults to "target" for the simulations
 #' @param n_coupons The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.
-#' @param total integer giving the total size of population (denominator for prevalence)
+#' @param total integer giving the total size of population (denominator for prevalence). By default looked up as unique value stored in column named "total" in provided data
 #' @param prefix character prefix used for RDS sample variables
 #' @param label character string describing the estimator
 #'
@@ -89,7 +89,6 @@ get_study_est_sspse <- function(data,
 #' @export
 #'
 #' @import tidyselect
-#' @importFrom magrittr `%>%` `%$%`
 #' @importFrom dplyr mutate filter select group_by ungroup summarize pull arrange if_all
 #' @importFrom RDS as.rds.data.frame RDS.SS.estimates
 #' @importFrom purrr quietly
@@ -98,39 +97,36 @@ get_study_est_ss <-
            sampling_frame = "hidden",
            hidden_var = "target",
            n_coupons = 3,
-           total = 1000,
+           total = unique(data$total),
            prefix = "rds",
            label = "ss") {
 
     .quiet_rds_ss <- purrr::quietly(RDS::RDS.SS.estimates)
 
     .fit_rds_ss <-
-      data %>%
-      dplyr::filter(dplyr::if_all(all_of(prefix), ~ . == 1)) %>%
+      data |>
+      dplyr::filter(dplyr::if_all(all_of(prefix), ~ . == 1)) |>
       dplyr::select(name,
-                    all_of(paste0(hidden_var, c("", "_visible_out"))),
-                    starts_with(prefix)) %>%
-      RDS::as.rds.data.frame(df = .,
-                             id = "name",
+                    all_of(c(hidden_var, paste0(sampling_frame, "_visible_out"))),
+                    starts_with(prefix)) |>
+      RDS::as.rds.data.frame(id = "name",
                              recruiter.id = paste0(prefix, "_from"),
-                             network.size = paste0(hidden_var, "_visible_out"),
+                             network.size = paste0(sampling_frame, "_visible_out"),
                              time = paste0(prefix, "_t"),
-                             max.coupons = n_coupons) %>%
-      .quiet_rds_ss(., outcome.variable = hidden_var, N = total) %>%
-      .$result %>%
-      .$interval %>%
-      .[c(1,5)]
+                             max.coupons = n_coupons) |>
+      .quiet_rds_ss(outcome.variable = hidden_var, N = total)  |>
+      (\(.) .$result$interval[c(1,5)])()
 
     return(
       ifelse(sampling_frame == "all",
              yes = paste0(hidden_var, "_prev"),
-             no = paste0(hidden_var, "_prev_in_", sampling_frame)) %>%
-        {
-          data.frame(estimator = paste0(., "_", label),
-                     estimate = c(unname(.fit_rds_ss[1])),
-                     se =   c(unname(.fit_rds_ss[2])),
-                     inquiry = .)
-        }
+             no = paste0(hidden_var, "_prev_in_", sampling_frame)) |>
+        (\(.)
+         data.frame(estimator = paste0(., "_", label),
+                    estimate = c(unname(.fit_rds_ss[1])),
+                    se =   c(unname(.fit_rds_ss[2])),
+                    inquiry = .)
+        )()
     )
   }
 

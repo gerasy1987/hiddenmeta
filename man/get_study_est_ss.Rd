@@ -9,7 +9,7 @@ get_study_est_ss(
   sampling_frame = "hidden",
   hidden_var = "target",
   n_coupons = 3,
-  total = 1000,
+  total = unique(data$total),
   prefix = "rds",
   label = "ss"
 )
@@ -23,7 +23,7 @@ get_study_est_ss(
 
 \item{n_coupons}{The number of recruitment coupons distributed to each enrolled subject (i.e. the maximum number of recruitees for any subject). By default it is taken by the attribute or data, else the maximum recorded number of coupons.}
 
-\item{total}{integer giving the total size of population (denominator for prevalence)}
+\item{total}{integer giving the total size of population (denominator for prevalence). By default looked up as unique value stored in column named "total" in provided data}
 
 \item{prefix}{character prefix used for RDS sample variables}
 

@@ -133,7 +133,7 @@ study_1 <-
                          sampling_frame =  "hidden",
                          hidden_var = "target", # estimates prevalence withing RDS
                          n_coupons = 3,
-                         total = 1000,
+                         # total = 1000,
                          prefix = "rds",
                          label = "rds_ss"),
                sspse = list(handler = get_study_est_sspse,
