@@ -2,38 +2,47 @@ name: R-CMD-check
 
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
   pull_request:
-    branches: [main]
+    branches: [ "main" ]
 
 permissions:
   contents: read
 
 jobs:
   R-CMD-check:
-    runs-on: ubuntu-latest  # faster/cheaper; switch back to macOS if you need it
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        r-version: ['4.5.1']  # or 'release'
+        r-version: ["4.5.1"]   # or "release"
     steps:
       - uses: actions/checkout@v4
 
-      - uses: r-lib/actions/setup-pandoc@v2
+      - name: Setup Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
 
-      - uses: r-lib/actions/setup-r@v2
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.r-version }}
-          use-public-rspm: true   # Linux: faster installs via Posit PPM
+          use-public-rspm: true   # faster installs on Linux
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
+      - name: Confirm R version
+        run: |
+          echo "Using R ${{ matrix.r-version }}"
+          R --version
+
+      - name: Install dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
           needs: check
 
-      # While debugging, don't hard-fail on errors so results/artifacts are saved
-      - uses: r-lib/actions/check-r-package@v2
+      - name: Check package
+        uses: r-lib/actions/check-r-package@v2
         with:
-          args: --no-manual --as-cran
-          error-on: never          # <-- switch back to 'error' once green
-          upload-snapshots: true   # collects testthat snapshots/artifacts
+          args: 'c("--no-manual", "--as-cran")'
+          error-on: '"never"'     # set to '"error"' once you’ve inspected failures
+          check-dir: '"check"'
+          upload-snapshots: true
