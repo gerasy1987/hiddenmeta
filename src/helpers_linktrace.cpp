@@ -170,8 +170,8 @@ std::vector<int> gen_range(int from,
 // returns vector of integer vectors holding permuted sampling waves
 
 std::vector<std::vector<int>> lt_permute(const std::vector<std::vector<int>>& link_list,
-                                         std::vector<int> wave,
-                                         std::vector<int> name){
+                     std::vector<int> wave,
+                     std::vector<int> name){
 
   int n_inital = std::count(wave.begin(), wave.end(),1);
   sort(wave.begin(), wave.end());
@@ -180,35 +180,43 @@ std::vector<std::vector<int>> lt_permute(const std::vector<std::vector<int>>& li
 
   std::vector<std::vector<int>> wave_samples;
   std::vector<int> s_0(name);
-  std::random_shuffle(s_0.begin(), s_0.end());
+
+  struct RandGen {
+  using result_type = unsigned;
+  static constexpr result_type min() { return 0; }
+  static constexpr result_type max() { return RAND_MAX; }
+  result_type operator()() const { return std::rand(); }
+  } rng;
+
+  std::shuffle(s_0.begin(), s_0.end(), rng);
   s_0.resize(n_inital);
   wave_samples.push_back(s_0);
 
   for(int i = 1; i < n_waves; i++){
-    std::vector<int> set1;
-    std::vector<int> wave_samples_i = wave_samples[i-1];
+  std::vector<int> set1;
+  std::vector<int> wave_samples_i = wave_samples[i-1];
 
-    for(int j = 0; j < wave_samples_i.size(); j++){
-      std::vector<int> l_j = link_list[wave_samples_i[j] - 1];
-      set1.insert(set1.end(), l_j.begin(), l_j.end());
-    }
+  for(int j = 0; j < wave_samples_i.size(); j++){
+    std::vector<int> l_j = link_list[wave_samples_i[j] - 1];
+    set1.insert(set1.end(), l_j.begin(), l_j.end());
+  }
 
-    set1.erase(unique(set1.begin(), set1.end()),set1.end());
-    sort(set1.begin(), set1.end());
+  set1.erase(unique(set1.begin(), set1.end()),set1.end());
+  sort(set1.begin(), set1.end());
 
-    std::vector<int> set2;
-    for(int k = 0; k < i; k++){
-      std::vector<int> wave_sample_k = wave_samples[k];
-      set2.insert(set2.end(), wave_sample_k.begin(), wave_sample_k.end());
-    }
-    sort(set2.begin(), set2.end());
+  std::vector<int> set2;
+  for(int k = 0; k < i; k++){
+    std::vector<int> wave_sample_k = wave_samples[k];
+    set2.insert(set2.end(), wave_sample_k.begin(), wave_sample_k.end());
+  }
+  sort(set2.begin(), set2.end());
 
-    std::vector<int> ret;
-    std::set_difference(set1.begin(),set1.end(),set2.begin(), set2.end(),
-                        std::inserter(ret, ret.end()));
+  std::vector<int> ret;
+  std::set_difference(set1.begin(),set1.end(),set2.begin(), set2.end(),
+            std::inserter(ret, ret.end()));
 
-    ret.erase(unique(ret.begin(), ret.end()), ret.end());
-    wave_samples.push_back(ret);
+  ret.erase(unique(ret.begin(), ret.end()), ret.end());
+  wave_samples.push_back(ret);
   }
 
   return wave_samples;
