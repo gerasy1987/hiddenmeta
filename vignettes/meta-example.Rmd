@@ -37,6 +37,7 @@ study_map <-
 
 ```{r setup}
 
+library(tidyverse)
 library(hiddenmeta)
 library(DeclareDesign)
 
@@ -152,7 +153,7 @@ meta_sample <-
 meta_estimator <-
   declare_estimator(sample_label = "meta",
                     benchmark = list(sample = "pps", estimator = "ht"),
-                    hidden_prior =
+                    alpha_prior =
                       list(mean = c(ff_brazil_hidden_size = 293,
                                     stanford_brazil_hidden_size = 334,
                                     nyu_costarica_hidden_size = 248,
@@ -197,7 +198,8 @@ meta_simulations <-
           ))
       )
     },
-    .parallel = TRUE
+    .parallel = TRUE,
+    .progress = "tk"
   )
 
 meta_simulations <- 
