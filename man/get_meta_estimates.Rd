@@ -8,7 +8,7 @@ get_meta_estimates(
   data,
   sample_label = "meta",
   benchmark = list(sample = "pps", estimator = "ht"),
-  hidden_prior = list(mean = 0.3, sd = 0.2),
+  alpha_prior = list(mean = 0.3, sd = 0.2),
   bias_prior = list(mean = 1, sd = 3),
   stan_model = "stan_prev",
   control_params = list(iter = 8000, chains = 8, thin = 10, seed = 872312, cores = 1),
@@ -22,7 +22,7 @@ get_meta_estimates(
 
 \item{benchmark}{named list of length 2 giving benchmark sampling-estimator pair (only accepts one value across studies for now)}
 
-\item{hidden_prior}{list of two hyperpriors, on means and standard errors of each included sampling-estimator pairs. Names of list objects should be "mean" and "se". If one number provided for a hyperprior it gets expanded to all sampling-estimator pairs}
+\item{alpha_prior}{list of two priors, on means and standard errors of each included study/site. Names of list objects should be "mean" and "sd". If one number provided for a prior it gets expanded to all sampling-estimator pairs}
 
 \item{stan_model}{function that takes \code{stan_data} as input and produces compilable stan model object. Alternatively this can me character string that specifies name of model pre-compiled by the package, either \code{"stan_prev"} or \code{"stan_size"}}
 
