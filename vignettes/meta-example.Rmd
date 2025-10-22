@@ -65,18 +65,22 @@ sim_meta <- function(
            study = paste0("study_", 1:8)),
   pop = TRUE
 ) {
-
-  tidyr::expand_grid(possible_samp_est, estimands) %>%
+  result <- tidyr::expand_grid(possible_samp_est, estimands) |>
     dplyr::mutate(
       estimate = floor(estimand * (absolute_bias)),
       sim_ID = 1,
-      inquiry = "hidden_size") %>%
-    dplyr::arrange(inquiry, study, sample, estimator) %>%
-    purrr::when(
-      pop ~ dplyr::select(., sim_ID, study, inquiry, sample, estimator, estimand, estimate, se, everything()) %>% as.data.frame(),
-      ~ get_meta_sample(data = .) %>% dplyr::filter(meta == 1)
-    )
-
+      inquiry = "hidden_size") |>
+    dplyr::arrange(inquiry, study, sample, estimator)
+  
+  if (pop) {
+    result |> 
+      dplyr::select(sim_ID, study, inquiry, sample, estimator, estimand, estimate, se, everything()) |> 
+      as.data.frame()
+  } else {
+    result |> 
+      get_meta_sample(data = _) |> 
+      dplyr::filter(meta == 1)
+  }
 }
 
 sim_pop <- function(sims = 100,
@@ -98,7 +102,7 @@ sim_pop <- function(sims = 100,
                              study = paste0("study_", 1:8)),
                     pop = TRUE) {
   lapply(1:100,
-         function(x) sim_meta(possible_samp_est, estimands, pop) %>% dplyr::mutate(sim_ID = x)) %>%
+         function(x) sim_meta(possible_samp_est, estimands, pop) |> dplyr::mutate(sim_ID = x)) |>
     bind_rows()
 }
 
@@ -243,11 +247,11 @@ study_diagnosands <-
 (
   table_meta_simple <- 
     diagnose_design(simulations_df = meta_simulations,
-                    diagnosands = study_diagnosands) %>%
-    reshape_diagnosis(digits = 2) %>%
-    dplyr::select(-'Design') %>%
+                    diagnosands = study_diagnosands) |>
+    reshape_diagnosis(digits = 2) |>
+    dplyr::select(-'Design') |>
     dplyr::filter(`Mean Estimate` != "NA") 
-) %>%
+) |>
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -257,8 +261,8 @@ study_diagnosands <-
 ```{r declare_meta_base, eval=FALSE}
 
 study_designs_base <- 
-  readRDS(system.file("extdata", "multi_sim_real_original.rds", package = "hiddenmeta")) %>% 
-  dplyr::filter(!is.na(estimator), !is.nan(se)) %>%
+  readRDS(system.file("extdata", "multi_sim_real_original.rds", package = "hiddenmeta")) |> 
+  dplyr::filter(!is.na(estimator), !is.nan(se)) |>
     dplyr::mutate(
       study = purrr::map_chr(inquiry, ~ sapply(.x, function(x) {
         unname(study_map)[sapply(unname(study_map), function(stud) grepl(stud, x, fixed = TRUE))]
@@ -275,29 +279,29 @@ study_designs_base <-
                         ~ gsub(pattern = paste0("_", .x), replacement = "", x = .y, fixed = TRUE)),
       sample = purrr::map(sampling, ~ strsplit(.x, split = "_")[[1]]),
       absolute_bias = abs(estimate/estimand)
-    ) %>% 
-  dplyr::select(-design, -sampling, -estimator_full) %>% 
-  dplyr::filter(inquiry == "hidden_size") %>% 
-  dplyr::group_by(sim_ID, study, inquiry) %>% 
+    ) |> 
+  dplyr::select(-design, -sampling, -estimator_full) |> 
+  dplyr::filter(inquiry == "hidden_size") |> 
+  dplyr::group_by(sim_ID, study, inquiry) |> 
   dplyr::mutate(
     rel_bias = estimate/estimate[estimator == "ht"]
-  ) %>% 
-  dplyr::ungroup() %>% 
+  ) |> 
+  dplyr::ungroup() |> 
   dplyr::select(sim_ID, study, inquiry, sample, estimator, estimand, estimate, se, rel_bias, absolute_bias
 )
 
 # remove all sampling-estimators observed only once
-meta_population <-
-  study_designs_base %>% 
-  dplyr::group_by(sim_ID, sample, estimator) %>% 
-  dplyr::filter(n() >= 3) %>% 
-  dplyr::ungroup() %>% 
-  declare_population(.)
+study_designs_filtered <- study_designs_base |> 
+  dplyr::group_by(sim_ID, sample, estimator) |> 
+  dplyr::filter(dplyr::n() >= 3) |> 
+  dplyr::ungroup()
+
+meta_population <- declare_population(study_designs_filtered)
 
 meta_sample <-
   declare_sampling(sample_label = "meta",
                    handler = function(data, sample_label) {
-                     data %>% 
+                     data |> 
                        dplyr::mutate(
                          "{ sample_label }" := as.integer(sim_ID == sample(x = unique(sim_ID), size = 1))
                        )
@@ -336,7 +340,9 @@ cl <- parallel::makeCluster(50) #Change based on # of cores in computer
 doParallel::registerDoParallel(cl)
 
 #Export everything needed
-parallel::clusterExport(cl, c("meta_study"), envir = environment())
+parallel::clusterExport(cl, c("meta_study", "sim_pop", "sim_meta", "study_designs_filtered"), 
+                        envir = environment())
+
 parallel::clusterEvalQ(cl, {
   library(DeclareDesign)
   library(dplyr)
@@ -363,7 +369,7 @@ meta_simulations <-
 parallel::stopCluster(cl)
 
 meta_simulations <- 
-  meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] %>%
+  meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] |>
   dplyr::bind_rows()
 
 saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim_real_original.rds"))
@@ -392,11 +398,11 @@ study_diagnosands <-
 (
   table_meta_original <- 
     diagnose_design(simulations_df = meta_simulations,
-                    diagnosands = study_diagnosands) %>%
-    reshape_diagnosis(digits = 2) %>%
-    dplyr::select(-'Design') %>%
+                    diagnosands = study_diagnosands) |>
+    reshape_diagnosis(digits = 2) |>
+    dplyr::select(-'Design') |>
     dplyr::filter(`Mean Estimate` != "NA") 
-) %>%
+) |>
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -410,8 +416,8 @@ for (i in seq_along(study_map)) {
   cat("Doing simulations leaving study", names(study_map)[i], "out: ")
   
   study_designs_base <- 
-    readRDS(system.file("extdata", "multi_sim_real_original.rds", package = "hiddenmeta")) %>% 
-    dplyr::filter(!is.na(estimator), !is.nan(se)) %>%
+    readRDS(system.file("extdata", "multi_sim_real_original.rds", package = "hiddenmeta")) |> 
+    dplyr::filter(!is.na(estimator), !is.nan(se)) |>
     dplyr::mutate(
       study = purrr::map_chr(inquiry, ~ sapply(.x, function(x) {
         unname(study_map)[sapply(unname(study_map), function(stud) grepl(stud, x, fixed = TRUE))]
@@ -428,31 +434,43 @@ for (i in seq_along(study_map)) {
                         ~ gsub(pattern = paste0("_", .x), replacement = "", x = .y, fixed = TRUE)),
       sample = purrr::map(sampling, ~ strsplit(.x, split = "_")[[1]]),
       absolute_bias = abs(estimate/estimand)
-    ) %>% 
-    dplyr::filter(study != unname(study_map)[i]) %>%
-    dplyr::select(-design, -sampling, -estimator_full) %>% 
-    dplyr::filter(inquiry == "hidden_size") %>% 
-    dplyr::group_by(sim_ID, study, inquiry) %>% 
+    ) |> 
+    dplyr::filter(study != unname(study_map)[i]) |>
+    dplyr::select(-design, -sampling, -estimator_full) |> 
+    dplyr::filter(inquiry == "hidden_size") |> 
+    dplyr::group_by(sim_ID, study, inquiry) |> 
     dplyr::mutate(
       rel_bias = estimate/estimate[estimator == "ht"]
-    ) %>% 
-    dplyr::ungroup() %>% 
+    ) |> 
+    dplyr::ungroup() |> 
     dplyr::select(sim_ID, study, inquiry, sample, estimator, estimand, estimate, se, rel_bias, absolute_bias
     )
   
   # remove all sampling-estimators observed only once
-  meta_population <-
-    study_designs_base %>% 
-    dplyr::group_by(sim_ID, sample, estimator) %>% 
-    dplyr::filter(n() >= 3) %>% 
-    dplyr::ungroup() %>% 
-    declare_population(.)
+  study_designs_filtered <- study_designs_base |> 
+  dplyr::group_by(sim_ID, sample, estimator) |> 
+  dplyr::filter(dplyr::n() >= 3) |> 
+  dplyr::ungroup()
+
+  meta_population <- declare_population(study_designs_filtered)
   
   meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
   
   
   requireNamespace(c("doParallel", "parallel"))
-  doParallel::registerDoParallel(cores = 25)
+  #Set up cluster
+  cl <- parallel::makeCluster(25) #Change based on # of cores in computer
+  doParallel::registerDoParallel(cl)
+  
+  #Export everything needed
+  parallel::clusterExport(cl, c("meta_study", "study_designs_filtered"), envir = environment())
+  parallel::clusterEvalQ(cl, {
+    library(tidyverse)
+    library(DeclareDesign)
+    library(hiddenmeta)
+    library(rstan)
+    library(magrittr)
+  })
   
   set.seed(872312)
   meta_simulations <-
@@ -460,7 +478,7 @@ for (i in seq_along(study_map)) {
       as.list(1:50),
       .fun = function(x) {
         base::suppressWarnings(
-          DeclareDesign::simulate_design(meta_study, sims = 1) %>%
+          DeclareDesign::simulate_design(meta_study, sims = 1) |>
             dplyr::mutate(
               sim_ID = x
             )
@@ -469,8 +487,11 @@ for (i in seq_along(study_map)) {
       .parallel = TRUE
     )
   
+  #Stop cluster when done
+  parallel::stopCluster(cl)
+  
   meta_simulations <- 
-    meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] %>%
+    meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] |>
     dplyr::bind_rows()
   
   saveRDS(meta_simulations, 
@@ -500,37 +521,38 @@ study_diagnosands <-
 leave1out_sims <- 
   lapply(study_map, function(x) {
     
-    readRDS(system.file("extdata", paste0("meta_sim_real_excl_", x, ".rds"), package = "hiddenmeta")) %>% 
-      diagnose_design(simulations_df = .,
-                      diagnosands = study_diagnosands) %>%
-      .$diagnosands_df %>% 
-      dplyr::filter(!is.na(mean_estimate)) %>% 
-      dplyr::mutate(study_excluded = x,
-                    "{ x }" := rmse/mean_estimand) %>% 
+    result <- readRDS(system.file("extdata", paste0("meta_sim_real_excl_", x, ".rds"), 
+                        package = "hiddenmeta")) |> 
+      diagnose_design(simulations_df = _,
+                      diagnosands = study_diagnosands)
+    
+      result$diagnosands_df |> 
+      dplyr::filter(!is.na(mean_estimate)) |> 
+      dplyr::mutate(study_excluded = x) |>
+      dplyr::mutate(!!sym(x) := rmse/mean_estimand) |> 
       dplyr::select(c(inquiry, all_of(x)))
     
   }) 
 
-(
-  table_leave1out <- 
-    readRDS(system.file("extdata", paste0("meta_sim_real_original.rds"), package = "hiddenmeta")) %>% 
-    diagnose_design(simulations_df = .,
-                    diagnosands = study_diagnosands) %>%
-    .$diagnosands_df %>% 
-    dplyr::filter(!is.na(mean_estimate)) %>% 
-    dplyr::mutate(all = abs(rmse/mean_estimand)) %>% 
-    dplyr::select(c(inquiry, all)) %>% 
-    purrr::reduce(.x = leave1out_sims, .f = dplyr::left_join, by = "inquiry", .init = .) %>% 
-    dplyr::filter(!(inquiry %in% c("rel_bias_tls_recap", "rel_bias_pps_ht")) & !grepl("hidden_size", inquiry)) %>%
-    dplyr::mutate(
-      across(all_of(unname(study_map)), ~ ifelse(is.na(.), "-", format(., digits = 2))),
-      all = format(all, digits = 2),
-      # inquiry = gsub("_hidden_size", "size", inquiry),
-      inquiry = gsub("rel_bias_", "", inquiry)
-    ) %>% 
-    dplyr::rename(Estimand = inquiry, "Benchmark" = all) %>% 
-    dplyr::rename_with(~ plyr::mapvalues(., from = unname(study_map), to = names(study_map)))
-) %>%
+diagnosands_result <- readRDS(system.file("extdata", "meta_sim_real_original.rds", package = "hiddenmeta")) |> 
+  diagnose_design(simulations_df = _,
+                  diagnosands = study_diagnosands)
+
+table_leave1out <- diagnosands_result$diagnosands_df |> 
+  dplyr::filter(!is.na(mean_estimate)) |> 
+  dplyr::mutate(all = abs(rmse/mean_estimand)) |> 
+  dplyr::select(inquiry, all) |>
+  (\(init_df) purrr::reduce(leave1out_sims, dplyr::left_join, by = "inquiry", .init = init_df))() |>
+  dplyr::filter(!(inquiry %in% c("rel_bias_tls_recap", "rel_bias_pps_ht")) & !grepl("hidden_size", inquiry)) |>
+  dplyr::mutate(
+    across(all_of(unname(study_map)), ~ ifelse(is.na(.), "-", format(., digits = 2))),
+    all = format(all, digits = 2),
+    inquiry = gsub("rel_bias_", "", inquiry)
+  ) |> 
+  dplyr::rename(Estimand = inquiry, Benchmark = all) |> 
+  dplyr::rename_with(~ plyr::mapvalues(., from = unname(study_map), to = names(study_map)))
+
+table_leave1out |>
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
