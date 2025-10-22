@@ -317,7 +317,19 @@ meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 ```{r draw_sims_real, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
-doParallel::registerDoParallel(cores = 50)
+
+#Set up cluster
+cl <- parallel::makeCluster(50) #Change based on # of cores in computer
+doParallel::registerDoParallel(cl)
+
+# Export everything needed
+parallel::clusterExport(cl, c("meta_study"), envir = environment())
+parallel::clusterEvalQ(cl, {
+  library(DeclareDesign)
+  library(dplyr)
+  library(hiddenmeta)
+  library(rstan)
+})
 
 set.seed(872312)
 meta_simulations <-
@@ -325,7 +337,7 @@ meta_simulations <-
     as.list(1:100),
     .fun = function(x) {
       base::suppressWarnings(
-        DeclareDesign::simulate_design(meta_study, sims = 1) %>%
+        DeclareDesign::simulate_design(meta_study, sims = 1) |>
               dplyr::mutate(
                 sim_ID = x
               )
@@ -333,6 +345,9 @@ meta_simulations <-
     },
     .parallel = TRUE
   )
+
+# Stop the cluster when done
+parallel::stopCluster(cl)
 
 meta_simulations <- 
   meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] %>%
