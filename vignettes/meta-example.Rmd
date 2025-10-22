@@ -184,7 +184,18 @@ draw_data(meta_study) |>
 ```{r draw_sims, eval=FALSE}
 
 requireNamespace(c("doParallel", "parallel"))
-doParallel::registerDoParallel(cores = 50)
+
+cl <- parallel::makeCluster(50) #Change based on # of cores in computer
+doParallel::registerDoParallel(cl)
+
+# Export everything needed
+parallel::clusterExport(cl, c("meta_study", "sim_pop", "sim_meta"), envir = environment())
+parallel::clusterEvalQ(cl, {
+  library(DeclareDesign)
+  library(dplyr)
+  library(hiddenmeta)
+  library(rstan)
+})
 
 set.seed(872312)
 meta_simulations <-
@@ -192,18 +203,20 @@ meta_simulations <-
     as.list(1:200),
     .fun = function(x) {
       base::suppressWarnings(
-        try(DeclareDesign::simulate_design(meta_study, sims = 1) %>%
-          dplyr::mutate(
-            sim_ID = x
-          ))
+        DeclareDesign::simulate_design(meta_study, sims = 1) |>
+              dplyr::mutate(
+                sim_ID = x
+              )
       )
     },
-    .parallel = TRUE,
-    .progress = "tk"
+    .parallel = TRUE
   )
 
+#Stop the cluster when done
+parallel::stopCluster(cl)
+
 meta_simulations <- 
-  meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] %>%
+  meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] |>
   dplyr::bind_rows()
 
 saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim_simple.rds"))
@@ -322,7 +335,7 @@ requireNamespace(c("doParallel", "parallel"))
 cl <- parallel::makeCluster(50) #Change based on # of cores in computer
 doParallel::registerDoParallel(cl)
 
-# Export everything needed
+#Export everything needed
 parallel::clusterExport(cl, c("meta_study"), envir = environment())
 parallel::clusterEvalQ(cl, {
   library(DeclareDesign)
@@ -346,7 +359,7 @@ meta_simulations <-
     .parallel = TRUE
   )
 
-# Stop the cluster when done
+#Stop the cluster when done
 parallel::stopCluster(cl)
 
 meta_simulations <- 
