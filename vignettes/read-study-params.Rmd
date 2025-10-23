@@ -57,10 +57,10 @@ study_df <-
    )
 
 study_designs <-
-   read_populations(study_df) %>%
-   read_samples(study_df, append_list = .) %>%
-   read_inquiries(study_df, append_list = .) %>%
-   read_estimators(study_df, append_list = .)
+   read_populations(study_df) |>
+   read_samples(study_df, append_list = _) |>
+   read_inquiries(study_df, append_list = _) |>
+   read_estimators(study_df, append_list = _)
 ```
 
 ```{r save, eval=FALSE, echo=FALSE}
