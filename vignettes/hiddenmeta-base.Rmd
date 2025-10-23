@@ -843,14 +843,14 @@ multi_simulations <-
     as.list(1:100),
     .fun = function(x) {
       base::suppressWarnings(
-        DeclareDesign::simulate_design(multi_study, sims = 1) %>%
+        DeclareDesign::simulate_design(multi_study, sims = 1) |>
           dplyr::mutate(
             sim_ID = x
           )
       )
     },
     .parallel = TRUE
-  ) %>%
+  ) |>
   dplyr::bind_rows()
 
 saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim.rds"))
@@ -863,10 +863,10 @@ multi_simulations <-
   readRDS(system.file("extdata", "multi_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = multi_simulations, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>% 
+                diagnosands = study_diagnosands) |>
+  reshape_diagnosis(digits = 2) |>
+  dplyr::select(-'Design') |>
+  dplyr::filter(`Mean Estimate` != "NA") |> 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -939,14 +939,14 @@ meta_simulations <-
     as.list(1:100),
     .fun = function(x) {
       base::suppressWarnings(
-        DeclareDesign::simulate_design(meta_study, sims = 1) %>%
+        DeclareDesign::simulate_design(meta_study, sims = 1) |>
           dplyr::mutate(
             sim_ID = x
           )
       )
     },
     .parallel = TRUE
-  ) %>%
+  ) |>
   dplyr::bind_rows()
 
 saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim.rds"))
@@ -959,10 +959,10 @@ meta_simulations <-
   readRDS(system.file("extdata", "meta_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = meta_simulations, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>% 
+                diagnosands = study_diagnosands) |> 
+  reshape_diagnosis(digits = 2) |>
+  dplyr::select(-'Design') |>
+  dplyr::filter(`Mean Estimate` != "NA") |> 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
