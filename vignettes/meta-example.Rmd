@@ -187,37 +187,33 @@ draw_data(meta_study) |>
 
 ```{r draw_sims, eval=FALSE}
 
-requireNamespace(c("doParallel", "parallel"))
+future::plan(future::multisession, workers = parallel::detectCores() - 1)
 
-cl <- parallel::makeCluster(50) #Change based on # of cores in computer
-doParallel::registerDoParallel(cl)
+# Workload ---------------------------------------------------------------
+ids <- seq_len(200)
 
-# Export everything needed
-parallel::clusterExport(cl, c("meta_study", "sim_pop", "sim_meta"), envir = environment())
-parallel::clusterEvalQ(cl, {
-  library(DeclareDesign)
-  library(dplyr)
-  library(hiddenmeta)
-  library(rstan)
-})
-
-set.seed(872312)
-meta_simulations <-
-  plyr::llply(
-    as.list(1:200),
-    .fun = function(x) {
-      base::suppressWarnings(
+meta_simulations <- future.apply::future_lapply(
+  X = ids,
+  FUN = function(x) {
+    # Run one simulation and tag it
+    out <- try(
+      suppressWarnings(
         DeclareDesign::simulate_design(meta_study, sims = 1) |>
-              dplyr::mutate(
-                sim_ID = x
-              )
-      )
-    },
-    .parallel = TRUE
-  )
+          dplyr::mutate(sim_ID = x)
+      ),
+      silent = TRUE
+    )
 
-#Stop the cluster when done
-parallel::stopCluster(cl)
+    if (inherits(out, "try-error")) return(NULL)
+    # Ensure a plain data.frame if needed
+    as.data.frame(out)
+  },
+  future.seed       = 872312,  # reproducible independent streams
+  future.packages   = c("DeclareDesign", "dplyr", "hiddenmeta", "rstan"),
+  future.globals    = list(meta_study = meta_study, sim_pop = sim_pop, sim_meta = sim_meta),
+  future.scheduling = 1      # 1 = coarse chunks; good when each task is sizable
+  # Tip: for *many* tiny tasks, try a number >1 (e.g., 4) to increase chunking.
+)
 
 meta_simulations <- 
   meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] |>
@@ -333,40 +329,34 @@ meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
 ```{r draw_sims_real, eval=FALSE}
 
-requireNamespace(c("doParallel", "parallel"))
+future::plan(future::multisession, workers = parallel::detectCores() - 1)
 
-#Set up cluster
-cl <- parallel::makeCluster(50) #Change based on # of cores in computer
-doParallel::registerDoParallel(cl)
+# Workload ---------------------------------------------------------------
+ids <- seq_len(100)
 
-#Export everything needed
-parallel::clusterExport(cl, c("meta_study", "sim_pop", "sim_meta", "study_designs_filtered"), 
-                        envir = environment())
-
-parallel::clusterEvalQ(cl, {
-  library(DeclareDesign)
-  library(dplyr)
-  library(hiddenmeta)
-  library(rstan)
-})
-
-set.seed(872312)
-meta_simulations <-
-  plyr::llply(
-    as.list(1:100),
-    .fun = function(x) {
-      base::suppressWarnings(
+meta_simulations <- future.apply::future_lapply(
+  X = ids,
+  FUN = function(x) {
+    # Run one simulation and tag it
+    out <- try(
+      suppressWarnings(
         DeclareDesign::simulate_design(meta_study, sims = 1) |>
-              dplyr::mutate(
-                sim_ID = x
-              )
-      )
-    },
-    .parallel = TRUE
-  )
+          dplyr::mutate(sim_ID = x)
+      ),
+      silent = TRUE
+    )
 
-#Stop the cluster when done
-parallel::stopCluster(cl)
+    if (inherits(out, "try-error")) return(NULL)
+    # Ensure a plain data.frame if needed
+    as.data.frame(out)
+  },
+  future.seed       = 872312,  # reproducible independent streams
+  future.packages   = c("DeclareDesign", "dplyr", "hiddenmeta", "rstan"),
+  future.globals    = list(meta_study = meta_study, sim_pop = sim_pop, sim_meta = sim_meta, 
+                           study_designs_filtered = study_designs_filtered),
+  future.scheduling = 1      # 1 = coarse chunks; good when each task is sizable
+  # Tip: for *many* tiny tasks, try a number >1 (e.g., 4) to increase chunking.
+)
 
 meta_simulations <- 
   meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] |>
@@ -457,39 +447,35 @@ for (i in seq_along(study_map)) {
   meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
   
   
-  requireNamespace(c("doParallel", "parallel"))
-  #Set up cluster
-  cl <- parallel::makeCluster(25) #Change based on # of cores in computer
-  doParallel::registerDoParallel(cl)
+  future::plan(future::multisession, workers = parallel::detectCores() - 1)
+
+  # Workload ---------------------------------------------------------------
+  ids <- seq_len(50)
   
-  #Export everything needed
-  parallel::clusterExport(cl, c("meta_study", "study_designs_filtered"), envir = environment())
-  parallel::clusterEvalQ(cl, {
-    library(tidyverse)
-    library(DeclareDesign)
-    library(hiddenmeta)
-    library(rstan)
-    library(magrittr)
-  })
-  
-  set.seed(872312)
-  meta_simulations <-
-    plyr::llply(
-      as.list(1:50),
-      .fun = function(x) {
-        base::suppressWarnings(
+  meta_simulations <- future.apply::future_lapply(
+    X = ids,
+    FUN = function(x) {
+      # Run one simulation and tag it
+      out <- try(
+        suppressWarnings(
           DeclareDesign::simulate_design(meta_study, sims = 1) |>
-            dplyr::mutate(
-              sim_ID = x
-            )
-        )
-      },
-      .parallel = TRUE
-    )
+            dplyr::mutate(sim_ID = x)
+        ),
+        silent = TRUE
+      )
   
-  #Stop cluster when done
-  parallel::stopCluster(cl)
-  
+      if (inherits(out, "try-error")) return(NULL)
+      # Ensure a plain data.frame if needed
+      as.data.frame(out)
+    },
+    future.seed       = 872312,  # reproducible independent streams
+    future.packages   = c("DeclareDesign", "dplyr", "hiddenmeta", "rstan"),
+    future.globals    = list(meta_study = meta_study, 
+                             study_designs_filtered = study_designs_filtered),
+    future.scheduling = 1      # 1 = coarse chunks; good when each task is sizable
+    # Tip: for *many* tiny tasks, try a number >1 (e.g., 4) to increase chunking.
+  )
+    
   meta_simulations <- 
     meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] |>
     dplyr::bind_rows()
