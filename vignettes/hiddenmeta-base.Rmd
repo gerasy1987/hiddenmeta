@@ -584,9 +584,9 @@ study_2 <-
                             n_seed = 50,
                             n_coupons = 3,
                             add_seeds = 0,
-                            target = "sample",
+                            target_type = "sample",
                             target_n_rds = 150,
-                            sampling_frame = TRUE)
+                            sampling_frame = "all")
       ),
     inquiries = list(handler = get_study_estimands,
                      out_groups = "^known$|^frame$", 
@@ -722,9 +722,9 @@ study_3 <-
                             n_seed = 50,
                             n_coupons = 3,
                             add_seeds = 0,
-                            target = "sample",
+                            target_type = "sample",
                             target_n_rds = 150,
-                            sampling_frame = TRUE)
+                            sampling_frame = "all")
       ),
     inquiries = list(handler = get_study_estimands,
                      out_groups = "^known$", 
