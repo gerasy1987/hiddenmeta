@@ -81,8 +81,10 @@ sample_rds <-
           FUN = rep,
           x = 1:ceiling(2 * target_n_rds[i] / arrival_rate),
           times = stats::rpois(n = ceiling(2 * target_n_rds[i] / arrival_rate),
-                               lambda = arrival_rate)))[
-                                 1:nrow(.data[get(hidden_var) == 1])]
+                               lambda = arrival_rate),
+          SIMPLIFY = FALSE,
+          USE.NAMES = FALSE))[
+            1:nrow(.data[get(hidden_var) == 1])]
 
       if (nrow(.data[get(hidden_var) == 1]) <= n_seed[i]) {
         .seeds <- .data[get(hidden_var) == 1][["name"]]
