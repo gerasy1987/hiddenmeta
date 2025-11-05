@@ -22,6 +22,7 @@ library(magrittr)
 library(knitr)
 library(pbapply)
 library(ggplot2)
+library(future)
 
 ```
 
@@ -107,22 +108,11 @@ multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimat
 
 ```{r run_sims, eval=FALSE, echo=TRUE}
 
-set.seed(871223)
+options(parallelly.fork.enable = TRUE) 
 
-multi_simulations <-
-   pbapply::pblapply(
-      X = 1:50,
-      FUN = function(x) {
-         base::suppressWarnings(
-            DeclareDesign::simulate_design(multi_study, sims = 1) |>
-               dplyr::mutate(sim_ID = x)
-         )
-      },
-      cl = 5
-   )
+plan(multicore)
 
-multi_simulations <- do.call(rbind, 
-                             args = c(multi_simulations, make.row.names = FALSE))
+multi_simulations = simulate_design(multi_study, sims = 50, future.seed = 871223)
 
 saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim_studies.rds"))
 
