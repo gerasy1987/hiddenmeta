@@ -187,37 +187,11 @@ draw_data(meta_study) |>
 
 ```{r draw_sims, eval=FALSE}
 
-future::plan(future::multisession, workers = parallel::detectCores() - 1)
+options(parallelly.fork.enable = TRUE) 
 
-# Workload ---------------------------------------------------------------
-ids <- seq_len(200)
+plan(multicore)
 
-meta_simulations <- future.apply::future_lapply(
-  X = ids,
-  FUN = function(x) {
-    # Run one simulation and tag it
-    out <- try(
-      suppressWarnings(
-        DeclareDesign::simulate_design(meta_study, sims = 1) |>
-          dplyr::mutate(sim_ID = x)
-      ),
-      silent = TRUE
-    )
-
-    if (inherits(out, "try-error")) return(NULL)
-    # Ensure a plain data.frame if needed
-    as.data.frame(out)
-  },
-  future.seed       = 872312,  # reproducible independent streams
-  future.packages   = c("DeclareDesign", "dplyr", "hiddenmeta", "rstan"),
-  future.globals    = list(meta_study = meta_study, sim_pop = sim_pop, sim_meta = sim_meta),
-  future.scheduling = 1      # 1 = coarse chunks; good when each task is sizable
-  # Tip: for *many* tiny tasks, try a number >1 (e.g., 4) to increase chunking.
-)
-
-meta_simulations <- 
-  meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] |>
-  dplyr::bind_rows()
+meta_simulations = simulate_design(meta_study, sims = 200, future.seed = 872312)
 
 saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim_simple.rds"))
 ```
@@ -329,38 +303,11 @@ meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
 ```{r draw_sims_real, eval=FALSE}
 
-future::plan(future::multisession, workers = parallel::detectCores() - 1)
+options(parallelly.fork.enable = TRUE) 
 
-# Workload ---------------------------------------------------------------
-ids <- seq_len(100)
+plan(multicore)
 
-meta_simulations <- future.apply::future_lapply(
-  X = ids,
-  FUN = function(x) {
-    # Run one simulation and tag it
-    out <- try(
-      suppressWarnings(
-        DeclareDesign::simulate_design(meta_study, sims = 1) |>
-          dplyr::mutate(sim_ID = x)
-      ),
-      silent = TRUE
-    )
-
-    if (inherits(out, "try-error")) return(NULL)
-    # Ensure a plain data.frame if needed
-    as.data.frame(out)
-  },
-  future.seed       = 872312,  # reproducible independent streams
-  future.packages   = c("DeclareDesign", "dplyr", "hiddenmeta", "rstan"),
-  future.globals    = list(meta_study = meta_study, sim_pop = sim_pop, sim_meta = sim_meta, 
-                           study_designs_filtered = study_designs_filtered),
-  future.scheduling = 1      # 1 = coarse chunks; good when each task is sizable
-  # Tip: for *many* tiny tasks, try a number >1 (e.g., 4) to increase chunking.
-)
-
-meta_simulations <- 
-  meta_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] |>
-  dplyr::bind_rows()
+meta_simulations = simulate_design(meta_study, sims = 100, future.seed = 872312)
 
 saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim_real_original.rds"))
 
