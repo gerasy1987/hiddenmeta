@@ -34,39 +34,82 @@ get_study_est_sspse <- function(data,
 
   .quiet_sspse <- purrr::quietly(sspse::posteriorsize)
 
-  .fit_sspse <-
-    data %>%
+  network_sizes <- data %>%
     dplyr::filter(dplyr::if_all(all_of(prefix), ~ . == 1)) %>%
-    dplyr::select(name, hidden_visible_out, starts_with(prefix), total) %>%
-    dplyr::arrange(get(paste0(prefix, "_t"))) %>%
-    dplyr::pull("hidden_visible_out") %>%
-    # RDS::as.rds.data.frame(df = .,
-    #                        id = "name",
-    #                        recruiter.id = paste0(prefix, "_from"),
-    #                        network.size = "hidden_visible_out",
-    #                        time = paste0(prefix, "_t"),
-    #                        # population.size = total,
-    #                        max.coupons = n_coupons) %>%
-    {
-      do.call(
-        .quiet_sspse,
-        c(list(s = .,
-               interval = mcmc_params$interval,
-               samplesize = mcmc_params$samplesize,
-               burnin = mcmc_params$burnin,
-               mean.prior.size = prior_mean,
-               verbose = FALSE,
-               K = round(stats::quantile(.,0.80)),
-               # visibility = TRUE,
-               max.coupons = n_coupons),
-          additional_params)
-      )
-    }
+    dplyr::pull("hidden_visible_out")
+
+  # Check 1: Empty sample
+  if (length(network_sizes) == 0) {
+    warning("No RDS sample found. Returning NA.")
+    return(
+      data.frame(estimator = paste0("hidden_size_", label),
+                 estimate = NA_real_,
+                 se = NA_real_,
+                 inquiry = c("hidden_size"))
+    )
+  }
+
+  # Check 2: Too sparse (>75% zeros or max <= 1)
+  prop_zero <- mean(network_sizes == 0)
+  if (prop_zero > 0.90 || max(network_sizes) <= 1) {
+    warning(paste0("Network sizes too sparse (", round(prop_zero*100, 1),
+                   "% zeros, max=", max(network_sizes),
+                   "). SS-PSE estimate unreliable. Returning NA."))
+    return(
+      data.frame(estimator = paste0("hidden_size_", label),
+                 estimate = NA_real_,
+                 se = NA_real_,
+                 inquiry = c("hidden_size"))
+    )
+  }
+
+  # Calculate K with minimum of 2 (need at least 2 for cutabove to work)
+  K_value <- max(2, round(stats::quantile(network_sizes, 0.80)))
+
+  # Check 3: Verify we have variation
+  if (length(unique(network_sizes)) < 3) {
+    warning("Insufficient variation in network sizes. Returning NA.")
+    return(
+      data.frame(estimator = paste0("hidden_size_", label),
+                 estimate = NA_real_,
+                 se = NA_real_,
+                 inquiry = c("hidden_size"))
+    )
+  }
+
+  # Try estimation with error handling
+  .fit_sspse <- tryCatch({
+    do.call(
+      .quiet_sspse,
+      c(list(s = network_sizes,
+             interval = mcmc_params$interval,
+             samplesize = mcmc_params$samplesize,
+             burnin = mcmc_params$burnin,
+             mean.prior.size = prior_mean,
+             verbose = FALSE,
+             K = K_value,
+             max.coupons = n_coupons),
+        additional_params)
+    )
+  }, error = function(e) {
+    warning("SS-PSE estimation failed: ", e$message)
+    return(NULL)
+  })
+
+  # Check if estimation failed
+  if (is.null(.fit_sspse) || is.null(.fit_sspse$result)) {
+    return(
+      data.frame(estimator = paste0("hidden_size_", label),
+                 estimate = NA_real_,
+                 se = NA_real_,
+                 inquiry = c("hidden_size"))
+    )
+  }
 
   return(
     data.frame(estimator = paste0("hidden_size_", label),
                estimate = c(unname(.fit_sspse$result$N["Median AP"])),
-               se =   c(sd(.fit_sspse$result$sample[,"N"])),
+               se = c(sd(.fit_sspse$result$sample[,"N"])),
                inquiry = c("hidden_size"))
   )
 }
