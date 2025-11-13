@@ -52,11 +52,11 @@ get_multi_samples <- function(data, study_designs) {
     stop("There is a mismatch in studies contained in population data and \"study_design\".")
 
   for (st in names(study_designs)) {
-    for (samp in names(study_designs[[st]][["samples"]])) {
+    for (samp in names(study_designs[[st]][["sample"]])) {
       data[study == st][["population"]][[1]] <-
         apply_args(study = st,
                    df = data[study == st][["population"]][[1]],
-                   args = study_designs[[st]][["samples"]][[samp]])
+                   args = study_designs[[st]][["sample"]][[samp]])
     }
   }
 
@@ -123,7 +123,7 @@ get_multi_estimates <- function(data, study_designs) {
 
   # Loop over study_designs
   for (st in names(study_designs)) {
-    for (samp in names(study_designs[[st]][["samples"]])) {
+    for (samp in names(study_designs[[st]][["sample"]])) {
       for (est in names(study_designs[[st]][["estimators"]][[samp]])) {
 
         .new_est_out <-
