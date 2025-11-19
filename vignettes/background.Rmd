@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 
 ## Individual studies {#sec-estimation-study}
 
-For each of the studies we are aiming to analyze all possible sampling-estimation method pairs given the sampling strategies used. Table below shows all sampling-estimation method pairs we consider in the meta-analysis. Note that the first three sampling-estimation pairs aim directly to estimate prevalence of hidden group within broader population, while the rest of the methods estimate size of the hidden group that can be transformed into prevalence estimate under assumption that there is no uncertainty about the size of the population within which the prevalence is being estimated.
+For each of the studies we are aiming to analyze all possible sampling-estimation method pairs given the sampling strategies used. Table below shows all sampling-estimation method pairs we consider in the meta-analysis. Note that the first three sampling-estimation pairs aim directly to estimate prevalence of hidden group within broader population, while the rest of the methods estimate size of the hidden group that can be transformed into a prevalence estimate under the assumption that there is no uncertainty about the size of the population within which the prevalence is being estimated.
 
 | Sampling                       | Estimation                                                                                                                                                  | Method references                             | [R] Package                                                                                   |
 |----------------|-------------------------|----------------|----------------|
@@ -44,7 +44,7 @@ For each of the studies we are aiming to analyze all possible sampling-estimatio
 
 : Sampling-estimation pairs
 
-In the meta-analysis part we focus on comparison of prevalence estimates produced by all the methods listed in the table. The sampling and estimation methods marked with `*` in the table indicate need for additional data or special type of sampling required for corresponding method. Specifically, estimation using *TLS-RECAP* requires recapture data to be collected beyond standard NSUM and direct indicators. *RDS-MULTIPLIER* estimation requires data from a provider of a service that is likely to be used by hidden group of interest as well as direct questions about that service use asked from hidden group members in RDS sample. Finally *LTS-LINK* estimation requires a special type of RDS sample, Link-Tracing Sample, with more initial seeds but less waves and collection of data on recaptures in RDS network.
+In the meta-analysis section, we focus on comparison of prevalence estimates produced by all the methods listed in the table. The sampling and estimation methods marked with `*` in the table indicate a need for additional data or a special type of sampling required for corresponding method. Specifically, estimation using *TLS-RECAP* requires recapture data to be collected beyond standard NSUM and direct indicators. *RDS-MULTIPLIER* estimation requires data from a provider of a service that is likely to be used by hidden group of interest as well as direct questions about that service use asked from hidden group members in RDS sample. Finally *LTS-LINK* estimation requires a special type of RDS sample, Link-Tracing Sample, with more initial seeds but less waves and collection of data on recaptures in RDS network.
 
 ## Meta level {#sec-estimation-meta}
 

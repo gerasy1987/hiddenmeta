@@ -23,6 +23,9 @@ knitr::opts_chunk$set(
 
 library(knitr)
 library(magrittr)
+library(future)
+
+options(parallelly.fork.enable = TRUE)
 
 ```
 
@@ -456,37 +459,11 @@ draw_estimates(study1) |>
 
 ```{r study_simulate, warning = FALSE, eval=FALSE}
 
-future::plan(future::multisession, workers = parallel::detectCores() - 1)
-
-# Workload ---------------------------------------------------------------
-ids <- seq_len(100)
-
-study1_simulations <- future.apply::future_lapply(
-  X = ids,
-  FUN = function(x) {
-    # Run one simulation and tag it
-    out <- try(
-      suppressWarnings(
-        DeclareDesign::simulate_design(study1, sims = 1) |>
-          dplyr::mutate(sim_ID = x)
-      ),
-      silent = TRUE
-    )
-
-    if (inherits(out, "try-error")) return(NULL)
-    # Ensure a plain data.frame if needed
-    as.data.frame(out)
-  },
-  future.seed       = 872312,  # reproducible independent streams
-  future.packages   = c("DeclareDesign", "dplyr", "hiddenmeta", "rstan"),
-  future.globals    = list(study1 = study1),
-  future.scheduling = 1      # 1 = coarse chunks; good when each task is sizable
-  # Tip: for *many* tiny tasks, try a number >1 (e.g., 4) to increase chunking.
-)
+future::plan(future::multicore, workers = parallel::detectCores() - 1)
 
 study1_simulations <- 
-  study1_simulations[sapply(study1_simulations, function(x) class(x) == "data.frame")] |>
-  dplyr::bind_rows()
+  DeclareDesign::simulate_design(study1, sims = 100, future.seed = 20251113)
+
 
 saveRDS(study1_simulations, here::here("inst/extdata/study1_sim.rds"))
 
@@ -845,39 +822,10 @@ multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimat
 
 ```{r multi_study_simulate, eval=FALSE}
 
-# multi_simulations <- simulate_design(multi_study, sims = 2)
-
-future::plan(future::multisession, workers = parallel::detectCores() - 1)
-
-# Workload ---------------------------------------------------------------
-ids <- seq_len(100)
-
-multi_simulations <- future.apply::future_lapply(
-  X = ids,
-  FUN = function(x) {
-    # Run one simulation and tag it
-    out <- try(
-      suppressWarnings(
-        DeclareDesign::simulate_design(multi_study, sims = 1) |>
-          dplyr::mutate(sim_ID = x)
-      ),
-      silent = TRUE
-    )
-
-    if (inherits(out, "try-error")) return(NULL)
-    # Ensure a plain data.frame if needed
-    as.data.frame(out)
-  },
-  future.seed       = 872312,  # reproducible independent streams
-  future.packages   = c("DeclareDesign", "dplyr", "hiddenmeta", "rstan"),
-  future.globals    = list(multi_study = multi_study),
-  future.scheduling = 1      # 1 = coarse chunks; good when each task is sizable
-  # Tip: for *many* tiny tasks, try a number >1 (e.g., 4) to increase chunking.
-)
+future::plan(future::multicore, workers = parallel::detectCores() - 1)
 
 multi_simulations <- 
-  multi_simulations[sapply(multi_simulations, function(x) class(x) == "data.frame")] |>
-  dplyr::bind_rows()
+  DeclareDesign::simulate_design(multi_study, sims = 100, future.seed = 20251113)
 
 saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim.rds"))
 
@@ -889,10 +837,10 @@ multi_simulations <-
   readRDS(system.file("extdata", "multi_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = multi_simulations, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>% 
+                diagnosands = study_diagnosands) |>
+  reshape_diagnosis(digits = 2) |>
+  dplyr::select(-'Design') |>
+  dplyr::filter(`Mean Estimate` != "NA") |> 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
@@ -956,37 +904,10 @@ meta_study <- meta_population + meta_inquiry + meta_sample + meta_estimator
 
 ```{r meta_study_simulate, eval=FALSE}
 
-future::plan(future::multisession, workers = parallel::detectCores() - 1)
-
-# Workload ---------------------------------------------------------------
-ids <- seq_len(100)
-
-meta_simulations <- future.apply::future_lapply(
-  X = ids,
-  FUN = function(x) {
-    # Run one simulation and tag it
-    out <- try(
-      suppressWarnings(
-        DeclareDesign::simulate_design(meta_study, sims = 1) |>
-          dplyr::mutate(sim_ID = x)
-      ),
-      silent = TRUE
-    )
-
-    if (inherits(out, "try-error")) return(NULL)
-    # Ensure a plain data.frame if needed
-    as.data.frame(out)
-  },
-  future.seed       = 872312,  # reproducible independent streams
-  future.packages   = c("DeclareDesign", "dplyr", "hiddenmeta", "rstan"),
-  future.globals    = list(multi_study = multi_study),
-  future.scheduling = 1      # 1 = coarse chunks; good when each task is sizable
-  # Tip: for *many* tiny tasks, try a number >1 (e.g., 4) to increase chunking.
-)
+future::plan(future::multicore, workers = parallel::detectCores() - 1)
 
 meta_simulations <- 
-  multi_simulations[sapply(meta_simulations, function(x) class(x) == "data.frame")] |>
-  dplyr::bind_rows()
+  DeclareDesign::simulate_design(meta_study, sims = 100, future.seed = 20251113)
 
 saveRDS(meta_simulations, file = here::here("inst/extdata/meta_sim.rds"))
 
@@ -998,10 +919,10 @@ meta_simulations <-
   readRDS(system.file("extdata", "meta_sim.rds", package = "hiddenmeta"))
 
 diagnose_design(simulations_df = meta_simulations, 
-                diagnosands = study_diagnosands) %>% 
-  reshape_diagnosis(digits = 2) %>%
-  dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>% 
+                diagnosands = study_diagnosands) |> 
+  reshape_diagnosis(digits = 2) |>
+  dplyr::select(-'Design') |>
+  dplyr::filter(`Mean Estimate` != "NA") |> 
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
 ```
