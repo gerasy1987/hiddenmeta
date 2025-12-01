@@ -26,7 +26,7 @@ get_study_est_sspse <- function(
   prior_mean = .1 * nrow(data),
   n_coupons = 3,
   total = 2000,
-  mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
+  mcmc_params = list(interval = 5, warmup = 2000, samplesize = 500),
   additional_params = list(),
   prefix = "rds",
   label = "sspse"
@@ -50,7 +50,7 @@ get_study_est_sspse <- function(
     )
   }
 
-  # Check 2: Too sparse (>75% zeros or max <= 1)
+  # Check 2: Too sparse (>90% zeros or max <= 1)
   prop_zero <- mean(network_sizes == 0)
   if (prop_zero > 0.90 || max(network_sizes) <= 1) {
     warning(paste0(
@@ -96,7 +96,7 @@ get_study_est_sspse <- function(
             s = network_sizes,
             interval = mcmc_params$interval,
             samplesize = mcmc_params$samplesize,
-            burnin = mcmc_params$burnin,
+            warmup = mcmc_params$warmup,
             mean.prior.size = prior_mean,
             verbose = FALSE,
             K = K_value,
@@ -321,9 +321,6 @@ get_study_est_linktrace <- function(
   prefix = "lts",
   label = "link"
 ) {
-  # Create a copy to avoid modifying original data
-  data <- data.table::copy(data)
-
   varname_map <-
     names(data)[which(grepl(paste0("^", prefix, "\\_"), names(data)))]
 
@@ -339,91 +336,44 @@ get_study_est_linktrace <- function(
     new = names(varname_map)
   )
 
-  # Filter to sample only first, then process
-  data <- data[get(prefix) == 1, ]
-
-  # Check if strata column exists and has no NAs
-  if (!strata %in% names(data)) {
-    stop(paste0("Strata column '", strata, "' not found in data"))
-  }
-
-  if (any(is.na(data[[strata]]))) {
-    warning(paste0(
-      "NAs found in strata column '",
-      strata,
-      "'. Removing affected rows."
-    ))
-    data <- data[!is.na(get(strata)), ]
-  }
-
-  # Create strata_id and ensure it's valid
-  data[, strata_id := as.numeric(factor(get(strata)))]
-
-  # Ensure name column exists and is valid
-  if (!"name" %in% names(data)) {
-    stop("'name' column not found in data")
-  }
-
-  # Create sequential IDs for the sample
-  data[, sample_id := 1:.N]
-
-  # Map the _from variable
-  if ("_from" %in% names(data)) {
-    # Create mapping from original names to sample IDs
-    name_to_id <- setNames(data$sample_id, data$name)
-
-    data[,
-      `_from` := ifelse(
-        `_from` == -999,
-        NA,
-        name_to_id[as.character(`_from`)]
+  # switch node names to sample only
+  data <-
+    data[
+      get(prefix) == 1,
+    ][,
+      c("_from", "name", "strata_id") := list(
+        plyr::mapvalues(
+          `_from`,
+          from = c(-999, as.numeric(name)),
+          to = c(NA, 1:.N),
+          warn_missing = F
+        ),
+        plyr::mapvalues(
+          as.numeric(name),
+          from = as.numeric(name),
+          to = 1:.N,
+          warn_missing = F
+        ),
+        as.numeric(factor(get(strata)))
       )
     ]
-  } else {
-    stop("'_from' column not found after renaming")
-  }
-
-  # Build graph only from valid edges
-  valid_edges <- data[
-    !is.na(`_from`) & !is.na(sample_id),
-    .(`_from`, sample_id)
-  ]
-
-  if (nrow(valid_edges) == 0) {
-    warning("No valid edges found in link-tracing sample")
-    return(data.frame(
-      estimator = paste0("hidden_size_", label),
-      estimate = NA,
-      se = NA,
-      inquiry = "hidden_size"
-    ))
-  }
 
   .samp_graph <-
     igraph::graph_from_data_frame(
-      valid_edges,
-      vertices = data$sample_id,
+      data[!is.na(name) & !is.na(`_from`), .(`_from`, name)],
+      vertices = data$name,
       directed = FALSE
     )
 
-  # Get adjacency list
-  adj_list <- igraph::as_adj_list(.samp_graph)
+  # add network data for RDS sample
+  data <-
+    igraph::as_adj_list(.samp_graph) %>%
+    lapply(function(i) as.numeric(i$name)) %>%
+    data.table::data.table(name = data$name, links_list = .) %>%
+    data[., on = "name"]
 
-  # Convert to numeric list of links
-  data[,
-    links_list := lapply(sample_id, function(id) {
-      if (id %in% names(adj_list)) {
-        as.numeric(names(adj_list[[as.character(id)]]))
-      } else {
-        numeric(0)
-      }
-    })
-  ]
-
-  # Get adjacency matrix
   y_samp <- as.matrix(igraph::as_adjacency_matrix(.samp_graph))
 
-  # Set up strata information
   n_strata <- length(unique(data$strata_id))
 
   if (length(priors$p_l) == 1) {
@@ -436,99 +386,10 @@ get_study_est_linktrace <- function(
     )
   }
 
-  # Check for wave variable
-  if (!"_wave" %in% names(data)) {
-    stop("'_wave' column not found after renaming")
-  }
-
-  if (any(is.na(data$`_wave`))) {
-    stop("NAs found in wave variable")
-  }
-
-  # DIAGNOSTIC OUTPUT - Print everything being passed to C++
-  cat("\n=== DIAGNOSTIC INFO ===\n")
-  cat("Sample size (n):", nrow(data), "\n")
-  cat("Number of strata:", n_strata, "\n")
-  cat("Strata IDs:", paste(unique(data$strata_id), collapse = ", "), "\n")
-  cat(
-    "Strata distribution:",
-    paste(table(data$strata_id), collapse = ", "),
-    "\n"
-  )
-  cat("Wave range:", min(data$`_wave`), "to", max(data$`_wave`), "\n")
-  cat("Number of waves:", max(data$`_wave`), "\n")
-  cat("Total population:", total, "\n")
-  cat("Chain samples:", gibbs_params$chain_samples, "\n")
-  cat("Chain burnin:", gibbs_params$chain_burnin, "\n")
-  cat("Number of samples:", gibbs_params$n_samples, "\n")
-  cat("\nPriors:\n")
-  cat("  p_n:", priors$p_n, "\n")
-  cat("  p_l:", paste(priors$p_l, collapse = ", "), "\n")
-  cat("  p_b:", priors$p_b, "\n")
-  cat("\nInitial values:\n")
-  cat("  n_0:", total, "\n")
-  cat("  l_0:", paste(rep(1 / n_strata, n_strata), collapse = ", "), "\n")
-  cat("  b_0 dimensions:", n_strata, "x", n_strata, "\n")
-  cat("\nData structure checks:\n")
-  cat(
-    "  Any NA in links_list:",
-    any(sapply(data$links_list, function(x) any(is.na(x)))),
-    "\n"
-  )
-  cat("  Any NA in wave:", any(is.na(data$`_wave`)), "\n")
-  cat("  Any NA in sample_id:", any(is.na(data$sample_id)), "\n")
-  cat("  Any NA in strata_id:", any(is.na(data$strata_id)), "\n")
-  cat("  Dimensions of y_samp:", paste(dim(y_samp), collapse = " x "), "\n")
-  cat("  Any NA in y_samp:", any(is.na(y_samp)), "\n")
-
-  # Check if any links point to non-existent nodes
-  all_links <- unlist(data$links_list)
-  if (length(all_links) > 0) {
-    cat("  Link range:", min(all_links), "to", max(all_links), "\n")
-    cat(
-      "  Links outside sample range:",
-      any(all_links < 1 | all_links > nrow(data)),
-      "\n"
-    )
-  }
-
-  # Check the ratio of sample to total
-  cat("\nSample to total ratio:", round(nrow(data) / total, 3), "\n")
-
-  cat("======================\n\n")
-
-  # Save inputs for inspection
-  debug_data <- list(
+  res <- hiddenmeta:::lt_gibbs_cpp(
     links_list = data$links_list,
     wave = data$`_wave`,
-    name = data$sample_id,
-    y_samp = y_samp,
-    strata = data$strata_id,
-    n_strata = n_strata,
-    n_waves = max(data$`_wave`),
-    total = total,
-    chain_samples = gibbs_params$chain_samples,
-    chain_burnin = gibbs_params$chain_burnin,
-    prior_n = priors$p_n,
-    prior_l = priors$p_l,
-    prior_b = priors$p_b,
-    n_0 = total,
-    l_0 = rep(1 / n_strata, n_strata),
-    b_0 = matrix(rep(0.1, n_strata * n_strata), n_strata, n_strata),
-    n_samples = gibbs_params$n_samples,
-    progress = progress
-  )
-
-  # Save to temp file for inspection
-  temp_file <- tempfile(fileext = ".rds")
-  saveRDS(debug_data, temp_file)
-  cat("Debug data saved to:", temp_file, "\n\n")
-
-  # Call C++ function
-  res <- lt_gibbs_cpp(
-    links_list = data$links_list,
-    wave = data$`_wave`,
-    name = data$sample_id,
+    name = data$name,
     y_samp = y_samp,
     strata = data$strata_id,
     n_strata = n_strata,
