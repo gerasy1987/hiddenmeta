@@ -70,9 +70,6 @@ get_study_est_sspse <- function(
     )
   }
 
-  # Calculate K with minimum of 2 (need at least 2 for cutabove to work)
-  K_value <- max(2, round(stats::quantile(network_sizes, 0.80)))
-
   # Check 3: Verify we have variation
   if (length(unique(network_sizes)) < 3) {
     warning("Insufficient variation in network sizes. Returning NA.")
@@ -99,7 +96,7 @@ get_study_est_sspse <- function(
             warmup = mcmc_params$warmup,
             mean.prior.size = prior_mean,
             verbose = FALSE,
-            K = K_value,
+            K = round(stats::quantile(network_sizes, 0.80)),
             max.coupons = n_coupons
           ),
           additional_params
@@ -528,56 +525,122 @@ get_study_est_nsum <- function(
   )
 }
 
-#' Generalized NSUM estimator
+#' Generalized NSUM estimator (Feehan & Salganik 2016)
 #'
 #' @param data pass-through population data frame
+#' @param hidden_var character vector containing names of hidden groups
+#' @param known_vars character vector containing names of known groups (for reference)
+#' @param total integer giving total size of population
+#' @param prefix character prefix used for sample variables
 #' @param label character string describing the estimator
+#' @param weight_var character string giving name of the sampling weights variable
+#' @param survey_design a formula describing the design of the survey
+#' @param n_boot integer giving number of bootstrap re-samples
+#' @param parallel_boot logical, whether to compute bootstrap samples in parallel
 #'
-#' @keywords internal
+#' @return Data frame of generalized NSUM estimates
+#' @export
 #'
-#' @return Data frame of HT estimates for single study
+#' @references Feehan, Dennis M., and Matthew J. Salganik. "Generalizing the network scale-up method: a new estimator for the size of hidden populations." Sociological Methodology 46.1 (2016): 153-186.
 #'
-get_study_est_gnsum <- function(data, label = "gnsum") {
-  # res$sample.y.F.H <- with(frame.df,
-  #                          sum((y.FH + y.notFH)*
-  #                                sampling.weight))
-  #
-  # res$sample.dbar.F.U <- with(frame.df,
-  #                             sum(d.degree*sampling.weight)/
-  #                               sum(sampling.weight))
-  #
-  # res$sample.d.F.U <- with(frame.df,
-  #                          sum(d.degree*sampling.weight))
-  #
-  # res$sample.dbar.F.F <- with(frame.df,
-  #                             sum((d.FH + d.FnotH)*
-  #                                   sampling.weight)/
-  #                               sum(sampling.weight))
-  #
-  # res$sample.vbar.H.F <- with(hidden.df,
-  #                             sum((v.FnotH + v.FH)*
-  #                                   sampling.weight)/
-  #                               sum(sampling.weight))
-  #
-  # res$sample.basic <- with(res,
-  #                          (sample.y.F.H / sample.d.F.U)*
-  #                            this.N)
-  #
-  # res$sample.adapted <- with(res,
-  #                            sample.y.F.H / sample.dbar.F.F)
-  #
-  # res$sample.generalized <- with(res,
-  #                                sample.y.F.H / sample.vbar.H.F)
+#' @import surveybootstrap
+#' @importFrom magrittr `%>%` `%$%`
+#' @importFrom plyr llply
+get_study_est_gnsum <- function(
+  data,
+  hidden_var = "hidden_visible_out",
+  known_vars = paste0(c("known", paste0("known_", 2:10)), "_visible_out"),
+  total = 1000,
+  prefix = "pps",
+  label = "gnsum",
+  weight_var = "pps_weight",
+  survey_design = ~ pps_cluster + strata(pps_strata),
+  n_boot = 1000,
+  parallel_boot = FALSE
+) {
+  if (parallel_boot) {
+    requireNamespace(c("doParallel", "parallel"))
+    doParallel::registerDoParallel(cores = parallel::detectCores() - 1)
+  }
 
-  return(
-    data.frame(
-      estimator = paste0("hidden_prev_", label),
-      estimate = NA,
-      se = NA,
-      inquiry = "hidden_prev"
+  # ---- Frame sample ----
+  .data_F <- data[get(prefix) == 1, ]
+
+  # Weights
+  if (!is.null(weight_var)) {
+    .w <- .data_F[[weight_var]]
+  } else {
+    .w <- rep(1, nrow(.data_F))
+  }
+
+  # ---- STEP 1: y_{F,H} = weighted total out-reports from frame ----
+  y_F_H <- sum(.data_F[[hidden_var]] * .w, na.rm = TRUE)
+
+  # ---- STEP 2: v̄_{H,F} = mean in-degree (visibility) among hidden members ----
+  visibility_var <- gsub("_out$", "_in", hidden_var)
+
+  .data_H <- data[hidden == 1, ]
+
+  if (!visibility_var %in% names(.data_H)) {
+    stop(
+      "Visibility variable '",
+      visibility_var,
+      "' not found. ",
+      "Simplified gNSUM requires a population-level hidden visibility variable."
     )
+  }
+
+  if (nrow(.data_H) == 0) {
+    warning("No hidden population rows found; returning NA.")
+    v_bar_H_F <- NA
+  } else {
+    v_bar_H_F <- mean(.data_H[[visibility_var]], na.rm = TRUE)
+  }
+
+  # ---- STEP 3: simplified generalized NSUM estimate ----
+  if (is.na(v_bar_H_F) || v_bar_H_F == 0) {
+    N_H_est <- NA
+    prev_est <- NA
+    warning("Cannot compute simplified gNSUM: visibility is zero or NA.")
+  } else {
+    N_H_est <- y_F_H / v_bar_H_F
+    prev_est <- N_H_est / total
+  }
+
+  # ---- STEP 4: Bootstrap SE (resampled frame weights only) ----
+  if (is.na(N_H_est)) {
+    size_se <- NA
+    prev_se <- NA
+  } else {
+    boot_vals <-
+      get_rescaled_boot(
+        data = .data_F,
+        survey_design = survey_design,
+        n_boot = n_boot
+      ) %>%
+      plyr::llply(
+        .fun = function(wgt) {
+          y_F_H_boot <- sum(.data_F[[hidden_var]] * wgt[, 2], na.rm = TRUE)
+          N_H_boot <- y_F_H_boot / v_bar_H_F # visibility held fixed (simulation truth)
+          N_H_boot
+        },
+        .parallel = parallel_boot
+      ) %>%
+      unlist()
+
+    size_se <- sd(boot_vals, na.rm = TRUE)
+    prev_se <- size_se / total
+  }
+
+  # ---- Return ----
+  data.frame(
+    estimator = paste0(c("hidden_size_", "hidden_prev_"), label),
+    estimate = c(N_H_est, prev_est),
+    se = c(size_se, prev_se),
+    inquiry = c("hidden_size", "hidden_prev")
   )
 }
+
 
 #' Service/Object multiplier estimator
 #'
