@@ -1,3 +1,112 @@
+#' Calculate RDS-II (Volz-Heckathorn) weights for RDS sample
+#'
+#' @param data data frame containing RDS sample
+#' @param prefix character string giving prefix for RDS variables
+#' @param degree_var character string giving name of degree variable. If NULL, calculated from links_list
+#' @param hidden_var character string specifying hidden variable name
+#' @param weight_type character string specifying type of RDS weight: "RDS-II" (Volz-Heckathorn 2008), "RDS-I" (Salganik-Heckathorn 2004), or "none"
+#'
+#' @return Data frame with added weight column
+#' @export
+#'
+#' @references Volz, Erik, and Douglas D. Heckathorn. "Probability based estimation theory for respondent driven sampling." Journal of official statistics 24.1 (2008): 79.
+#'
+#' @import data.table
+calculate_rds_weights <- function(
+  data,
+  prefix = "rds",
+  degree_var = NULL,
+  hidden_var = NULL,
+  weight_type = c("RDS-II", "RDS-I", "none")
+) {
+  weight_type <- match.arg(weight_type)
+
+  if (weight_type == "none") {
+    data[, paste0(prefix, "_weight") := 1]
+    return(data)
+  }
+
+  .data <- data.table::copy(data)
+
+  # Filter to RDS sample only
+  .data <- .data[get(prefix) == 1]
+
+  # Calculate degree if not provided
+  if (is.null(degree_var)) {
+    if ("links_list" %in% names(.data)) {
+      .data[, degree := sapply(links_list, length)]
+    } else if ("links" %in% names(.data)) {
+      .data[, links_list := hiddenmeta:::retrieve_adjlist(links)]
+      .data[, degree := sapply(links_list, length)]
+    } else {
+      stop(
+        "Cannot calculate degree: no degree_var, links_list, or links column found"
+      )
+    }
+  } else {
+    .data[, degree := get(degree_var)]
+  }
+
+  # Handle zero degrees (isolates shouldn't be in RDS sample, but just in case)
+  .data[degree == 0, degree := 1]
+
+  if (weight_type == "RDS-I") {
+    # RDS-I: Simple inverse probability weighting by degree
+    # Weight is inversely proportional to degree
+    .data[, rds_weight := 1 / degree]
+    .data[, rds_weight := rds_weight / sum(rds_weight) * .N] # Normalize to sum to n
+  } else if (weight_type == "RDS-II") {
+    # RDS-II (Volz-Heckathorn): More sophisticated weighting
+    # Accounts for network structure and sampling process
+
+    # Get recruiter information
+    from_var <- paste0(prefix, "_from")
+
+    if (!from_var %in% names(.data)) {
+      stop(paste0("Cannot find recruiter variable: ", from_var))
+    }
+
+    # Calculate recruiter's degree
+    .data[, recruiter_degree := degree[match(get(from_var), name)]]
+
+    # Seeds have no recruiter
+    .data[get(from_var) == -999, recruiter_degree := NA]
+
+    # Number of recruitments made by each person
+    recruitment_counts <- .data[, .N, by = get(from_var)]
+    data.table::setnames(recruitment_counts, "get", "from_id")
+    data.table::setnames(recruitment_counts, "N", "n_recruited")
+
+    # Merge recruitment counts
+    .data <- .data[
+      recruitment_counts,
+      on = c("name" = "from_id"),
+      n_recruited := i.n_recruited
+    ]
+
+    # Seeds have 0 recruitments initially, update if they recruited
+    .data[is.na(n_recruited), n_recruited := 0]
+
+    # RDS-II weight formula:
+    # w_i = degree_i (normalized)
+    # Then normalized to sum to sample size
+
+    .data[, rds_weight := degree]
+
+    # Normalize weights to sum to sample size
+    .data[, rds_weight := rds_weight / sum(rds_weight, na.rm = TRUE) * .N]
+  }
+
+  # Merge weights back to original data
+  weight_col <- paste0(prefix, "_weight")
+  data[.data[, .(name, rds_weight)], on = "name", (weight_col) := i.rds_weight]
+
+  # Set weight to 0 for non-sampled units
+  data[is.na(get(weight_col)), (weight_col) := 0]
+
+  return(data)
+}
+
 #' Draw respondent-driven sample (RDS) or link-tracing (LTS) sample from single study using data.table
 #'
 #' Sampling handler for drawing RDS sample with given characteristics from individual study population
@@ -14,6 +123,7 @@
 #' @param add_seeds numeric indicating how many seeds to add at a time if target sample size is not reached with initial seeds. Additional seeds are randomly drawn from non-sampled hidden population members. Defaults to \code{NULL} that does not allow adding seeds.
 #' @param arrival_rate numeric rate of respondent arrival per interval of time (e.g. per hour or day). Defaults to \code{5}.
 #' @param drop_nonsampled logical indicating whether to drop units that are not sampled. Defaults to \code{FALSE}.
+#' @param weight_type character string specifying weighting procedure to be used (if any). \code{"RDS-I"} is the Salganik-Heckathorn (2004) weighting procedure, while \code{"RDS-II"} is the Volz-Heckathorn (2008) weighting procedure. Defaults to \code{"none"}.
 #'
 #' @return Population or sample data frame for single study with RDS sample characteristics added
 #'  \describe{
@@ -31,60 +141,78 @@
 #' @importFrom magrittr `%>%` `%$%`
 #' @importFrom stats rpois
 sample_rds <-
-  function(data,
-           sample_label = "lts",
-           hidden_var,
-           sampling_frame = hidden_var,
-           n_coupons,
-           target_type = c("sample", "waves"),
-           target_n_rds,
-           n_seed,
-           n_waves = NULL,
-           add_seeds = NULL,
-           arrival_rate = 5,
-           drop_nonsampled = FALSE) {
-
+  function(
+    data,
+    sample_label = "lts",
+    hidden_var,
+    sampling_frame = hidden_var,
+    n_coupons,
+    target_type = c("sample", "waves"),
+    target_n_rds,
+    n_seed,
+    n_waves = NULL,
+    add_seeds = NULL,
+    arrival_rate = 5,
+    drop_nonsampled = FALSE,
+    weight_type = c("none", "RDS-I", "RDS-II")
+  ) {
     target_type <- match.arg(target_type)
+    weight_type <- match.arg(weight_type)
 
     .data <- data.table::copy(data)
 
     # remove ::: later
-    .data[, links_list := retrieve_adjlist(links)]
+    .data[, links_list := hiddenmeta:::retrieve_adjlist(links)]
 
     if (sampling_frame != hidden_var) {
       hidden_old <- .data[, paste0(c("p_visible_", ""), ..hidden_var)]
-      .data[
-        , (paste0("p_visible_", hidden_var)) :=
-          data.table::fifelse(get(hidden_var) == 1,
-                              get(paste0("p_visible_", hidden_var)),
-                              1)]
+      .data[,
+        (paste0("p_visible_", hidden_var)) := data.table::fifelse(
+          get(hidden_var) == 1,
+          get(paste0("p_visible_", hidden_var)),
+          1
+        )
+      ]
       if (sampling_frame == "all") {
-        .data[,hidden_var] <- 1
-      } else if (is.character(sampling_frame) & length(sampling_frame == 1))
-        .data[,hidden_var] <- .data[,sampling_frame]
-      else
-        stop("Sasmpling frame indicator is incorrectly specified in \"sampling_frame\" argument")
+        .data[, hidden_var] <- 1
+      } else if (is.character(sampling_frame) & length(sampling_frame == 1)) {
+        .data[, hidden_var] <- .data[, sampling_frame]
+      } else {
+        stop(
+          "Sasmpling frame indicator is incorrectly specified in \"sampling_frame\" argument"
+        )
+      }
     }
 
-    if (length(n_seed) != length(target_n_rds))
-      stop("Number of requested samples (\"target_n_rds\") does not match number of requested
-           seeds (\"n_seed\").")
+    if (length(n_seed) != length(target_n_rds)) {
+      stop(
+        "Number of requested samples (\"target_n_rds\") does not match number of requested
+           seeds (\"n_seed\")."
+      )
+    }
 
-    if (length(n_waves) == 1 & length(target_n_rds) > 1)
+    if (length(n_waves) == 1 & length(target_n_rds) > 1) {
       n_waves <- rep(n_waves, times = length(target_n_rds))
+    }
 
     # multiple lts samples for link-tracing
     for (i in seq_along(target_n_rds)) {
-
       .arrival_time <-
-        do.call(c, mapply(
-          FUN = rep,
-          x = 1:ceiling(2 * target_n_rds[i] / arrival_rate),
-          times = stats::rpois(n = ceiling(2 * target_n_rds[i] / arrival_rate),
-                               lambda = arrival_rate),
-          SIMPLIFY = FALSE,
-          USE.NAMES = FALSE))[
-            1:nrow(.data[get(hidden_var) == 1])]
+        do.call(
+          c,
+          mapply(
+            FUN = rep,
+            x = 1:ceiling(2 * target_n_rds[i] / arrival_rate),
+            times = stats::rpois(
+              n = ceiling(2 * target_n_rds[i] / arrival_rate),
+              lambda = arrival_rate
+            ),
+            SIMPLIFY = FALSE,
+            USE.NAMES = FALSE
+          )
+        )[
+          1:nrow(.data[get(hidden_var) == 1])
+        ]
 
       if (nrow(.data[get(hidden_var) == 1]) <= n_seed[i]) {
         .seeds <- .data[get(hidden_var) == 1][["name"]]
@@ -95,11 +223,17 @@ sample_rds <-
             x = .data[get(hidden_var) == 1][["name"]],
             # select only prescribed number of subjects
             size = n_seed[i],
-            prob = .data[get(hidden_var) == 1][[paste0("p_visible_", hidden_var)]],
-            replace = FALSE)
+            prob = .data[get(hidden_var) == 1][[paste0(
+              "p_visible_",
+              hidden_var
+            )]],
+            replace = FALSE
+          )
       }
 
-      if (is.infinite(n_coupons)) n_coupons <- max(sapply(.data$links_list, length))
+      if (is.infinite(n_coupons)) {
+        n_coupons <- max(sapply(.data$links_list, length))
+      }
 
       # at t=1 only seeds are sampled
       .sampled <-
@@ -107,15 +241,16 @@ sample_rds <-
           name = .seeds,
           from = -999,
           t = .arrival_time[1:length(.seeds)],
-          wave = 1)[
-            , (hidden_var) := .data[name %in% .seeds][[hidden_var]]
-          ][
-            , own_coupon := .I
-          ][
-            , paste0("coupon_", 1:n_coupons) :=
-              lapply(1:n_coupons, function(x) paste0(own_coupon, "-", x))
-          ]
-
+          wave = 1
+        )[,
+          (hidden_var) := .data[name %in% .seeds][[hidden_var]]
+        ][,
+          own_coupon := .I
+        ][,
+          paste0("coupon_", 1:n_coupons) := lapply(1:n_coupons, function(x) {
+            paste0(own_coupon, "-", x)
+          })
+        ]
 
       # n_coupons of their links (not just in hidden pop) are eligible
       .eligible <-
@@ -123,66 +258,71 @@ sample_rds <-
           # sample from each seed links
           lapply(
             .seeds,
-            function(x){
-
+            function(x) {
               # presume that only hidden population links can be sampled
               .available_links <-
                 .data[
-                  name %in% .data[name == x, links_list][[1]] &
+                  name %in%
+                    .data[name == x, links_list][[1]] &
                     (get(hidden_var) == 1)
                 ][["name"]]
               # remove ::: later
-              get_new_eligible(sampled_df = .sampled,
-                                            to = .available_links,
-                                            parent = x,
-                                            coup = n_coupons)
+              hiddenmeta:::get_new_eligible(
+                sampled_df = .sampled,
+                to = .available_links,
+                parent = x,
+                coup = n_coupons
+              )
             }
           )
         )
 
       # join in eligible showup rates
       .eligible <-
-        .eligible[
-          , c(lapply(.SD, function(x) x[sample(.N)[1]]), list(w = .N))
-          , by = to
+        .eligible[,
+          c(lapply(.SD, function(x) x[sample(.N)[1]]), list(w = .N)),
+          by = to
         ][
-          .data[, c("name", paste0(c("p_visible_", ""), ..hidden_var))]
-          , on = .(to = name),
-          paste0(c("p_visible_", ""), hidden_var) :=
-            mget(paste0("i.", paste0(c("p_visible_", ""), ..hidden_var)))
+          .data[, c("name", paste0(c("p_visible_", ""), ..hidden_var))],
+          on = .(to = name),
+          paste0(c("p_visible_", ""), hidden_var) := mget(paste0(
+            "i.",
+            paste0(c("p_visible_", ""), ..hidden_var)
+          ))
         ][
           # drop those who won't show up and those who were already sampled
           # also record wave - number of links from seed
           # Q: do we exclude non-members of hidden population?
-          , `:=`(
-            showup = rbinom(n = .N,size = 1,
-                            prob = 1 - (1 - get(paste0("p_visible_", ..hidden_var)))^w ),
+          ,
+          `:=`(
+            showup = rbinom(
+              n = .N,
+              size = 1,
+              prob = 1 - (1 - get(paste0("p_visible_", ..hidden_var)))^w
+            ),
             wave = 2,
-            w = w/sum(w))
+            w = w / sum(w)
+          )
         ][
           showup == 1 & !(to %in% .sampled$name),
           c("from", "to", "wave", ..hidden_var, "own_coupon", "w")
         ]
 
-
-
       # Next, run the loop with the same procedure
       .t <- (length(.seeds) + 1)
 
       repeat {
-
         # if ran out of links add seeds at random from those not sampled
         # this also allows for adding links if initial seeds have no connections
         if (nrow(.eligible) == 0) {
           if (is.numeric(add_seeds)) {
-
             # get nodes that were not sampled yet
             .nonsampled <-
               setdiff(.data[get(hidden_var) == 1][["name"]], .sampled$name)
 
-            if (length(.nonsampled) == 0) break
-            else {
-
+            if (length(.nonsampled) == 0) {
+              break
+            } else {
               # check whether we have enough remaining seeds
               # to sample according to add_seeds
               .new_seeds <- min(length(.nonsampled), add_seeds)
@@ -192,9 +332,12 @@ sample_rds <-
                 sample(
                   x = .nonsampled,
                   size = .new_seeds,
-                  prob =
-                    .data[name %in% .nonsampled][[paste0("p_visible_", hidden_var)]],
-                  replace = FALSE)
+                  prob = .data[name %in% .nonsampled][[paste0(
+                    "p_visible_",
+                    hidden_var
+                  )]],
+                  replace = FALSE
+                )
 
               .eligible <-
                 data.table::as.data.table(
@@ -203,17 +346,23 @@ sample_rds <-
                       rep(-999, times = length(.new_seeds)),
                       .new_seeds,
                       rep(1, times = length(.new_seeds)),
-                      .data[name %in% .new_seeds,][[hidden_var]],
-                      as.character((n_seed[i] + 1):(n_seed[i] + length(.new_seeds)))
+                      .data[name %in% .new_seeds, ][[hidden_var]],
+                      as.character(
+                        (n_seed[i] + 1):(n_seed[i] + length(.new_seeds))
+                      )
                     ),
-                    c("from", "to", "wave", hidden_var, "own_coupon")))[
-                      , w := 1/.N
-                    ]
+                    c("from", "to", "wave", hidden_var, "own_coupon")
+                  )
+                )[,
+                  w := 1 / .N
+                ]
 
               # update number of seeds
               n_seed[i] <- n_seed[i] + length(.new_seeds)
             }
-          } else break
+          } else {
+            break
+          }
         }
 
         # # if ran out of links and waves are target - break
@@ -232,93 +381,148 @@ sample_rds <-
               from = .new$from,
               t = .arrival_time[.t],
               wave = .new$wave,
-              own_coupon = .new$own_coupon)[
-                , (hidden_var) := .new[[hidden_var]]
-              ][
-                , paste0("coupon_", 1:n_coupons) :=
-                  lapply(1:n_coupons, function(x) paste0(.new$own_coupon, "-", x))
-              ])
+              own_coupon = .new$own_coupon
+            )[,
+              (hidden_var) := .new[[hidden_var]]
+            ][,
+              paste0("coupon_", 1:n_coupons) := lapply(
+                1:n_coupons,
+                function(x) paste0(.new$own_coupon, "-", x)
+              )
+            ]
+          )
 
         .eligible <- .eligible[to != .new$to]
 
-        if ((target_type == "waves") &
-            ifelse(is.null(n_waves), FALSE, (.new$wave == n_waves[i]))) {
+        if (
+          (target_type == "waves") &
+            ifelse(is.null(n_waves), FALSE, (.new$wave == n_waves[i]))
+        ) {
           .available_links <- c()
         } else {
           .available_links <-
-            .data[name %in% .data[name == .new$to][["links_list"]][[1]] &
-                    get(hidden_var) == 1][["name"]]
+            .data[
+              name %in%
+                .data[name == .new$to][["links_list"]][[1]] &
+                get(hidden_var) == 1
+            ][["name"]]
         }
 
         # add new eligible links using the same procedure as above
         .eligible <-
           rbind(
             .eligible,
-            get_new_eligible(
+            hiddenmeta:::get_new_eligible(
               sampled_df = .sampled,
               to = .available_links,
               parent = .new$to,
-              coup = n_coupons)[
-                , c(lapply(.SD, function(x) x[sample(.N)[1]]), list(w = .N))
-                , by = to
-              ][
-                .data[, c("name", paste0(c("p_visible_", ""), ..hidden_var))]
-                , on = .(to = name),
-                paste0(c("p_visible_", ""), hidden_var) :=
-                  mget(paste0("i.", paste0(c("p_visible_", ""), ..hidden_var)))
-              ][
-                , `:=`(
-                  showup = rbinom(n = .N, size = 1,
-                                  prob = 1 - (1 - get(paste0("p_visible_", ..hidden_var)))^w ),
-                  wave = .new$wave + 1,
-                  w = w/sum(w))
-              ][ # drop those who won't show up and those who were already samples
-                showup == 1 & !(to %in% .sampled$name),
-                c("from", "to", "wave", ..hidden_var, "own_coupon", "w")]
+              coup = n_coupons
+            )[,
+              c(lapply(.SD, function(x) x[sample(.N)[1]]), list(w = .N)),
+              by = to
+            ][
+              .data[, c("name", paste0(c("p_visible_", ""), ..hidden_var))],
+              on = .(to = name),
+              paste0(c("p_visible_", ""), hidden_var) := mget(paste0(
+                "i.",
+                paste0(c("p_visible_", ""), ..hidden_var)
+              ))
+            ][,
+              `:=`(
+                showup = rbinom(
+                  n = .N,
+                  size = 1,
+                  prob = 1 - (1 - get(paste0("p_visible_", ..hidden_var)))^w
+                ),
+                wave = .new$wave + 1,
+                w = w / sum(w)
+              )
+            ][
+              # drop those who won't show up and those who were already samples
+              showup == 1 & !(to %in% .sampled$name),
+              c("from", "to", "wave", ..hidden_var, "own_coupon", "w")
+            ]
           )
 
         # break if reached desired sample size (for waves or sample target)
-        if (nrow(.sampled) >= target_n_rds[i]) break
+        if (nrow(.sampled) >= target_n_rds[i]) {
+          break
+        }
 
         .t <- .t + 1
-
       }
 
-      if (length(target_n_rds) == 1)
+      if (length(target_n_rds) == 1) {
         sample_label_temp <- sample_label
-      else
+      } else {
         sample_label_temp <- paste0(sample_label, i)
+      }
 
       data.table::setnames(
         .sampled,
         old = names(.sampled)[-1],
-        new = paste0(sample_label_temp, "_", names(.sampled)[-1]))
+        new = paste0(sample_label_temp, "_", names(.sampled)[-1])
+      )
 
-      .data[
-        , (sample_label_temp) := as.integer(name %in% .sampled$name)
+      .data[,
+        (sample_label_temp) := as.integer(name %in% .sampled$name)
       ][
-        .sampled, on = .(name),
-        names(.sampled)[-which(names(.sampled) == "name")] :=
-          mget(paste0("i.", names(.sampled)[-which(names(.sampled) == "name")]))
+        .sampled,
+        on = .(name),
+        names(.sampled)[-which(names(.sampled) == "name")] := mget(paste0(
+          "i.",
+          names(.sampled)[-which(names(.sampled) == "name")]
+        ))
       ]
-
     }
 
     .data[, links_list := NULL]
 
+    # Calculate RDS weights if requested
+    if (weight_type != "none") {
+      # Need to temporarily restore links_list for weight calculation
+      .data[, links_list := hiddenmeta:::retrieve_adjlist(links)]
+
+      if (length(target_n_rds) == 1) {
+        .data <- calculate_rds_weights(
+          data = .data,
+          prefix = sample_label,
+          degree_var = NULL,
+          hidden_var = hidden_var,
+          weight_type = weight_type
+        )
+      } else {
+        # Calculate weights for each RDS sample separately
+        for (i in seq_along(target_n_rds)) {
+          sample_label_temp <- paste0(sample_label, i)
+          .data <- calculate_rds_weights(
+            data = .data,
+            prefix = sample_label_temp,
+            degree_var = NULL,
+            hidden_var = hidden_var,
+            weight_type = weight_type
+          )
+        }
+      }
+
+      .data[, links_list := NULL]
+    }
+
     # restore hidden variable
-    if (sampling_frame != hidden_var)
+    if (sampling_frame != hidden_var) {
       .data <- .data[, paste0(c("p_visible_", ""), hidden_var) := hidden_old]
+    }
 
     if (drop_nonsampled & length(target_n_rds) == 1) {
       .data <- .data[get(sample_label) == 1]
     } else if (drop_nonsampled) {
       .data <-
-        .data[apply(.data[, paste0(sample_label, 1:length(target_n_rds)), with = FALSE],
-                    1, function(x) any(x == 1))]
+        .data[apply(
+          .data[, paste0(sample_label, 1:length(target_n_rds)), with = FALSE],
+          1,
+          function(x) any(x == 1)
+        )]
     }
 
-
     return(.data)
-
   }
