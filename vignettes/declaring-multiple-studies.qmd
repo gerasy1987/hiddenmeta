@@ -24,7 +24,6 @@ knitr:
 ## Load packages
 
 ```{r setup, include = F}
-
 library(magrittr)
 library(knitr)
 library(tidyverse)
@@ -37,150 +36,369 @@ library(future)
 ## Define studies
 
 ```{r}
-study_1 <- 
+study_1 <-
   list(
-    pop = 
-      list(
-        handler = get_study_population,
-        network_handler = sim_block_network,
-        network_handler_args = 
-          list(N = 5000, K = 3, 
-               prev_K = c(frame = .5, known = .2, hidden = .1), 
-               rho_K = c(.05, .05, .05),
-               p_edge_within = list(frame = c(0.05, 0.05), 
-                                    known = c(0.1, 0.05), 
-                                    hidden = c(0.2, 0.9)),
-               p_edge_between = list(frame = 0.05, 
-                                     known = 0.1, 
-                                     hidden = 0.01),
-               directed = FALSE),
-        
-        group_names = c("frame", "known", "hidden"),
-        
-        # probability of visibility (show-up) for each group
-        p_visible = list(frame = 1, known = 1, hidden = .6),
-        
-        # probability of service utilization in hidden population
-        # for service multiplier
-        
-        add_groups = 
-          list(service_use = "rbinom(.N, 1, 0.25 + hidden * 0.3)",
-               "paste0('loc_', 1:8) := lapply(runif(8, 0.05,.3), function(add) rbinom(.N, 1, 0.1 + hidden * add))",
-               known_2 = 0.1, known_3 = 0.2)
+    pop = list(
+      handler = get_study_population,
+      network_handler = sim_block_network,
+      network_handler_args = list(
+        N = 5000,
+        K = 3,
+        prev_K = c(frame = .5, known = .2, hidden = .1),
+        rho_K = c(.05, .05, .05),
+        p_edge_within = list(
+          frame = c(0.05, 0.05),
+          known = c(0.1, 0.05),
+          hidden = c(0.2, 0.9)
+        ),
+        p_edge_between = list(frame = 0.05, known = 0.1, hidden = 0.01),
+        directed = FALSE
       ),
-    sample = 
-      list(
-        rds = list(handler = sample_rds,
-                   # RDS parameters
-                   sample_label = "rds",
-                   hidden_var = "hidden",
-                   n_seed = 100,
-                   n_coupons = 3,
-                   n_waves = 2,
-                   target_type = "waves",
-                   target_n_rds = 2),
-        pps = list(handler = sample_pps,
-                   sample_label = "pps",
-                   # prop sampling parameters
-                   sampling_frame = "frame",
-                   strata = NULL,
-                   cluster = NULL,
-                   target_n_pps = 800)
-      ),
-    inquiries = list(handler = get_study_estimands,
-                     out_groups = "^known$|^frame$", 
-                     hidden_var = "hidden"),
-    estimators = 
-      list(
-        rds = 
-          list(sspse = list(handler = get_study_est_sspse, 
-                            label = "rds_sspse",
-                            prior_mean = 450,
-                            mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
-                            total = 5000,
-                            prefix = "rds")),
-        pps = 
-          list(
-            ht = list(handler = get_study_est_ht, 
-                      label = "pps_ht"),
-            nsum = list(handler = get_study_est_nsum,
-                        known = c("frame", "known"),
-                        hidden = "hidden_visible_out",
-                        survey_design = ~ pps_cluster + strata(pps_strata),
-                        n_boot = 100,
-                        label = "pps_nsum"))
+
+      group_names = c("frame", "known", "hidden"),
+
+      # probability of visibility (show-up) for each group
+      p_visible = list(frame = 1, known = 1, hidden = .6),
+
+      # probability of service utilization in hidden population
+      # for service multiplier
+
+      add_groups = list(
+        service_use = "rbinom(.N, 1, 0.25)",
+        "paste0('loc_', 1:10) := lapply(rep(.2, times = 10), function(add) rbinom(.N, 1, 0.05 + hidden * add))",
+        target = 0.3,
+        "paste0('known_', 2:10) := lapply(2:10, function(x) rbinom(.N, 1, 0.3))"
       )
+    ),
+    sample = list(
+      rds = list(
+        handler = sample_rds,
+        # RDS parameters
+        sample_label = "rds",
+        hidden_var = "hidden",
+        n_seed = 100,
+        n_coupons = 3,
+        n_waves = 2,
+        target_type = "sample",
+        target_n_rds = 2000,
+        weight_type = "RDS-II"
+      ),
+      pps = list(
+        handler = sample_pps,
+        sample_label = "pps",
+        # prop sampling parameters
+        sampling_frame = "frame",
+        strata = NULL,
+        cluster = NULL,
+        target_n_pps = 800
+      ),
+      tls = list(
+        handler = sample_tls,
+        sample_label = "tls",
+        hidden_var = NULL,
+        # TLS sampling parameters
+        target_n_clusters = 5,
+        target_cluster_type = "fixed",
+        target_per_cluster = 15,
+        clusters = paste0("loc_", 1:10)
+      )
+      # lts = list(
+      #   handler = sample_rds,
+      #   sample_label = "ltsall",
+      #   hidden_var = "hidden",
+      #   n_seed = 50,
+      #   n_coupons = Inf,
+      #   n_waves = 3,
+      #   target_type = "sample",
+      #   target_n_rds = 150,
+      #   sampling_frame = "all"
+      # ),
+      # lts2 = list(
+      #   handler = sample_rds,
+      #   sample_label = "ltsmulti",
+      #   hidden_var = "hidden",
+      #   n_seed = c(15, 15, 15),
+      #   n_coupons = Inf,
+      #   n_waves = NULL,
+      #   target_type = "sample",
+      #   target_n_rds = c(50, 50, 50),
+      #   sampling_frame = "all"
+      # )
+    ),
+    inquiries = list(
+      handler = get_study_estimands,
+      out_groups = "^known$|^frame$",
+      hidden_var = "hidden"
+    ),
+    estimators = list(
+      rds = list(
+        ss = list(
+          # SS gives nonsense answers
+          handler = get_study_est_ss,
+          sampling_frame = "hidden",
+          hidden_var = "target", # estimates prevalence withing RDS
+          n_coupons = 3,
+          # total = 1000,
+          prefix = "rds",
+          label = "rds_ss"
+        ),
+        sspse = list(
+          # SSPSE has NA issues
+          handler = get_study_est_sspse,
+          label = "rds_sspse",
+          prior_mean = 450,
+          mcmc_params = list(interval = 5, warmup = 2000, samplesize = 500),
+          total = 5000,
+          prefix = "rds"
+        ),
+        multiplier = list(
+          handler = get_study_est_multiplier,
+          service_var = "service_use",
+          seed_condition = "rds_from == -999",
+          n_boot = 100,
+          prefix = "rds",
+          label = "rds_multi"
+        )
+      ),
+      tls = list(
+        ht = list(
+          handler = get_study_est_ht,
+          hidden_var = "hidden",
+          weight_var = "tls_weight",
+          survey_design = ~tls_loc_sampled,
+          prefix = "tls",
+          label = "tls_ht"
+        ),
+        nsum = list(
+          handler = get_study_est_nsum,
+          hidden_var = "hidden_visible_out",
+          known_vars = paste0(
+            c("known", paste0("known_", 2:10)),
+            "_visible_out"
+          ),
+          total = 1000,
+          prefix = "tls",
+          label = "tls_nsum",
+          weight_var = "tls_weight",
+          survey_design = ~tls_loc_sampled,
+          n_boot = 1000
+        ),
+        gnsum = list(
+          handler = get_study_est_gnsum,
+          hidden_var = "hidden_visible_out",
+          known_vars = c("frame", "known"),
+          total = 5000,
+          prefix = "tls",
+          label = "tls_gnsum",
+          weight_var = "tls_weight",
+          survey_design = ~tls_loc_sampled,
+          n_boot = 100
+        ),
+        recap = list(
+          handler = get_study_est_recapture,
+          capture_parse = "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
+          # sample_condition = "tls == 1",
+          model = "Mt",
+          hidden_variable = "hidden",
+          label = "tls_recap"
+        ),
+        mse = list(
+          handler = get_study_est_mse,
+          n_boot = 100,
+          capture_parse = "strsplit(x = unique(na.omit(tls_locs_sampled)), split = ';')[[1]]",
+          # sample_condition = "tls == 1",
+          method = "stepwise",
+          hidden_variable = "hidden",
+          label = "tls_mse"
+        )
+      ),
+      pps = list(
+        ht = list(handler = get_study_est_ht, label = "pps_ht"),
+        nsum = list(
+          handler = get_study_est_nsum,
+          known_vars = c("frame", "known"),
+          hidden = "hidden_visible_out",
+          survey_design = ~ pps_cluster + strata(pps_strata),
+          n_boot = 100,
+          label = "pps_nsum"
+        )
+      )
+      # lts = list(
+      #   link = list(
+      #     handler = get_study_est_linktrace,
+      #     total = 1000,
+      #     strata = "hidden",
+      #     gibbs_params = list(
+      #       n_samples = 5L,
+      #       chain_samples = 250L,
+      #       chain_burnin = 50L
+      #     ),
+      #     priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+      #     prefix = "ltsall",
+      #     label = "link"
+      #   )
+      # )
+    )
   )
 
-study_2 <- 
+study_2 <-
   list(
-    pop = 
-      list(
-        handler = get_study_population,
-        
-        # network structure setup
-        network_handler = sim_block_network,
-        network_handler_args = 
-          list(N = 2000, K = 2, prev_K = c(known = .3, hidden = .1), rho_K = .3,
-               p_edge_within = list(known = c(0.05, 0.1), hidden = c(0.05, 0.7)),
-               p_edge_between = list(known = 0.05, hidden = 0.05),
-               directed = FALSE),
-        
-        # groups
-        group_names = c("known", "hidden"),
-        
-        # probability of visibility (show-up) for each group
-        p_visible = list(known = 1, hidden = .7),
-        
-        # probability of service utilization in hidden population
-        # for service multiplier
-        add_groups = 
-          list(service_use = "rbinom(.N, 1, 0.25 + hidden * 0.05)",
-               "paste0('loc_', 1:8) := lapply(c(.2, .1, .3, .2, .4, .1, .3, .2), function(add) rbinom(.N, 1, 0.1 + hidden * add))",
-               known_2 = 0.1, known_3 = 0.2)
+    pop = list(
+      handler = get_study_population,
+
+      # network structure setup
+      network_handler = sim_block_network,
+      network_handler_args = list(
+        N = 2000,
+        K = 2,
+        prev_K = c(known = .3, hidden = .1),
+        rho_K = .3,
+        p_edge_within = list(known = c(0.05, 0.1), hidden = c(0.05, 0.7)),
+        p_edge_between = list(known = 0.05, hidden = 0.05),
+        directed = FALSE
       ),
-    sample = 
-      list(
-        rds = list(handler = sample_rds,
-                   # RDS parameters
-                   sample_label = "rds",
-                   hidden_var = "hidden", # default
-                   n_seed = 20,
-                   n_coupons = 3,
-                   target_type = "sample",
-                   target_n_rds = 100),
-        pps = list(handler = sample_pps,
-                   sample_label = "pps",
-                   # prop sampling parameters
-                   sampling_frame = NULL,
-                   strata = NULL,
-                   cluster = NULL,
-                   target_n_pps = 400)
-      ),
-    inquiries = list(handler = get_study_estimands,
-                     out_groups = "^known$", 
-                     hidden_var = "hidden"),
-    estimators = 
-      list(
-        rds = 
-          list(sspse = list(handler = get_study_est_sspse,
-                            prior_mean = 200,
-                            mcmc_params = list(interval = 5, burnin = 2000, samplesize = 500),
-                            total = 2000,
-                            prefix = "rds", 
-                            label = "rds_sspse")),
-        pps = 
-          list(ht = list(handler = get_study_est_ht,
-                         prefix = "pps",
-                         label = "pps_ht"),
-               nsum = list(handler = get_study_est_nsum,
-                           known = c("known", "known_2", "known_3"),
-                           hidden = "hidden_visible_out",
-                           survey_design = ~ pps_cluster + strata(pps_strata),
-                           n_boot = 100,
-                           prefix = "pps",
-                           label = "pps_nsum"))
+
+      # groups
+      group_names = c("known", "hidden"),
+
+      # probability of visibility (show-up) for each group
+      p_visible = list(known = 1, hidden = .7),
+
+      # probability of service utilization in hidden population
+      # for service multiplier
+      add_groups = list(
+        service_use = "rbinom(.N, 1, 0.25 + hidden * 0.3)",
+        "paste0('loc_', 1:10) := lapply(runif(10, 0.05,.3), function(add) rbinom(.N, 1, 0.1 + hidden * add))",
+        known_2 = 0.1,
+        known_3 = 0.2
       )
+    ),
+    sample = list(
+      rds = list(
+        handler = sample_rds,
+        # RDS parameters
+        sample_label = "rds",
+        hidden_var = "hidden", # default
+        n_seed = 20,
+        n_coupons = 3,
+        target_type = "sample",
+        target_n_rds = 100,
+        weight_type = "RDS-I"
+      ),
+      tls = list(
+        handler = sample_tls,
+        sample_label = "tls",
+        hidden_var = NULL,
+        # TLS sampling parameters
+        target_n_clusters = 8,
+        target_cluster_type = "fixed",
+        target_per_cluster = 40,
+        clusters = paste0("loc_", 1:10)
+      ),
+      pps = list(
+        handler = sample_pps,
+        sample_label = "pps",
+        # prop sampling parameters
+        sampling_frame = NULL,
+        strata = NULL,
+        cluster = NULL,
+        target_n_pps = 400
+      )
+      # link_trace = list(
+      #   handler = sample_rds,
+      #   sample_label = "link_trace",
+      #   hidden_var = "hidden",
+      #   n_seed = 50,
+      #   n_coupons = 3,
+      #   add_seeds = 0,
+      #   target_type = "sample",
+      #   target_n_rds = 150,
+      #   sampling_frame = "all"
+      # )
+    ),
+    inquiries = list(
+      handler = get_study_estimands,
+      out_groups = "^known$",
+      hidden_var = "hidden"
+    ),
+    estimators = list(
+      rds = list(
+        sspse = list(
+          # SSPSE has NA issues
+          handler = get_study_est_sspse,
+          prior_mean = 200,
+          mcmc_params = list(interval = 5, warmup = 2000, samplesize = 500),
+          total = 2000,
+          prefix = "rds",
+          label = "rds_sspse"
+        ),
+        multiplier = list(
+          handler = get_study_est_multiplier,
+          service_var = "service_use",
+          seed_condition = "rds_from == -999",
+          n_boot = 100,
+          prefix = "rds",
+          label = "rds_multi"
+        )
+      ),
+      tls = list(
+        ht = list(
+          handler = get_study_est_ht,
+          weight_var = "tls_weight",
+          hidden_var = "hidden",
+          survey_design = ~tls_loc_sampled,
+          prefix = "tls",
+          label = "tls_ht"
+        ),
+        nsum = list(
+          handler = get_study_est_nsum,
+          known_vars = paste0(
+            c("known", paste0("known_", 2:3)),
+            "_visible_out"
+          ),
+          hidden = "hidden_visible_out",
+          survey_design = ~tls_loc_sampled,
+          n_boot = 100,
+          prefix = "tls",
+          label = "tls_nsum"
+        ),
+        recap = list(
+          handler = get_study_est_recapture,
+          capture_vars = paste0("loc_", 1:10),
+          sample_condition = "tls == 1",
+          model = "Mt",
+          hidden_variable = "hidden",
+          label = "tls_recap"
+        )
+      ),
+      pps = list(
+        ht = list(handler = get_study_est_ht, prefix = "pps", label = "pps_ht"),
+        nsum = list(
+          handler = get_study_est_nsum,
+          known_vars = c("known", "known_2", "known_3"),
+          hidden = "hidden_visible_out",
+          survey_design = ~ pps_cluster + strata(pps_strata),
+          n_boot = 100,
+          prefix = "pps",
+          label = "pps_nsum"
+        )
+      )
+      # link_trace = list(
+      #   link_trace = list(
+      #     handler = get_study_est_linktrace,
+      #     total = 300,
+      #     strata = "hidden",
+      #     gibbs_params = list(
+      #       n_samples = 5L,
+      #       chain_samples = 250L,
+      #       chain_burnin = 50L
+      #     ),
+      #     priors = list(p_n = 0L, p_l = 0.1, p_b = 1L),
+      #     prefix = "link_trace",
+      #     label = "link_trace"
+      #   )
+      # )
+    )
   )
 
 ```
@@ -188,27 +406,34 @@ study_2 <-
 ## Declare studies
 
 ```{r}
-multi_population <- 
-  declare_population(handler = get_multi_populations, 
-                     study_designs = list(study_1 = study_1,
-                                          study_2 = study_2))
+multi_population <-
+  declare_population(
+    handler = get_multi_populations,
+    study_designs = list(study_1 = study_1, study_2 = study_2)
+  )
 
-multi_sampling <- 
-  declare_sampling(handler = get_multi_samples, 
-                   study_designs = list(study_1 = study_1,
-                                        study_2 = study_2)) 
+multi_sampling <-
+  declare_sampling(
+    handler = get_multi_samples,
+    study_designs = list(study_1 = study_1, study_2 = study_2)
+  )
 
-multi_inquiry <- 
-  declare_inquiry(handler = get_multi_estimands, 
-                  study_designs = list(study_1 = study_1,
-                                       study_2 = study_2)) 
+multi_inquiry <-
+  declare_inquiry(
+    handler = get_multi_estimands,
+    study_designs = list(study_1 = study_1, study_2 = study_2)
+  )
 
 multi_estimators <-
-  declare_estimator(handler = get_multi_estimates,
-                    study_designs = list(study_1 = study_1,
-                                         study_2 = study_2))
+  declare_estimator(
+    handler = get_multi_estimates,
+    study_designs = list(study_1 = study_1, study_2 = study_2)
+  )
 
-multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimators
+multi_study <- multi_population +
+  multi_sampling +
+  multi_inquiry +
+  multi_estimators
 
 ```
 
@@ -216,28 +441,28 @@ multi_study <- multi_population + multi_sampling + multi_inquiry + multi_estimat
 
 ```{r}
 #Prep options for parallelization in DeclareDesign
-options(parallelly.fork.enable = TRUE) 
+options(parallelly.fork.enable = TRUE)
 
 plan(multicore)
 
 multi_simulations = simulate_design(multi_study, sims = 2, future.seed = 872312)
 
-#saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim_v2.rds"))
+saveRDS(multi_simulations, file = here::here("inst/extdata/multi_sim_v2.rds"))
 ```
 
 ## Visualize output of simulated studies
 
 ```{r}
-multi_simulations <- 
+multi_simulations <-
   readRDS(system.file("extdata", "multi_sim_v2.rds", package = "hiddenmeta"))
 
-diagnose_design(simulations_df = multi_simulations, 
-                diagnosands = study_diagnosands) %>% 
+diagnose_design(
+  simulations_df = multi_simulations,
+  diagnosands = study_diagnosands
+) %>%
   reshape_diagnosis(digits = 2) %>%
   dplyr::select(-'Design') %>%
-  dplyr::filter(`Mean Estimate` != "NA") %>% 
+  dplyr::filter(`Mean Estimate` != "NA") %>%
   DT::datatable(options = list(scrollX = TRUE, pageLength = 15))
 
-
 ```
-
